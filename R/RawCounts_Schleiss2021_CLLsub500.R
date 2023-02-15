@@ -1,0 +1,125 @@
+#' @title Human CCL times series raw counts data after stimulation
+#' with and without silencing
+#'
+#' @description
+#' This time series count data (read counts) represents
+#' the temporal transcriptional response of primary human chronic lymphocytic
+#' leukemia (CLL)-cells after B-cell receptor stimulation.
+#' There are 9 time points (before stimulation (0h) and at the time points
+#' 1h, 1h30, 3h30, 6h30, 12h, 24h, 48h and 96h after cell stimulation)
+#' and samples are divided in two groups :
+#' Proliferating (P) and Non Proliferating (NP).
+#' There are also 3 replicates for a time and biological condition.
+#' The original dataset has 25369 genes but we kept only 500 genes
+#' in order to increase the speed of each function in our algorithm.
+#'
+#' @format A data frame with 500 rows (genes) and 55 columns (samples).
+#' The column names are as follow
+#'  \describe{
+#'            \item{Genes}{Symbol gene name.}
+#'            \item{CLL_P_r1_t0}{The sample is the first replica (r1) of the biological condition control (P) at time t0 (0h)}
+#'            \item{CLL_P_r1_t1}{The sample is the first replica (r1) of the biological condition control (P) at time t1 (1h)}
+#'            \item{CLL_P_r1_t2}{The sample is the first replica (r1) of the biological condition control (P) at time t2 (1h30)}
+#'            \item{CLL_P_r1_t3}{The sample is the first replica (r1) of the biological condition control (P) at time t3 (3h30)}
+#'            \item{CLL_P_r1_t4}{The sample is the first replica (r1) of the biological condition control (P) at time t4 (6h30)}
+#'            \item{CLL_P_r1_t5}{The sample is the first replica (r1) of the biological condition control (P) at time t5 (12h)}
+#'            \item{CLL_P_r1_t6}{The sample is the first replica (r1) of the biological condition control (P) at time t6 (24h)}
+#'            \item{CLL_P_r1_t7}{The sample is the first replica (r1) of the biological condition control (P) at time t7 (48h)}
+#'            \item{CLL_P_r1_t8}{The sample is the first replica (r1) of the biological condition control (P) at time t8 (96h)}
+#'            \item{CLL_P_r2_t0}{The sample is the second replica (r2) of the biological condition control (P) at time t0 (0h)}
+#'            \item{CLL_P_r2_t1}{The sample is the second replica (r2) of the biological condition control (P) at time t1 (1h)}
+#'            \item{CLL_P_r2_t2}{The sample is the second replica (r2) of the biological condition control (P) at time t2 (1h30)}
+#'            \item{CLL_P_r2_t3}{The sample is the second replica (r2) of the biological condition control (P) at time t3 (3h30)}
+#'            \item{CLL_P_r2_t4}{The sample is the second replica (r2) of the biological condition control (P) at time t4 (6h30)}
+#'            \item{CLL_P_r2_t5}{The sample is the second replica (r2) of the biological condition control (P) at time t5 (12h)}
+#'            \item{CLL_P_r2_t6}{The sample is the second replica (r2) of the biological condition control (P) at time t6 (24h)}
+#'            \item{CLL_P_r2_t7}{The sample is the second replica (r2) of the biological condition control (P) at time t7 (48h)}
+#'            \item{CLL_P_r2_t8}{The sample is the second replica (r2) of the biological condition control (P) at time t8 (96h)}
+#'            \item{CLL_P_r3_t0}{The sample is the third replica (r3) of the biological condition control (P) at time t0 (0h)}
+#'            \item{CLL_P_r3_t1}{The sample is the third replica (r3) of the biological condition control (P) at time t1 (1h)}
+#'            \item{CLL_P_r3_t2}{The sample is the third replica (r3) of the biological condition control (P) at time t2 (1h30)}
+#'            \item{CLL_P_r3_t3}{The sample is the third replica (r3) of the biological condition control (P) at time t3 (3h30)}
+#'            \item{CLL_P_r3_t4}{The sample is the third replica (r3) of the biological condition control (P) at time t4 (6h30)}
+#'            \item{CLL_P_r3_t5}{The sample is the third replica (r3) of the biological condition control (P) at time t5 (12h)}
+#'            \item{CLL_P_r3_t6}{The sample is the third replica (r3) of the biological condition control (P) at time t6 (24h)}
+#'            \item{CLL_P_r3_t7}{The sample is the third replica (r3) of the biological condition control (P) at time t7 (48h)}
+#'            \item{CLL_P_r3_t8}{The sample is the third replica (r3) of the biological condition control (P) at time t8 (96h)}
+#'            \item{CLL_NP_r4_t0}{The sample is the first replica (r4) of the biological condition control (NP) at time t0 (0h)}
+#'            \item{CLL_NP_r4_t1}{The sample is the first replica (r4) of the biological condition control (NP) at time t1 (1h)}
+#'            \item{CLL_NP_r4_t2}{The sample is the first replica (r4) of the biological condition control (NP) at time t2 (1h30)}
+#'            \item{CLL_NP_r4_t3}{The sample is the first replica (r4) of the biological condition control (NP) at time t3 (3h30)}
+#'            \item{CLL_NP_r4_t4}{The sample is the first replica (r4) of the biological condition control (NP) at time t4 (6h30)}
+#'            \item{CLL_NP_r4_t5}{The sample is the first replica (r4) of the biological condition control (NP) at time t5 (12h)}
+#'            \item{CLL_NP_r4_t6}{The sample is the first replica (r4) of the biological condition control (NP) at time t6 (24h)}
+#'            \item{CLL_NP_r4_t7}{The sample is the first replica (r4) of the biological condition control (NP) at time t7 (48h)}
+#'            \item{CLL_NP_r4_t8}{The sample is the first replica (r4) of the biological condition control (NP) at time t8 (96h)}
+#'            \item{CLL_NP_r5_t0}{The sample is the second replica (r5) of the biological condition control (NP) at time t0 (0h)}
+#'            \item{CLL_NP_r5_t1}{The sample is the second replica (r5) of the biological condition control (NP) at time t1 (1h)}
+#'            \item{CLL_NP_r5_t2}{The sample is the second replica (r5) of the biological condition control (NP) at time t2 (1h30)}
+#'            \item{CLL_NP_r5_t3}{The sample is the second replica (r5) of the biological condition control (NP) at time t3 (3h30)}
+#'            \item{CLL_NP_r5_t4}{The sample is the second replica (r5) of the biological condition control (NP) at time t4 (6h30)}
+#'            \item{CLL_NP_r5_t5}{The sample is the second replica (r5) of the biological condition control (NP) at time t5 (12h)}
+#'            \item{CLL_NP_r5_t6}{The sample is the second replica (r5) of the biological condition control (NP) at time t6 (24h)}
+#'            \item{CLL_NP_r5_t7}{The sample is the second replica (r5) of the biological condition control (NP) at time t7 (48h)}
+#'            \item{CLL_NP_r5_t8}{The sample is the second replica (r5) of the biological condition control (NP) at time t8 (96h)}
+#'            \item{CLL_NP_r6_t0}{The sample is the third replica (r6) of the biological condition control (NP) at time t0 (0h)}
+#'            \item{CLL_NP_r6_t1}{The sample is the third replica (r6) of the biological condition control (NP) at time t1 (1h)}
+#'            \item{CLL_NP_r6_t2}{The sample is the third replica (r6) of the biological condition control (NP) at time t2 (1h30)}
+#'            \item{CLL_NP_r6_t3}{The sample is the third replica (r6) of the biological condition control (NP) at time t3 (3h30)}
+#'            \item{CLL_NP_r6_t4}{The sample is the third replica (r6) of the biological condition control (NP) at time t4 (6h30)}
+#'            \item{CLL_NP_r6_t5}{The sample is the third replica (r6) of the biological condition control (NP) at time t5 (12h)}
+#'            \item{CLL_NP_r6_t6}{The sample is the third replica (r6) of the biological condition control (NP) at time t6 (24h)}
+#'            \item{CLL_NP_r6_t7}{The sample is the third replica (r6) of the biological condition control (NP) at time t7 (48h)}
+#'            \item{CLL_NP_r6_t8}{The sample is the third replica (r6) of the biological condition control (NP) at time t8 (96h)}
+#'  }
+#'
+#' @details
+#' The following is quoted from the GEO series GSE130385 (link in source):
+#'
+#' Summary:
+#' "The B-cell receptor (BCR) signaling is crucial for the pathophysiology
+#' of most leukemias and lymphomas originated from mature B lymphocytes
+#' and has emerged as a new therapeutic target, especially for
+#' chronic lymphocytic leukemia (CLL).
+#' However, the precise mechanisms by which BCR signaling controls
+#' neoplastic B-cell proliferation are ill characterized.
+#' This work was performed using primary leukemic cells of untreated patients
+#' at initial stage of CLL (Binet stage A / Rai 0) presenting biological
+#' characteristics of aggressive form of the disease
+#' (unmutated IGHV genes and ZAP70 protein expression).
+#' In order to mimic the primary leukemogenic step occurring in vivo,
+#' this study focused on the BCR-dependent proliferation of CLL cells
+#' induced ex vivo using anti-IgM, together with mandatory co-stimulating
+#' factors (CD40L, IL-4 and IL-21) (Schleiss, Sci Rep, 2019).
+#' Cell proliferation was objectivized by the emergence of proliferative
+#' clusters and the presence of more than 25% of CLL cells that did undergo
+#' division within the cell culture at day 6.
+#' To capture the specific actors of the proliferative response
+#' in these samples, we also included non-proliferating control CLL samples.
+#' Gene expression was analyzed by RNA-seq before stimulation (T0) and at
+#' the time points 1h, 1h30, 3h30, 6h30, 12h, 24h, 48h and 96h after
+#' cell stimulation (n=54 data points), the latest time points corresponding to
+#' the emergence of the proliferation clusters."
+#'
+#' Overall design:
+#' "Temporal transcriptional response (T0 + 8 time points) of
+#' primary chronic lymphocytic leukemia (CLL) cells after BCR engagement
+#' ex vivo (anti-IgM, IL-4, CD40Ligand and IL-21) of
+#' 3 Proliferating (P1, P2, P3) and
+#' 3 Non Proliferating samples (NP1, NP2, NP3)".
+#'
+#' @source {This dataset comes from Gene Expression Omnibus (GEO)
+#' \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE130385}.
+#' I rewrite the name of the sample in order to be used with my package.}
+#'
+#' @usage data(RawCounts_Schleiss2021_CLLsub500)
+#'
+#' @references
+#' Schleiss C, Carapito R, Fornecker LM, Muller L et al.
+#' 'Temporal multiomic modeling reveals a B-cell receptor proliferative program
+#' in chronic lymphocytic leukemia'.
+#' Leukemia 2021 May;35(5):1463-1474. PMID:33833385. GEO:GSE130385
+#'
+#' @examples
+#' data(RawCounts_Schleiss2021_CLLsub500)
+"RawCounts_Schleiss2021_CLLsub500"
