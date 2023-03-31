@@ -29,6 +29,9 @@
 #' to detect if, among all biological conditions and/or times, at least one has
 #' a different behavior than the others
 #' (see the input \code{test} in [DESeq2::DESeq()]).
+#' @param Plot.DE.graph \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, all graphs will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param path.result Character or \code{NULL}.
 #' If \code{path.result} is a character, it must be a path to a folder,
 #' all graphs will be saved in different sub-folders in \code{path.result}.
@@ -161,6 +164,7 @@
 #'                                 pval.min=0.05,
 #'                                 pval.vect.t=NULL,
 #'                                 log.FC.min=0.1,
+#'                                 Plot.DE.graph=TRUE,
 #'                                 path.result=NULL,
 #'                                 SubFile.name=NULL)
 
@@ -168,6 +172,7 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
                                  LRT.supp.info=TRUE,
                                  log.FC.min,pval.min,
                                  pval.vect.t,
+                                 Plot.DE.graph=TRUE,
                                  path.result,
                                  SubFile.name){
   #---------------------------------------------------------------------------#
@@ -466,7 +471,7 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
         grDevices::dev.off()
       }# if(length(Other.t)>1)
     }else{
-      if(length(Other.t)>1){
+      if(length(Other.t)>1 & Plot.DE.graph==TRUE){
         print(res.allu.g$g.alluvial)
         print(res.allu.g$g.alluvial.freq)
         print(res.VennBarplot$Upset.graph)
@@ -544,8 +549,10 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
     print(res.facet.BC)
     grDevices::dev.off()
   }else{
-    print(res.allu.g1tmin)
-    print(res.facet.BC)
+    if(Plot.DE.graph==TRUE){
+      print(res.allu.g1tmin)
+      print(res.facet.BC)
+    }
   }# if(is.null(path.result)==FALSE)
   #---------------------------------------------------------------------------#
   #---------------------------------------------------------------------------#
@@ -649,7 +656,9 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
         print(G.Upset.t$Upset.global)
         grDevices::dev.off()
       }else{
-        print(G.Upset.t$Upset.global)
+        if(Plot.DE.graph==TRUE){
+          print(G.Upset.t$Upset.global)
+        }
       }# if(is.null(path.result)==FALSE)
     }# for(t in 1:Nb.time)
   }# if(Nb.group>2)
@@ -688,11 +697,13 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
       grDevices::dev.off()
     }# if(Nb.group>2)
   }else{
-    print(res.dodge)
-    if(Nb.group>2){
-      print(res.dodge.spe.sign)
-      print(res.allu.Spe1tmin)
-    }# if(Nb.group>2)
+    if(Plot.DE.graph==TRUE){
+      print(res.dodge)
+      if(Nb.group>2){
+        print(res.dodge.spe.sign)
+        print(res.allu.Spe1tmin)
+      }# if(Nb.group>2)
+    }
   }# if(is.null(path.result)==FALSE)
   #---------------------------------------------------------------------------#
   #---------------------------------------------------------------------------#
@@ -720,47 +731,54 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
   #---------------------------------------------------------------------------#
   # 4.1) Signature Data
   #---------------------------------------------------------------------------#
-  Signature.Mat<-data.frame(matrix(0, nrow=Nb.gene, ncol=Nb.group*Nb.time))
+  Signature.Mat.Sign<-data.frame(matrix(0,nrow=Nb.gene,ncol=Nb.group*Nb.time))
   #
   for(g in seq_len(Nb.group)){# 1:Nb.group
-    for(t in seq_len(Nb.time-1)){# 1:(Nb.time-1)
-      Group.g<-Levels.group[g]
-      t.sel<-grep(paste("_",Group.g,"_",sep=""),
-                  paste(colnames(DE1timeAllg),"_",sep=""),
-                  fixed=TRUE)
-      g.sel<-grep(paste(".",Group.g,"_",sep=""),
-                  colnames(DEspeAllti.not0), fixed=TRUE)
-      #
-      Signature.g.t<-DE1timeAllg[,t.sel]*abs(DEspeAllti.not0[,g.sel])
-      Sum.Signature.g.t<-apply(Signature.g.t,1,sum)
-      #
-      if(max(Sum.Signature.g.t)>1){
-        Sum.Signature.g.t[Sum.Signature.g.t>1]<-1
-      }# if(max(Sum.Signature.g.t)>1)
-      #
-      Signature.Mat[,Nb.group+t.sel]<-Signature.g.t
-      colnames(Signature.Mat)[Nb.group+t.sel]<-paste("Signature.genes_Group.",
-                                                     Group.g, "_Time.t",
-                                                     seq_len(Nb.time-1),sep="")
-    }# for(t in 1:(Nb.time-1))
-    Signature.Mat[,g]<-Sum.Signature.g.t
-    colnames(Signature.Mat)[g]<-paste("Signature.genes_Group.", Group.g,
-                                      "_1time.minimum",sep="")
+    Group.g<-Levels.group[g]
+    # for(t in seq_len(Nb.time-1)){# 1:(Nb.time-1)
+    #   Time.t<-paste("t",Levels.time[t+1],sep="")
+    #   t.sel<-grep(paste(Time.t,"_",sep=""),
+    #               paste(colnames(DE1timeAllg),"_",sep=""),
+    #               fixed=TRUE)
+    # }# for(t in 1:(Nb.time-1))
+    g.sel.Spe<-grep(paste(".",Group.g,"_",sep=""),
+                    colnames(DEspeAllti.not0), fixed=TRUE)
+    g.sel.Time<-grep(paste("_",Group.g,sep=""),
+                     colnames(DE1timeAllg), fixed=TRUE)
+    #
+    Signature.g.t<-DE1timeAllg[,g.sel.Time]*DEspeAllti.not0[,g.sel.Spe]
+    Sum.Signature.g.t<-apply(abs(Signature.g.t),1,sum)
+    #
+    if(max(Sum.Signature.g.t)>1){
+      Sum.Signature.g.t[Sum.Signature.g.t>1]<-1
+    }# if(max(Sum.Signature.g.t)>1)
+    ## 1:(Nb.time-1)
+    IdColSignature<-Nb.group+(Nb.time-1)*(g-1)+seq_len(Nb.time-1)
+    Signature.Mat.Sign[,IdColSignature]<-Signature.g.t
+    colnames(Signature.Mat.Sign)[IdColSignature]<-paste("Signature.genes_",
+                                                        "Group.",
+                                                        Group.g, "_Time.t",
+                                                        seq_len(Nb.time-1),
+                                                        sep="")
+    Signature.Mat.Sign[,g]<-Sum.Signature.g.t
+    colnames(Signature.Mat.Sign)[g]<-paste("Signature.genes_Group.", Group.g,
+                                           "_1time.minimum",sep="")
   }# for(g in 1:Nb.group)
   # # do.call(cbind,List.M.time.DE)#abs(res.sum.G.T$OverUnder.per.G.per.T[,-1])
   #---------------------------------------------------------------------------#
   # 4.2) Data containing the summary DE group and time analysis
   #---------------------------------------------------------------------------#
   Sum.final.g.t<-cbind(Gene=res.sum.G.T$M.sum.DE.pair.G.per.T[,1],
-                       Signature.Mat, #Intersect.G.all.t,
+                       abs(Signature.Mat.Sign), #Intersect.G.all.t,
                        M.sum.1tmin.all.g,
                        res.sum.G.T$M.sum.DE.pair.G.per.T[,-1])
   #---------------------------------------------------------------------------#
   # 4.3) Alluvial graph of signature genes at least one time for each group
   #---------------------------------------------------------------------------#
   if(Nb.group>2){
-    alluvialSignature<-matrix(0, ncol=Nb.group, nrow=nrow(Signature.Mat))
-    Signature.All.TG<-Signature.Mat[,-seq_len(Nb.group)]
+    alluvialSignature<-matrix(0, ncol=Nb.group,
+                              nrow=nrow(abs(Signature.Mat.Sign)))
+    Signature.All.TG<-abs(Signature.Mat.Sign)[,-seq_len(Nb.group)]
     #
     for(g in seq_len(Nb.group)){
       Index.g.signature<-(g-1)*(Nb.time-1)+seq_len(Nb.time-1)
@@ -777,6 +795,7 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
   #---------------------------------------------------------------------------#
   # 4.3) Number of DE genes per time for each group with signature information
   #---------------------------------------------------------------------------#
+  #
   Mat.facet.S<-data.frame(Attribute=rep(c("UpRegulated", "DownRegulated"),
                                         times=(Nb.time-1)*Nb.group),
                           Group=rep(rep(Levels.group, each=2),
@@ -785,12 +804,16 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
                                    each=2*Nb.group),
                           value=rep(0,times=2*(Nb.time-1)*Nb.group))
   #
-  for(g in seq_len(Nb.time-1)){
-    UpDownSpe.G<-DEspeAllti[,(g-1)*Nb.group+seq_len(Nb.group)+1+Nb.group]
-    prodlogpval.S<-UpDownSpe.G*DEtxt0[,(g-1)*Nb.group+seq_len(Nb.group)]
+  for(t in seq_len(Nb.time-1)){
+    t.sel.Sign<-grep(paste("_Time.t",Levels.time[t+1],sep=""),
+                     colnames(Signature.Mat.Sign), fixed=TRUE)
+    t.sel.txt0<-grep(paste("t",Levels.time[t+1],"_",sep=""),
+                     colnames(DEtxt0), fixed=TRUE)
+    #
+    prodlogpval.S<-Signature.Mat.Sign[,t.sel.Sign]*DEtxt0[,t.sel.txt0]
     nb.up.S<-apply(prodlogpval.S, 2, function(x) length(which(x==1)))
     nb.down.S<-apply(prodlogpval.S, 2, function(x) length(which(x==-1)))
-    id.Matfacet2.S<-seq_len(2*Nb.group) + (g-1)*(2*Nb.group)
+    id.Matfacet2.S<-seq_len(2*Nb.group) + (t-1)*(2*Nb.group)
     #
     UpDown.S<-as.numeric(rep(nb.up.S, each=2))
     UpDown.S[2*seq_len(Nb.group)]<-as.numeric(nb.down.S)
@@ -833,8 +856,9 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
   #
   Nb.DE1tminperG<-apply(M.DE.1tmin, 2, sum)
   Nb.Spe.1tmin<-apply(res.sum.G.T$Spe.G.1t.min, 2, sum)
-  Nb.Signature.1tmin<-apply(Intersect.G.all.t, 2, sum)
-  #
+  Nb.Signature.1tmin<-apply(abs(Signature.Mat.Sign[,seq_len(Nb.group)]),2,sum)
+  # 1:Nb.group
+  #apply(Intersect.G.all.t, 2, sum)
   for(g in seq_len(Nb.group)){# 1:Nb.group
     Mat.Sum$value[(g-1)*3+c(1,2,3)]<-c(Nb.DE1tminperG[g],
                                        Nb.Spe.1tmin[g],
@@ -897,16 +921,18 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
     }# if(Nb.group>2)
     #
   }else{
-    print(res.facet.BC.signature)
-    print(res.Sum.signature)
-    if(Nb.group>2){
-      print(res.allu.signature)
-    }# if(Nb.group>2)
+    if(Plot.DE.graph==TRUE){
+      print(res.facet.BC.signature)
+      print(res.Sum.signature)
+      if(Nb.group>2){
+        print(res.allu.signature)
+      }# if(Nb.group>2)
+    }
   }# if(is.null(path.result)==FALSE)
   #---------------------------------------------------------------------------#
   # 5) Output
   #---------------------------------------------------------------------------#
+  # List.Plots.DE.Time.Group=List.plots.DE.time.group
   return(list(Results=Sum.final.g.t,
-              Summary.DEanalysis=Mat.facet.all,
-              List.Plots.DE.Time.Group=List.plots.DE.time.group))
+              Summary.DEanalysis=Mat.facet.all))
 }# DEanalysisTimeAndGroup()

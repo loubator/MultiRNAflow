@@ -67,7 +67,7 @@
 #' [DESeq2::rlog()] for "rlog" and [DESeq2::vst()] for "vst").
 #' @param Blind.rlog.vst TRUE or FALSE. See input 'blind' in [DESeq2::rlog()].
 #' It is recommended to set \code{Blind.rlog.vst=FALSE} for downstream analysis.
-#' @param Plot.Boxplot \code{TRUE} or \code{FALSE}. TRUE by default.
+#' @param Plot.Boxplot \code{TRUE} or \code{FALSE}. \code{TRUE} by default.
 #' If \code{Plot.Boxplot=TRUE}, the function [DATAplotBoxplotSamples()] will be
 #' called and boxplots will be plotted. Otherwise, no boxplots will be plotted.
 #' @param Colored.By.Factors \code{TRUE} or \code{FALSE}.
@@ -276,6 +276,14 @@ DATAnormalization<-function(RawCounts,
   #---------------------------------------------------------------------------#
   # Save of the boxplot graph
   if(is.null(path.result)==FALSE){
+    #-------------------------------------------------------------------------#
+    # Save of the normalized data
+    utils::write.table(Norm.dat,
+                       file=paste(path.result.new,"/",
+                                  Normalization,"_NormalizedData",
+                                  ".csv",sep=""),
+                       sep=";",row.names = FALSE)
+    #
     grDevices::pdf(file = paste(path.result.new,"/",Normalization,
                                 "_NormalizedBoxplotSamples.pdf",sep=""),
                    width = 11, height = 8)#width = 8, height = 11
@@ -285,12 +293,6 @@ DATAnormalization<-function(RawCounts,
     if(Plot.Boxplot==TRUE){
       print(res.bxplt)
     }# if(Plot.Boxplot==TRUE)
-    # Save of the normalized data
-    utils::write.table(Norm.dat,
-                       file=paste(path.result.new,"/",
-                                  Normalization,"_NormalizedData",
-                                  ".csv",sep=""),
-                       sep=";",row.names = FALSE)
   }else{
     if(Plot.Boxplot==TRUE){
       print(res.bxplt)

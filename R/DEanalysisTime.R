@@ -25,6 +25,9 @@
 #' detect if, among all biological conditions and/or times, at least one has
 #' a different behavior than the others (see the input 'test' in
 #' [DESeq2::DESeq()]).
+#' @param Plot.DE.graph \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, all graphs will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param path.result Character or \code{NULL}.
 #' If \code{path.result} is a character, it must be a path to a folder,
 #' all graphs will be saved in \code{path.result}.
@@ -85,6 +88,7 @@
 #'                      pval.vect.t=c(0.01,0.05,0.05),
 #'                      log.FC.min=1,
 #'                      LRT.supp.info=FALSE,
+#'                      Plot.DE.graph=TRUE,
 #'                      path.result=NULL,
 #'                      SubFile.name=NULL)
 
@@ -93,6 +97,7 @@ DEanalysisTime<-function(DESeq.result,
                          pval.vect.t=rep(0.05, times=6),
                          log.FC.min=1,
                          LRT.supp.info = FALSE,
+                         Plot.DE.graph=TRUE,
                          path.result=NULL,
                          SubFile.name=NULL){
   #---------------------------------------------------------------------------#
@@ -285,7 +290,9 @@ DEanalysisTime<-function(DESeq.result,
       print(barplot2t)
       grDevices::dev.off()
     }else{
-      print(barplot2t)
+      if(Plot.DE.graph==TRUE){
+        print(barplot2t)
+      }
     }# if(is.null(path.result)==FALSE)
   }# if(Nb.time==2){
   #---------------------------------------------------------------------------#
@@ -328,13 +335,15 @@ DEanalysisTime<-function(DESeq.result,
       grDevices::dev.off()
       #-----------------------------------------------------------------------#
     }else{
-      print(res.allu.g$g.alluvial)
-      print(res.allu.g$g.alluvial.freq)
-      #
-      print(res.nb.DEPerTime$g.nb.DEPerTime.sign)
-      #
-      print(res.VennBarplot$Upset.graph)
-      print(res.VennBarplot$Upset.graph.with.nb.over)
+      if(Plot.DE.graph==TRUE){
+        print(res.allu.g$g.alluvial)
+        print(res.allu.g$g.alluvial.freq)
+        #
+        print(res.nb.DEPerTime$g.nb.DEPerTime.sign)
+        #
+        print(res.VennBarplot$Upset.graph)
+        print(res.VennBarplot$Upset.graph.with.nb.over)
+      }
     }# if(is.null(path.result)==FALSE)
   }# if(Nb.time>2)
   #---------------------------------------------------------------------------#
@@ -351,7 +360,7 @@ DEanalysisTime<-function(DESeq.result,
   #---------------------------------------------------------------------------#
   # 6) End et outputs
   #---------------------------------------------------------------------------#
+  # List.Plots.DE.Time=List.plots.DE.time
   return(list(Results=Table.Results.f,
-              DE.Temporal.Pattern=DE.Temporal.Pattern.f,
-              List.Plots.DE.Time=List.plots.DE.time))
+              DE.Temporal.Pattern=DE.Temporal.Pattern.f))
 }# DEanalysisTime()

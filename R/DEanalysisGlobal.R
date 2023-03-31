@@ -82,6 +82,9 @@
 #' detect if, among all biological conditions and/or times,
 #' at least one has a different behavior than the others
 #' (see the input \code{test} in [DESeq2::DESeq()]).
+#' @param Plot.DE.graph \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, all graphs will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param path.result Character or \code{NULL}. Path to save all results.
 #' If \code{path.result} contains a sub folder entitled
 #' "DEanalysis_\code{Name.folder.DE}" all results will be saved in
@@ -178,13 +181,6 @@
 #'   the column names of \code{DE.results}.
 #'   * a list (output \code{Summary.Inputs}) containing a summary of sample
 #'   information and inputs of [DEanalysisGlobal()].
-#'
-#'
-#'
-#'
-#'
-#'
-
 #'
 #' * If data belong to different time points and different biological conditions,
 #' the function returns
@@ -305,6 +301,7 @@
 #'                          pval.vect.t=NULL,
 #'                          log.FC.min=1,
 #'                          LRT.supp.info=FALSE,
+#'                          Plot.DE.graph=TRUE,
 #'                          path.result=NULL,
 #'                          Name.folder.DE=NULL)
 
@@ -317,6 +314,7 @@ DEanalysisGlobal<-function(RawCounts,
                            pval.vect.t=NULL,
                            log.FC.min=1,
                            LRT.supp.info=FALSE,
+                           Plot.DE.graph=TRUE,
                            path.result=NULL,
                            Name.folder.DE=NULL){
   #---------------------------------------------------------------------------#
@@ -449,6 +447,9 @@ DEanalysisGlobal<-function(RawCounts,
     print(res.bxplt)
     grDevices::dev.off()
   }# if(is.null(path.result)==FALSE)
+  if(Plot.DE.graph==TRUE){
+    print(res.bxplt)
+  }# if(Plot.DE.graph==TRUE)
   #---------------------------------------------------------------------------#
   #---------------------------------------------------------------------------#
   if(is.null(Time.position)==FALSE){
@@ -503,6 +504,7 @@ DEanalysisGlobal<-function(RawCounts,
                                LRT.supp.info=LRT.supp.info,
                                log.FC.min=log.FC.min,
                                pval.min=pval.min,
+                               Plot.DE.graph=Plot.DE.graph,
                                path.result=path.result.new2,
                                SubFile.name=SubFolder.name)
     #-------------------------------------------------------------------------#
@@ -524,13 +526,13 @@ DEanalysisGlobal<-function(RawCounts,
     #
     resGlossary<-Glossary(path.result.new3, Case=1)
     #
+    # List.Plots.DE.Analysis=Res.DE.BC$List.Plots.DE.Group,
     return(list(List.Datas=All.Datas,
                 Summary.Inputs=SumInfo,
                 DE.results=Res.DE.BC$Results,
                 Path.result=path.result.f,
                 Folder.result=Name.folder.DE.ini,
                 List.Glossary=resGlossary,
-                List.Plots.DE.Analysis=Res.DE.BC$List.Plots.DE.Group,
                 DESeq.dds=dds.norm.diff))#SubFolder.name
   }# if(is.null(Time.position)==TRUE & is.null(Group.position)==FALSE)
   #---------------------------------------------------------------------------#
@@ -561,6 +563,7 @@ DEanalysisGlobal<-function(RawCounts,
                                 log.FC.min=log.FC.min,
                                 pval.min=pval.min,
                                 pval.vect.t=pval.vect.t,
+                                Plot.DE.graph=Plot.DE.graph,
                                 path.result=path.result.new2,
                                 SubFile.name=SubFolder.name)
     #-------------------------------------------------------------------------#
@@ -591,13 +594,13 @@ DEanalysisGlobal<-function(RawCounts,
     #
     resGlossary<-Glossary(path.result.new3, Case=2)
     #
+    # List.Plots.DE.Analysis=Res.DE.Time$List.Plots.DE.Time,
     return(list(List.Datas=All.Datas,
                 Summary.Inputs=SumInfo,
                 DE.results=Res.DE.Time$Results,
                 Path.result=path.result.f,
                 Folder.result=Name.folder.DE.ini,
                 List.Glossary=resGlossary,
-                List.Plots.DE.Analysis=Res.DE.Time$List.Plots.DE.Time,
                 DESeq.dds=dds.norm.diff))#SubFolder.name
   }# if(is.null(Time.position)==FALSE & is.null(Group.position)==TRUE)
   #---------------------------------------------------------------------------#
@@ -627,6 +630,7 @@ DEanalysisGlobal<-function(RawCounts,
                                        log.FC.min=log.FC.min,
                                        pval.min=pval.min,
                                        pval.vect.t=pval.vect.t,
+                                       Plot.DE.graph=Plot.DE.graph,
                                        path.result=path.result.new2,
                                        SubFile.name=SubFolder.name)
     #-------------------------------------------------------------------------#
@@ -659,13 +663,13 @@ DEanalysisGlobal<-function(RawCounts,
     #
     resGlossary<-Glossary(path.result.new3, Case=3)
     #-------------------------------------------------------------------------#
+    # List.Plots.DE.Analysis=Res.DE.T.G$List.Plots.DE.Time.Group,
     return(list(List.Datas=All.Datas,
                 Summary.Inputs=SumInfo,
                 DE.results=data.frame(Res.DE.T.G$Results),
                 Path.result=path.result.f,
                 Folder.result=Name.folder.DE.ini,
                 List.Glossary=resGlossary,
-                List.Plots.DE.Analysis=Res.DE.T.G$List.Plots.DE.Time.Group,
                 DESeq.dds=dds.norm.diff))
   }# if(is.null(Time.position)==FALSE | is.null(Group.position)==FALSE)
 }# DEanalysisGlobal()

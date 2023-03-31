@@ -18,6 +18,9 @@
 #' to detect if, among all biological conditions and/or times, at least one has
 #' a different behavior than the others
 #' (see the input 'test' in [DESeq2::DESeq()]).
+#' @param Plot.DE.graph \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, all graphs will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param path.result Character or \code{NULL}.
 #' If \code{path.result} is a character, it must be a path to a folder,
 #' all graphs will be saved in \code{path.result}.
@@ -101,6 +104,7 @@
 #'                                pval.min=0.01,
 #'                                log.FC.min=1,
 #'                                LRT.supp.info=FALSE,
+#'                                Plot.DE.graph=TRUE,
 #'                                path.result=NULL,
 #'                                SubFile.name=NULL)
 
@@ -108,6 +112,7 @@ DEanalysisGroup<-function(DESeq.result,
                           pval.min=0.05,
                           log.FC.min=1,
                           LRT.supp.info=TRUE,
+                          Plot.DE.graph=TRUE,
                           path.result=NULL,
                           SubFile.name=NULL){
   #---------------------------------------------------------------------------#
@@ -163,7 +168,9 @@ DEanalysisGroup<-function(DESeq.result,
       print(Spe.NoSpe.Barplot)
       grDevices::dev.off()
     }else{
-      print(Spe.NoSpe.Barplot)
+      if(Plot.DE.graph==TRUE){
+        print(Spe.NoSpe.Barplot)
+      }
     }# if(is.null(path.result)==FALSE)
   }# if(nb.pair.of.group==1)
   #---------------------------------------------------------------------------#
@@ -189,16 +196,18 @@ DEanalysisGroup<-function(DESeq.result,
       print(Spe.Barplot)
       grDevices::dev.off()
     }else{
-      print(G.Upset$Upset.global)
-      # print(G.Upset$Upset.threshold)
-      print(Spe.NoSpe.Barplot)
-      print(Spe.Barplot)
+      if(Plot.DE.graph==TRUE){
+        print(G.Upset$Upset.global)
+        # print(G.Upset$Upset.threshold)
+        print(Spe.NoSpe.Barplot)
+        print(Spe.Barplot)
+      }
     }# if(is.null(path.result)==FALSE)
   }# if(nb.pair.of.group>1)
   #---------------------------------------------------------------------------#
   # 6) End
   #---------------------------------------------------------------------------#
+  # List.Plots.DE.Group=List.plots.DE.group
   return(list(Results=Sum.DE.analysis.G$Results,
-              Summary.DEanalysis=Sum.DE.analysis.G$Contingence.per.group,
-              List.Plots.DE.Group=List.plots.DE.group))
+              Summary.DEanalysis=Sum.DE.analysis.G$Contingence.per.group))
 }# DEanalysisGroup()

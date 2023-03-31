@@ -59,6 +59,9 @@
 #' Size of the labels for the genes in the heatmaps.
 #' @param SizeLabelCols Numeric >0.
 #' Size of the labels for the samples in the heatmaps.
+#' @param Display.plots \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, all graphs will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param Save.plots TRUE or FALSE or a Character.
 #' If \code{Save.plots=FALSE}, the different files will not be saved.
 #' If \code{Save.plots=TRUE} and the \code{path.result} of [DEanalysisGlobal()]
@@ -90,14 +93,15 @@
 #' # Results of DEanalysisGlobal() with the dataset of Antoszewski
 #' res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
 #' #
-#' DEplotHeatmaps(Res.DE.analysis=res.all,
-#'                ColumnsCriteria=2,
-#'                Set.Operation="union",
-#'                NbGene.analysis=20,
-#'                Color.Group=NULL,
-#'                SizeLabelRows=5,
-#'                SizeLabelCols=5,
-#'                Save.plots=FALSE)
+#' resHeatmap<-DEplotHeatmaps(Res.DE.analysis=res.all,
+#'                            ColumnsCriteria=2,
+#'                            Set.Operation="union",
+#'                            NbGene.analysis=20,
+#'                            Color.Group=NULL,
+#'                            SizeLabelRows=5,
+#'                            SizeLabelCols=5,
+#'                            Display.plots=TRUE,
+#'                            Save.plots=FALSE)
 #' #
 #' #--------------------------------------------------------------------------#
 #' ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
@@ -115,6 +119,7 @@ DEplotHeatmaps<-function(Res.DE.analysis,
                          Color.Group=NULL,
                          SizeLabelRows=5,
                          SizeLabelCols=5,
+                         Display.plots=TRUE,
                          Save.plots=FALSE){
   #---------------------------------------------------------------------------#
   # RLE count data
@@ -364,11 +369,14 @@ DEplotHeatmaps<-function(Res.DE.analysis,
     print(H.cor)
     grDevices::dev.off()
   }else{
-    print(H.SG)
-    print(H.cor)
+    if(Display.plots==TRUE){
+      print(H.SG)
+      print(H.cor)
+    }
   }# if(is.null(path.result)==FALSE)
   #---------------------------------------------------------------------------#
   return(list(Zscores=RleScaled[OrderLog2FC,],
+              Correlation.Matrix=CorSample,
               Heatmap.Correlation=H.cor,
               Heatmap.Zscores=H.SG))
 }# DEplotHeatmaps()

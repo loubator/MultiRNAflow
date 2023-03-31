@@ -78,6 +78,9 @@
 #' the maximum number of clusters. The default is \code{Max.clust=10}.
 #' @param Min.std Numeric positive value. All genes where their
 #' standard deviations are smaller than the threshold Min.std will be excluded.
+#' @param Plot.Cluster \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, the output graph will be plotted.
+#' Otherwise the graph will be plotted.
 #' @param path.result Character or \code{NULL}.
 #' Path to save the plot described in the section \code{Value}.
 #' If \code{NULL}, the graph will not be saved in a folder.
@@ -155,6 +158,7 @@
 #'                     Individual.position=3,
 #'                     Method="hcpc",
 #'                     Max.clust=5,
+#'                     Plot.Cluster=TRUE,
 #'                     path.result=NULL)
 
 MFUZZclustersNumber<-function(ExprData,
@@ -165,6 +169,7 @@ MFUZZclustersNumber<-function(ExprData,
                               Method="hcpc",
                               Max.clust,
                               Min.std=0.1,
+                              Plot.Cluster=TRUE,
                               path.result=NULL){
   #---------------------------------------------------------------------------#
   # Condition on Max.clust
@@ -316,39 +321,61 @@ MFUZZclustersNumber<-function(ExprData,
   }# for(g in 1:Nb.group)
   #---------------------------------------------------------------------------#
   # Save graph
+  if(Method=="hcpc"){Ylab<-"Scaled height (ward)"}else{
+    Ylab<-"Scaled within-cluster inertia"}
+  #
   if(is.null(path.result)==FALSE){
     grDevices::pdf(file=paste(path.result,"/Clustering_OptimalClusterNumber_",
                               paste0(levels(as.factor(Vect.group)),
                                      collapse="_"), ".pdf", sep=""),
                    width=11, height=8)
-  }# if(is.null(path.result)==FALSE)
-  #
-  if(Method=="hcpc"){Ylab<-"Scaled height (ward)"}else{
-    Ylab<-"Scaled within-cluster inertia"}
-  plot(Sum.nb.c[,1], Sum.nb.c[,2], type="b", ylim=c(0,1 +0.2*(Nb.group-1)),
-       pch=pch.c[seq_len(Max.clust)], col=col.c[seq_len(Max.clust)],
-       xlab="Number of cluster", ylab=Ylab)
-  #
-  if(Nb.group>1){
-    for(g in seq_len(Nb.group-1)){
-      # Add a second line
-      graphics::lines(Sum.nb.c[,1], Sum.nb.c[,g+2]+0.2*g, type="b", lty=g+1,
-                      pch=pch.c[seq_len(Max.clust)+ Max.clust*g],
-                      col=col.c[seq_len(Max.clust)+ Max.clust*g])
-    }# for(g in 1:(Nb.group-1))
-    # Add a legend to the plot
-    graphics::legend("topright", legend=levels(as.factor(Vect.group)),
-                     col=c("black"), lty=seq_len(Nb.group), cex=0.8)#,inset=.02
-  }# if(Nb.group>1)
-  graphics::legend("top", legend=c("Cluster optimal"),
-                   col=c("blue"),pch=19,cex=0.7)#,inset=c(0.5,0.02)
-  #
-  if(is.null(path.result)==FALSE){
+    #
+    plot(Sum.nb.c[,1], Sum.nb.c[,2], type="b", ylim=c(0,1 +0.2*(Nb.group-1)),
+         pch=pch.c[seq_len(Max.clust)], col=col.c[seq_len(Max.clust)],
+         xlab="Number of cluster", ylab=Ylab)
+    #
+    if(Nb.group>1){
+      for(g in seq_len(Nb.group-1)){
+        # Add a second line
+        graphics::lines(Sum.nb.c[,1], Sum.nb.c[,g+2]+0.2*g, type="b", lty=g+1,
+                        pch=pch.c[seq_len(Max.clust)+ Max.clust*g],
+                        col=col.c[seq_len(Max.clust)+ Max.clust*g])
+      }# for(g in 1:(Nb.group-1))
+      # Add a legend to the plot
+      graphics::legend("topright", legend=levels(as.factor(Vect.group)),
+                       col=c("black"), lty=seq_len(Nb.group), cex=0.8)
+      #,inset=.02
+    }# if(Nb.group>1)
+    graphics::legend("top", legend=c("Cluster optimal"),
+                     col=c("blue"),pch=19,cex=0.7)#,inset=c(0.5,0.02)
+    #
     grDevices::dev.off()
   }# if(is.null(path.result)==FALSE)
   #---------------------------------------------------------------------------#
-  Number.Cluster.plot<-grDevices::recordPlot()
-  graphics::plot.new() ## clean up device
+  if(Plot.Cluster==TRUE){
+    #
+    plot(Sum.nb.c[,1], Sum.nb.c[,2], type="b", ylim=c(0,1 +0.2*(Nb.group-1)),
+         pch=pch.c[seq_len(Max.clust)], col=col.c[seq_len(Max.clust)],
+         xlab="Number of cluster", ylab=Ylab)
+    #
+    if(Nb.group>1){
+      for(g in seq_len(Nb.group-1)){
+        # Add a second line
+        graphics::lines(Sum.nb.c[,1], Sum.nb.c[,g+2]+0.2*g, type="b", lty=g+1,
+                        pch=pch.c[seq_len(Max.clust)+ Max.clust*g],
+                        col=col.c[seq_len(Max.clust)+ Max.clust*g])
+      }# for(g in 1:(Nb.group-1))
+      # Add a legend to the plot
+      graphics::legend("topright", legend=levels(as.factor(Vect.group)),
+                       col=c("black"), lty=seq_len(Nb.group), cex=0.8)
+      #,inset=.02
+    }# if(Nb.group>1)
+    graphics::legend("top", legend=c("Cluster optimal"),
+                     col=c("blue"),pch=19,cex=0.7)#,inset=c(0.5,0.02)
+    #
+    # Number.Cluster.plot<-grDevices::recordPlot()
+    # graphics::plot.new() ## clean up device
+  }# if(Plot.Cluster==TRUE)
   #---------------------------------------------------------------------------#
   # Data containing the number of cluster for each group
   if(is.null(Vect.group)==TRUE){
@@ -358,9 +385,9 @@ MFUZZclustersNumber<-function(ExprData,
                                   ClusterKmeans=Opti.clust)
   }# if(is.null(Vect.group)==TRUE)
   #---------------------------------------------------------------------------#
+  #Plot.Number.Cluster=Number.Cluster.plot
   return(list(Summary.Nb.Cluster=Sum.nb.c,
-              DataClustSel=data.clust.kmeans,
-              Plot.Number.Cluster=Number.Cluster.plot))
+              DataClustSel=data.clust.kmeans))
 }# MFUZZclustersNumber()
 
 NbClustKmeansHCPC<-function(NrowData,x1,y1,x2,y2){

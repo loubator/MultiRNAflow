@@ -84,6 +84,9 @@
 #' @param Min.std Numeric positive value.
 #' All genes where their standard deviations are smaller than the threshold
 #' \code{Min.std} will be excluded.
+#' @param Plot.Mfuzz \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, all graphs will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param path.result Character or \code{NULL}. Path to save all results.
 #' If \code{path.result} contains a sub folder entitled
 #' "1_UnsupervisedAnalysis_\code{Name.folder.mfuzz}" and a sub sub folder,
@@ -152,6 +155,7 @@
 #'               DataNumberCluster=NULL,
 #'               Membership=0.5,
 #'               Min.std=0.1,
+#'               Plot.Mfuzz=TRUE,
 #'               path.result=NULL)
 
 MFUZZanalysis<-function(ExprData,
@@ -164,6 +168,7 @@ MFUZZanalysis<-function(ExprData,
                         Max.clust=10,
                         Membership,
                         Min.std=0.1,
+                        Plot.Mfuzz=TRUE,
                         path.result=NULL,
                         Name.folder.mfuzz=NULL){
   #---------------------------------------------------------------------------#
@@ -234,6 +239,7 @@ MFUZZanalysis<-function(ExprData,
                                         Method=Method,
                                         Max.clust=Max.clust,
                                         Min.std=Min.std,
+                                        Plot.Cluster=Plot.Mfuzz,
                                         path.result=path.result.new)
     #-------------------------------------------------------------------------#
     DataNumberCluster<-resClustNumber$DataClustSel
@@ -363,36 +369,38 @@ MFUZZanalysis<-function(ExprData,
                                 "Plot_MFUZZ", Name.folder.mfuzz,
                                 ".pdf",sep=""),
                      width=11, height=8)# width = 8, height = 11
-      plot.mfuzz<-Mfuzz::mfuzz.plot2(eset.s, cl=cl, min.mem=Membership,
-                                     centre=TRUE,
-                                     time.labels=levels(as.factor(Vect.time)),
-                                     mfrow=c(nrow.plot.f, ncol.plot.f),
-                                     x11=FALSE)
+      Mfuzz::mfuzz.plot2(eset.s, cl=cl, min.mem=Membership,
+                         centre=TRUE,
+                         time.labels=levels(as.factor(Vect.time)),
+                         mfrow=c(nrow.plot.f, ncol.plot.f),
+                         x11=FALSE)# plot.mfuzz<-
       grDevices::dev.off()
     }# if(is.null(path.result)==FALSE)
     # graphics::par(mfrow=c(nrow.plot.f,ncol.plot.f))
-    Mfuzz::mfuzz.plot2(eset.s, cl=cl, min.mem=Membership, centre=TRUE,
-                       time.labels=levels(as.factor(Vect.time)),
-                       mfrow=c(nrow.plot.f,ncol.plot.f), x11=FALSE)
-    # The following lines ensure good ouput graphics
-    if(Nb.c.g>nrow.plot.f*ncol.plot.f){
-      mod.gr<-Nb.c.g%%nrow.plot.f*ncol.plot.f
-      for(p in seq_len(mod.gr)){# 1:mod.gr
-        plot(0, type='n', axes=FALSE, ann=FALSE)
-      }# for(p in 1:mod.gr)
-    }# if(Nb.c.g >nrow.plot.f*ncol.plot.f)
-    #
-    if(Nb.c.g<nrow.plot.f*ncol.plot.f){
-      diff.gr<-nrow.plot.f*ncol.plot.f-Nb.c.g
-      for(p in seq_len(diff.gr)){# 1:diff.gr
-        plot(0,type='n',axes=FALSE,ann=FALSE)
-      }# for(p in 1:diff.gr)
-    }# if(Nb.c.g <nrow.plot.f*ncol.plot.f)
-    graphics::par(mfrow=c(1,1))
-    #
-    Mfuzz.Plot.g<-grDevices::recordPlot()
-    graphics::plot.new() ## clean up device
-    List.plot.Mfuzz[[g+1]]<-Mfuzz.Plot.g
+    if(Plot.Mfuzz==TRUE){
+      Mfuzz::mfuzz.plot2(eset.s, cl=cl, min.mem=Membership, centre=TRUE,
+                         time.labels=levels(as.factor(Vect.time)),
+                         mfrow=c(nrow.plot.f,ncol.plot.f), x11=FALSE)
+      # The following lines ensure good ouput graphics
+      if(Nb.c.g>nrow.plot.f*ncol.plot.f){
+        mod.gr<-Nb.c.g%%nrow.plot.f*ncol.plot.f
+        for(p in seq_len(mod.gr)){# 1:mod.gr
+          plot(0, type='n', axes=FALSE, ann=FALSE)
+        }# for(p in 1:mod.gr)
+      }# if(Nb.c.g >nrow.plot.f*ncol.plot.f)
+      #
+      if(Nb.c.g<nrow.plot.f*ncol.plot.f){
+        diff.gr<-nrow.plot.f*ncol.plot.f-Nb.c.g
+        for(p in seq_len(diff.gr)){# 1:diff.gr
+          plot(0,type='n',axes=FALSE,ann=FALSE)
+        }# for(p in 1:diff.gr)
+      }# if(Nb.c.g <nrow.plot.f*ncol.plot.f)
+      graphics::par(mfrow=c(1,1))
+      #
+      # Mfuzz.Plot.g<-grDevices::recordPlot()
+      # graphics::plot.new() ## clean up device
+      # List.plot.Mfuzz[[g+1]]<-Mfuzz.Plot.g
+    }# if(Plot.Mfuzz==TRUE)
     #
   }# for(g in 1:Nb.group)
   dat.mfuzz[,1]<-Name.G
@@ -411,6 +419,5 @@ MFUZZanalysis<-function(ExprData,
   }# if(is.null(path.result)==FALSE)
   #---------------------------------------------------------------------------#
   return(list(Data.Mfuzz=Data.mfuzz,
-              Result.Mfuzz=dat.mfuzz,
-              Plot.Mfuzz=List.plot.Mfuzz))
+              Result.Mfuzz=dat.mfuzz))# Plot.Mfuzz=List.plot.Mfuzz
 }# MFUZZanalysis()

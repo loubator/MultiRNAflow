@@ -32,6 +32,9 @@
 #' MA plots. By default, \code{NbGene.plotted}=2.
 #' @param SizeLabel Numeric. Give the size of the names of plotted genes.
 #' By default, \code{SizeLabel}=3.
+#' @param Display.plots \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, all graphs will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param Save.plots \code{TRUE} or \code{FALSE} or a Character.
 #' \code{FALSE} as default. Path to save the Volcano and MA plots.
 #' If \code{NULL}, the Volcano and MA plots will not be saved in a sub folder
@@ -65,7 +68,10 @@
 #' # Results of DEanalysisGlobal() with the dataset of Antoszewski
 #' res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
 #' #
-#' DEplotVolcanoMA(res.all, NbGene.plotted=5, Save.plots=FALSE)
+#' resVolcanoMA<-DEplotVolcanoMA(res.all,
+#'                               NbGene.plotted=5,
+#'                               Display.plots=TRUE,
+#'                               Save.plots=FALSE)
 #' #
 #' #--------------------------------------------------------------------------#
 #' ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
@@ -79,6 +85,7 @@
 DEplotVolcanoMA<-function(Res.DE.analysis,
                           NbGene.plotted=2,
                           SizeLabel=3,
+                          Display.plots=TRUE,
                           Save.plots=FALSE){
   #---------------------------------------------------------------------------#
   # To avoid "no visible binding for global variable" with devtools::check()
@@ -334,8 +341,10 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
       print(gMA)
       grDevices::dev.off()
     }else{
-      print(gVolca)
-      print(gMA)
+      if(Display.plots==TRUE){
+        print(gVolca)
+        print(gMA)
+      }# if(Display.plots==TRUE)
     }# if(is.null(path.result)==FALSE)
     #
     options(warn = 0)

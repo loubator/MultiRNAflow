@@ -67,6 +67,9 @@
 #' a color for each biological condition.
 #' If samples belong to different time points only,
 #' \code{Color.Group} will not be used.
+#' @param Plot.Expression \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, the graph will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param path.result Character or \code{NULL}. Path to save all results.
 #' If \code{path.result} contains a sub folder entitled
 #' "1_UnsupervisedAnalysis_\code{Name.folder.profile}" and a sub sub folder,
@@ -110,19 +113,19 @@
 #' @export
 #'
 #' @examples
-#' res.sim.count=RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
+#' res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
 #'                                   Nb.Gene=10)
 #' #
-#' Res.evo=DATAplotExpressionGenes(ExprData=res.sim.count$Sim.dat,
-#'                                 Vector.row.gene=c(1,3),
-#'                                 Column.gene=1,
-#'                                 Group.position=1,
-#'                                 Time.position=2,
-#'                                 Individual.position=3,
-#'                                 Color.Group=NULL,
-#'                                 path.result=NULL,
-#'                                 Name.folder.profile=NULL)
-#' print(Res.evo)
+#' Res.evo<-DATAplotExpressionGenes(ExprData=res.sim.count$Sim.dat,
+#'                                  Vector.row.gene=c(1,3),
+#'                                  Column.gene=1,
+#'                                  Group.position=1,
+#'                                  Time.position=2,
+#'                                  Individual.position=3,
+#'                                  Color.Group=NULL,
+#'                                  Plot.Expression=TRUE,
+#'                                  path.result=NULL,
+#'                                  Name.folder.profile=NULL)
 
 DATAplotExpressionGenes<-function(ExprData,
                                   Vector.row.gene,
@@ -131,6 +134,7 @@ DATAplotExpressionGenes<-function(ExprData,
                                   Time.position,
                                   Individual.position,
                                   Color.Group=NULL,
+                                  Plot.Expression=TRUE,
                                   path.result=NULL,
                                   Name.folder.profile=NULL){
   #---------------------------------------------------------------------------#
@@ -196,14 +200,6 @@ DATAplotExpressionGenes<-function(ExprData,
   List.All.G<-vector(mode="list",length=length(Vector.row.gene))
   names(List.All.G)<-Name.G
   #---------------------------------------------------------------------------#
-  # Save of all graph in a pdf file
-  if(is.null(path.result)==FALSE){
-    grDevices::pdf(paste(path.result.new, "/PlotsProfileGeneExpression",
-                         Name.folder.profile, ".pdf",sep=""),
-                   width = 11, height = 8,
-                   onefile = TRUE)
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
   cpt<-0
   for(g.sel in Vector.row.gene){
     cpt<-cpt+1
@@ -215,13 +211,28 @@ DATAplotExpressionGenes<-function(ExprData,
                                         Individual.position=Individual.position,
                                         Color.Group=Color.Group)
     List.All.G[[cpt]]<-PlotExpr1G
-    print(PlotExpr1G)
   }# for(g.sel in Vector.row.gene)
   #---------------------------------------------------------------------------#
+  # Save of all graph in a pdf file
   if(is.null(path.result)==FALSE){
+    grDevices::pdf(paste(path.result.new, "/PlotsProfileGeneExpression",
+                         Name.folder.profile, ".pdf",sep=""),
+                   width = 11, height = 8,
+                   onefile = TRUE)
+    #
+    for(g.sel in seq_len(length(List.All.G))){
+      print(List.All.G[[g.sel]])
+    }# for(g.sel in Vector.row.gene)
+    #
     grDevices::dev.off()
-  }
+  }# if(is.null(path.result)==FALSE)
   #---------------------------------------------------------------------------#
-  return(list(List.plots=List.All.G,
-              DataForPlot=ExprData.f))
+  if(Plot.Expression==TRUE){
+    for(g.sel in seq_len(length(List.All.G))){
+      print(List.All.G[[g.sel]])
+    }# for(g.sel in Vector.row.gene)
+  }# if(is.null(path.result)==FALSE)
+  #---------------------------------------------------------------------------#
+  return(list(DataForPlot=ExprData.f,
+              List.plots=List.All.G))
 }# DATAplotExpressionGenes

@@ -65,6 +65,9 @@
 #' The user can select the \code{MaxNumberGO} most important Gene Ontology
 #' (GO) names to be plotted in a lollipop graph.
 #' By default, \code{MaxNumberGO=20}.
+#' @param Display.plots \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' If \code{TRUE}, all graphs will be plotted.
+#' Otherwise no graph will be plotted.
 #' @param Save.plots \code{TRUE} or \code{FALSE} or a Character.
 #' If \code{Save.plots=TRUE} and the output \code{path.result} of
 #' [DEanalysisGlobal()] is not \code{NULL}, all files will be saved in
@@ -110,7 +113,9 @@
 #' #                           Set.Operation="union",
 #' #                           Organism="mmusculus",
 #' #                           MaxNumberGO=20,
-#' #                           Background=FALSE, Save.plots=FALSE)
+#' #                           Background=FALSE,
+#' #                           Display.plots=TRUE,
+#' #                           Save.plots=FALSE)
 #' #--------------------------------------------------------------------------#
 #' #
 #' #--------------------------------------------------------------------------#
@@ -129,6 +134,7 @@ GSEAQuickAnalysis<-function(Res.DE.analysis,
                             Organism="hsapiens",
                             MaxNumberGO=20,
                             Background=FALSE,
+                            Display.plots=TRUE,
                             Save.plots=FALSE){
   #---------------------------------------------------------------------------#
   # To avoid "no visible binding for global variable" with devtools::check()
@@ -407,8 +413,10 @@ GSEAQuickAnalysis<-function(Res.DE.analysis,
     #
     utils::write.table(GOmat, file=GSEAtable, sep=";",row.names=FALSE)
   }else{
-    print(gManhattan)
-    print(glolipop)
+    if(Display.plots==TRUE){
+      print(gManhattan)
+      print(glolipop)
+    }
   }# if(is.null(path.result)==FALSE)
   #---------------------------------------------------------------------------#
   # Output
