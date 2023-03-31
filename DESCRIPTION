@@ -1,7 +1,7 @@
 Package: MultiRNAflow
 Title: A R package for analysing RNA-seq raw counts with several biological conditions
     and different time points
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: 
     c(person("Rodolphe", "Loubaton", , "loubaton.rodolphe@gmail.com",
              role = c("aut", "cre"),
