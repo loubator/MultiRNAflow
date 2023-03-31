@@ -440,19 +440,19 @@ resDEMUS2<-DEanalysisGlobal(RawCounts=RawCounts_Weger2021_MOUSEsub500,
 #
 #---------------------------------------------------------------------------------------#
 # List.Datas, Path.result, Folder.result
-resDEMus1F<-within(resDEMus1, rm(List.Glossary,List.Plots.DE.Analysis,
+resDEMus1F<-within(resDEMus1, rm(List.Glossary,#List.Plots.DE.Analysis,
                                  DESeq.dds))
 resDEMus1F$List.Datas$RawCounts<-NULL
 #
-resDEFissionF<-within(resDEFission, rm(List.Glossary,List.Plots.DE.Analysis,
+resDEFissionF<-within(resDEFission, rm(List.Glossary,#List.Plots.DE.Analysis,
                                        DESeq.dds))
 resDEFissionF$List.Datas$RawCounts<-NULL
 #
-resDELeukF<-within(resDELeuk, rm(List.Glossary,List.Plots.DE.Analysis,
+resDELeukF<-within(resDELeuk, rm(List.Glossary,#List.Plots.DE.Analysis,
                                  DESeq.dds))
 resDELeukF$List.Datas$RawCounts<-NULL
 #
-resDEMUS2F<-within(resDEMUS2, rm(List.Glossary,List.Plots.DE.Analysis,
+resDEMUS2F<-within(resDEMUS2, rm(List.Glossary,#List.Plots.DE.Analysis,
                                  DESeq.dds))
 resDEMUS2F$List.Datas$RawCounts<-NULL
 #---------------------------------------------------------------------------------------#
