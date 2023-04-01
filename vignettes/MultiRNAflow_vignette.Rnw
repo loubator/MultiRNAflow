@@ -1730,7 +1730,7 @@ data.col.MusBmCrKoWt<-data.frame(Name=c("BmKo","BmWt","CrKo","CrWt"),
                                 Col=c("black","blue","green","red"))
 @
 
-and setting \texttt{Color.Group= data.col.MusBmCrKoWt}.
+and setting \texttt{Color.Group=data.col.MusBmCrKoWt}.
 
 If the user wants to select several genes, for instance the 97th, the 192th, the 194th and the 494th, he needs to set \texttt{Vector.row.gene=c(97,192,194,494)}.
 
@@ -1746,13 +1746,6 @@ Write \texttt{?DATAplotExpressionGenes} in your console for more information abo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-<<ResDEmouse, warning=FALSE, message=FALSE, eval=TRUE, echo=FALSE>>=
-data("Results_DEanalysis_sub500")
-ResDEMus500<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
-DEyeast500wt<- Results_DEanalysis_sub500$DE_Leong2014_FISSIONsub500wt
-ResDELeuk500<-Results_DEanalysis_sub500$DE_Schleiss2021_CLLsub500
-@
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{DE analysis with DEanalysisGlobal()}\label{sec:DEanalysis}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1761,22 +1754,28 @@ ResDELeuk500<-Results_DEanalysis_sub500$DE_Schleiss2021_CLLsub500
 
 In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500} (see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 1}.
 
-The following lines of code realize the DE analysis.
+The following commented lines of code realize the DE analysis.
 
 <<DEmouse, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResDEMus500<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-                              Column.gene=1,
-                              Group.position=1,
-                              Time.position=NULL,
-                              Individual.position=2,
-                              log.FC.min=0.5,
-                              pval.min=0.05,
-                              pval.vect.t=c(0.01),
-                              LRT.supp.info=FALSE,
-                              Plot.DE.graph=FALSE,
-                              path.result=NULL,
-                              Name.folder.DE=NULL)
+# ResDEMus500<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
+#                               Column.gene=1,
+#                               Group.position=1,
+#                               Time.position=NULL,
+#                               Individual.position=2,
+#                               log.FC.min=0.5,
+#                               pval.min=0.05,
+#                               pval.vect.t=c(0.01),
+#                               LRT.supp.info=FALSE,
+#                               Plot.DE.graph=FALSE,
+#                               path.result=NULL,
+#                               Name.folder.DE=NULL)
+data("Results_DEanalysis_sub500")
+ResDEMus500<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
 @
+
+The lines are commented because they take too much time. Uncomment them in order to use the function \texttt{DEanalysisGlobal()}.
+\texttt{Results\_DEanalysis\_sub500} contains the results of \texttt{DEanalysisGlobal()} of three dataset which included \texttt{RawCounts\_Antoszewski2022\_MOUSEsub500}. The results of \texttt{DEanalysisGlobal()} with \texttt{RawCounts\_Antoszewski2022\_MOUSEsub500} are saved in \texttt{Results\_DEanalysis\_sub500\$DE\_Antoszewski2022\_MOUSEsub500}.
+
 
 The function above
 
@@ -1883,20 +1882,27 @@ The same graph without ``Other'' will be plotted too. If there are only two biol
 
 In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014\_FISSIONsub500wt} (see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 2}.
 
+The following commented lines of code realize the DE analysis.
+
 <<DEanalysisFISSION, warning=FALSE, message=FALSE, eval=TRUE>>=
-DEyeast500wt<-DEanalysisGlobal(RawCounts=RawCounts_Leong2014_FISSIONsub500wt,
-                               Column.gene=1,
-                               Group.position=NULL,
-                               Time.position=2,
-                               Individual.position=3,
-                               pval.min=0.05,
-                               pval.vect.t=c(0.01,0.05,0.05,0.05,0.05,0.05),
-                               log.FC.min=1,
-                               LRT.supp.info=FALSE,
-                               Plot.DE.graph=FALSE,
-                               path.result=NULL,
-                               Name.folder.DE=NULL)
+# DEyeast500wt<-DEanalysisGlobal(RawCounts=RawCounts_Leong2014_FISSIONsub500wt,
+#                                Column.gene=1,
+#                                Group.position=NULL,
+#                                Time.position=2,
+#                                Individual.position=3,
+#                                pval.min=0.05,
+#                                pval.vect.t=NULL,
+#                                log.FC.min=1,
+#                                LRT.supp.info=FALSE,
+#                                Plot.DE.graph=FALSE,
+#                                path.result=NULL,
+#                                Name.folder.DE=NULL)
+data("Results_DEanalysis_sub500")
+DEyeast500wt<-Results_DEanalysis_sub500$DE_Leong2014_FISSIONsub500wt
 @
+
+The lines are commented because they take too much time. Uncomment them in order to use the function \texttt{DEanalysisGlobal()}.
+\texttt{Results\_DEanalysis\_sub500} contains the results of \texttt{DEanalysisGlobal()} of three dataset which included \texttt{RawCounts\_Leong2014\_FISSIONsub500wt}. The results of \texttt{DEanalysisGlobal()} with \texttt{RawCounts\_Leong2014\_FISSIONsub500wt} are saved in \texttt{Results\_DEanalysis\_sub500\$DE\_Leong2014\_FISSIONsub500wt}.
 
 The function above
 
@@ -2020,21 +2026,27 @@ The same graph is also given without colors.
 
 In this section we use the Chronic lymphocytic leukemia (CLL) subdataset\newline \textbf{RawCounts\_Schleiss2021\_CLLsub500} (see Subsection \nameref{sec:dataSchleiss2021}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 3} when there only two biological conditions.
 
+The following commented lines of code realize the DE analysis.
+
 <<DELeuk, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResDELeuk500<-DEanalysisGlobal(RawCounts=RawCounts_Schleiss2021_CLLsub500,
-                               Column.gene=1,
-                               Group.position=2,
-                               Time.position=4,
-                               Individual.position=3,
-                               log.FC.min=1,
-                               pval.min=0.05,
-                               pval.vect.t=c(0.01,0.05,0.05,0.05,0.05,
-                                             0.05,0.05,0.05),
-                               LRT.supp.info=FALSE,
-                               Plot.DE.graph=FALSE,
-                               path.result=NULL,
-                               Name.folder.DE=NULL)
+# ResDELeuk500<-DEanalysisGlobal(RawCounts=RawCounts_Schleiss2021_CLLsub500,
+#                                Column.gene=1,
+#                                Group.position=2,
+#                                Time.position=4,
+#                                Individual.position=3,
+#                                log.FC.min=1,
+#                                pval.min=0.05,
+#                                pval.vect.t=NULL,
+#                                LRT.supp.info=FALSE,
+#                                Plot.DE.graph=FALSE,
+#                                path.result=NULL,
+#                                Name.folder.DE=NULL)
+data("Results_DEanalysis_sub500")
+ResDELeuk500<-Results_DEanalysis_sub500$DE_Schleiss2021_CLLsub500
 @
+
+The lines are commented because they take too much time. Uncomment them in order to use the function \texttt{DEanalysisGlobal()}.
+\texttt{Results\_DEanalysis\_sub500} contains the results of \texttt{DEanalysisGlobal()} of three dataset which included \texttt{RawCounts\_Schleiss2021\_CLLsub500}. The results of \texttt{DEanalysisGlobal()} with \texttt{RawCounts\_Schleiss2021\_CLLsub500} are saved in \texttt{Results\_DEanalysis\_sub500\$DE\_Schleiss2021\_CLLsub500}.
 
 The function above
 
@@ -2247,20 +2259,35 @@ The figure~\ref{fig:LeukDESpecificSignature1TimeMnimum} summarizes well the comb
 
 In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEsub500} (see Subsection~\ref{sec:dataWeger2021}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 3} when there are more than two biological conditions.
 
+For the speed of the algorithm, we will take only three biological conditions and three times
+
+<<UsbMusBmCrKoWt, warning=FALSE, message=FALSE, eval=TRUE>>=
+Sub3bc3T<-RawCounts_Weger2021_MOUSEsub500
+Sub3bc3T<-Sub3bc3T[,seq_len(73)]
+SelectTime<-grep("_t0_",colnames(Sub3bc3T))
+SelectTime<-c(SelectTime,grep("_t1_", colnames(Sub3bc3T)))
+SelectTime<-c(SelectTime,grep("_t2_", colnames(Sub3bc3T)))
+Sub3bc3T<-Sub3bc3T[,c(1,SelectTime)]
+@
+
+
 <<DEMusBmCrKoWt, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResDEMusBmCrKoWt500<-DEanalysisGlobal(RawCounts=RawCounts_Weger2021_MOUSEsub500,
+ResDEMusBmCrKoWt500<-DEanalysisGlobal(RawCounts=Sub3bc3T,
                                       Column.gene=1,
                                       Group.position=1,
                                       Time.position=2,
                                       Individual.position=3,
                                       pval.min=0.05,
-                                      pval.vect.t=c(0.05,0.05,0.05,0.05,0.05),
+                                      pval.vect.t=NULL,
                                       log.FC.min=1,
                                       LRT.supp.info=FALSE,
                                       Plot.DE.graph=FALSE,
                                       path.result=NULL,
                                       Name.folder.DE=NULL)
 @
+
+
+
 
 The function above
 
@@ -2810,7 +2837,7 @@ The following lines of code allow to plot a correlation heatmap between samples 
 
 <<Heatmaps_CCL, warning=FALSE, message=FALSE, eval=TRUE>>=
 resplotHeatmapCLL<-DEplotHeatmaps(Res.DE.analysis=ResDELeuk500,
-                                  ColumnsCriteria=c(2,3),
+                                  ColumnsCriteria=c(12,13),
                                   Set.Operation="union",
                                   NbGene.analysis=20,
                                   SizeLabelRows=5,
@@ -2886,7 +2913,7 @@ resVolcanoMAMouse2<-DEplotVolcanoMA(Res.DE.analysis=ResDEMusBmCrKoWt500,
                                     NbGene.plotted=2,
                                     SizeLabel=3,
                                     Display.plots=FALSE,
-                                    Save.plots=TRUE)
+                                    Save.plots=FALSE)
 @
 
 The two previous graph correspond to the volcano and MA plot of the analysis between BmWt and BmKo, at time t4.
@@ -2929,7 +2956,7 @@ resplotHeatmapMouse2<-DEplotHeatmaps(Res.DE.analysis=ResDEMusBmCrKoWt500,
                                      SizeLabelRows=5,
                                      SizeLabelCols=5,
                                      Display.plots=FALSE,
-                                     Save.plots=TRUE)
+                                     Save.plots=FALSE)
 @
 
 
@@ -2991,7 +3018,8 @@ The following lines of code realize an enrichment analysis with the R package gp
 Beware, an internet connection is needed.
 
 <<GSEAquickAnalysis_Mus, warning=FALSE, message=FALSE, eval=TRUE>>=
-resGSEAgprofiler2Mus<-GSEAQuickAnalysis(Res.DE.analysis=ResDEMus500,
+resGSEAgprofiler2Mus<-GSEAQuickAnalysis(Internect.Connection=FALSE,
+                                        Res.DE.analysis=ResDEMus500,
                                         ColumnsCriteria=2,
                                         ColumnsLog2ordered=NULL,
                                         Set.Operation="union",
@@ -3001,8 +3029,11 @@ resGSEAgprofiler2Mus<-GSEAQuickAnalysis(Res.DE.analysis=ResDEMus500,
                                         Display.plots=FALSE,
                                         Save.plots=FALSE)
 #
-head(resGSEAgprofiler2Mus$GSEAresults)
+# head(resGSEAgprofiler2Mus$GSEAresults)
 @
+
+As \textbf{GSEAQuickAnalysis()} requires an internet connection, the input \texttt{Internect.Connection} is set by default to \texttt{FALSE}.
+Once the user is sure to have an internet connection, the user may set \texttt{Internect.Connection=TRUE} in order to realize the enrichment analysis.
 
 The subset of genes is selected as follow
 
@@ -3059,6 +3090,7 @@ The following lines of code will generate all files, for a selection of genes, i
 resGSEApreprocessingFission<-GSEApreprocessing(Res.DE.analysis=ResDEMus500,
                                                ColumnsCriteria=2,
                                                Set.Operation="union",
+                                               Rnk.files=FALSE,
                                                Save.files=FALSE)
 @
 
@@ -3097,7 +3129,8 @@ The following lines of code realize an enrichment analysis with the R package gp
 Beware, an internet connection is needed.
 
 <<GSEAquickAnalysis_Fission, warning=FALSE, message=FALSE, eval=TRUE>>=
-resGSEAgprofiler2Fission<-GSEAQuickAnalysis(Res.DE.analysis=DEyeast500wt,
+resGSEAgprofiler2Fission<-GSEAQuickAnalysis(Internect.Connection=FALSE,
+                                            Res.DE.analysis=DEyeast500wt,
                                             ColumnsCriteria=2,
                                             ColumnsLog2ordered=NULL,
                                             Set.Operation="union",
@@ -3107,9 +3140,11 @@ resGSEAgprofiler2Fission<-GSEAQuickAnalysis(Res.DE.analysis=DEyeast500wt,
                                             Display.plots=FALSE,
                                             Save.plots=FALSE)
 #
-head(resGSEAgprofiler2Fission$GSEAresults)
+# head(resGSEAgprofiler2Fission$GSEAresults)
 @
 
+As \textbf{GSEAQuickAnalysis()} requires an internet connection, the input \texttt{Internect.Connection} is set by default to \texttt{FALSE}.
+Once the user is sure to have an internet connection, the user may set \texttt{Internect.Connection=TRUE} in order to realize the enrichment analysis.
 
 The subset of genes is selected as follow
 
@@ -3170,6 +3205,7 @@ The following lines of code will generate all files, for a selection of genes, i
 resGSEApreprocessingFission<-GSEApreprocessing(Res.DE.analysis=DEyeast500wt,
                                                ColumnsCriteria=2,
                                                Set.Operation="union",
+                                               Rnk.files=FALSE,
                                                Save.files=FALSE)
 @
 
@@ -3207,8 +3243,9 @@ The following lines of code realize an enrichment analysis with the R package gp
 Beware, an internet connection is needed.
 
 <<GSEAquickAnalysis_CLL, warning=FALSE, message=FALSE, eval=TRUE>>=
-resGSEAgprofiler2Leuk<-GSEAQuickAnalysis(Res.DE.analysis=ResDELeuk500,
-                                         ColumnsCriteria=c(2,3),
+resGSEAgprofiler2Leuk<-GSEAQuickAnalysis(Internect.Connection=FALSE,
+                                         Res.DE.analysis=ResDELeuk500,
+                                         ColumnsCriteria=c(12,13),
                                          ColumnsLog2ordered=NULL,
                                          Set.Operation="union",
                                          Organism="hsapiens",
@@ -3217,9 +3254,11 @@ resGSEAgprofiler2Leuk<-GSEAQuickAnalysis(Res.DE.analysis=ResDELeuk500,
                                          Display.plots=FALSE,
                                          Save.plots=FALSE)
 #
-head(resGSEAgprofiler2Leuk$GSEAresults)
+# head(resGSEAgprofiler2Leuk$GSEAresults)
 @
 
+As \textbf{GSEAQuickAnalysis()} requires an internet connection, the input \texttt{Internect.Connection} is set by default to \texttt{FALSE}.
+Once the user is sure to have an internet connection, the user may set \texttt{Internect.Connection=TRUE} in order to realize the enrichment analysis.
 
 The subset of genes is selected as follow
 
@@ -3276,8 +3315,9 @@ The following lines of code will generate all files, for a selection of genes, i
 
 <<GSEAprepro_CLL, warning=FALSE, message=FALSE, eval=TRUE>>=
 resGSEApreprocessingLeuk<-GSEApreprocessing(Res.DE.analysis=ResDELeuk500,
-                                            ColumnsCriteria=c(2,3),
+                                            ColumnsCriteria=c(12,13),
                                             Set.Operation="union",
+                                            Rnk.files=FALSE,
                                             Save.files=FALSE)
 @
 
@@ -3320,7 +3360,8 @@ Beware, an internet connection is needed.
 
 
 <<GSEAquickAnalysis_Mouse2, warning=FALSE, message=FALSE, eval=TRUE>>=
-resGSEAgprofiler2Mouse2<-GSEAQuickAnalysis(Res.DE.analysis=ResDEMusBmCrKoWt500,
+resGSEAgprofiler2Mouse2<-GSEAQuickAnalysis(Internect.Connection=FALSE,
+                                           Res.DE.analysis=ResDEMusBmCrKoWt500,
                                            ColumnsCriteria=2:5,
                                            ColumnsLog2ordered=NULL,
                                            Set.Operation="union",
@@ -3328,11 +3369,13 @@ resGSEAgprofiler2Mouse2<-GSEAQuickAnalysis(Res.DE.analysis=ResDEMusBmCrKoWt500,
                                            MaxNumberGO=20,
                                            Background=FALSE,
                                            Display.plots=FALSE,
-                                           Save.plots=TRUE)
+                                           Save.plots=FALSE)
 #
-head(resGSEAgprofiler2Mouse2$GSEAresults)
+# head(resGSEAgprofiler2Mouse2$GSEAresults)
 @
 
+As \textbf{GSEAQuickAnalysis()} requires an internet connection, the input \texttt{Internect.Connection} is set by default to \texttt{FALSE}.
+Once the user is sure to have an internet connection, the user may set \texttt{Internect.Connection=TRUE} in order to realize the enrichment analysis.
 
 The subset of genes is selected as follow
 
@@ -3390,7 +3433,8 @@ The following lines of code will generate all files, for a selection of genes, i
 resGSEApreprocessing<-GSEApreprocessing(Res.DE.analysis=ResDEMusBmCrKoWt500,
                                         ColumnsCriteria=2:5,
                                         Set.Operation="union",
-                                        Save.files = TRUE)
+                                        Rnk.files=FALSE,
+                                        Save.files=TRUE)
 @
 
 

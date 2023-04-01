@@ -187,14 +187,26 @@ res.expr<-DATAplotExpressionGenes(ExprData=res.norm$NormalizedData,
 
 8. Differential Expresion (DE) analysis with DEanalysisGlobal()
 
-```{r DEMusBmCrKoWt, eval=FALSE, echo=TRUE}
-res.de<-DEanalysisGlobal(RawCounts=RawCounts_Weger2021_MOUSEsub500,
+For the speed of the algorithm, we will take only three biological conditions and three times
+
+```{r SubMusBmCrKoWt}
+Sub3bc3T<-RawCounts_Weger2021_MOUSEsub500
+Sub3bc3T<-Sub3bc3T[,seq_len(73)]
+SelectTime<-grep("_t0_",colnames(Sub3bc3T))
+SelectTime<-c(SelectTime,grep("_t1_", colnames(Sub3bc3T)))
+SelectTime<-c(SelectTime,grep("_t2_", colnames(Sub3bc3T)))
+Sub3bc3T<-Sub3bc3T[,c(1,SelectTime)]
+```
+
+
+```{r DEMusBmCrKoWt, eval=TRUE, echo=TRUE}
+res.de<-DEanalysisGlobal(RawCounts=Sub3bc3T,
                          Column.gene=1,
                          Group.position=1,
                          Time.position=2,
                          Individual.position=3,
                          pval.min=0.05,
-                         pval.vect.t=c(0.05,0.05,0.05,0.05,0.05),
+                         pval.vect.t=NULL,
                          log.FC.min=1,
                          LRT.supp.info=FALSE,
                          Plot.DE.graph=FALSE,
@@ -202,6 +214,7 @@ res.de<-DEanalysisGlobal(RawCounts=RawCounts_Weger2021_MOUSEsub500,
                          Name.folder.DE=NULL)
 ```
 
+* Set `RawCounts=RawCounts_Weger2021_MOUSEsub500` in order to use the complete dataset.
 * Write `?DEanalysisGlobal` in your console for more information about the function.
 * In order to display the different output graph, set `Plot.DE.graph=TRUE`.
 * In order to save the different results in a folder, select a folder path in `path.result`.
@@ -224,7 +237,7 @@ res.VolcanoMA<-DEplotVolcanoMA(Res.DE.analysis=res.de,
 
 ```{r Heatmaps_Mouse2, eval=FALSE, echo=TRUE}
 res.heatmaps<-DEplotHeatmaps(Res.DE.analysis=res.de,
-                             ColumnsCriteria=20,
+                             ColumnsCriteria=2,
                              Set.Operation="union",
                              NbGene.analysis=20,
                              SizeLabelRows=5,
@@ -239,8 +252,9 @@ res.heatmaps<-DEplotHeatmaps(Res.DE.analysis=res.de,
 
 11. GO enrichment analysis with GSEAQuickAnalysis() and GSEApreprocessing()
 
-```{r GSEAquickAnalysis_Mouse2, eval=FALSE}
-res.gprofiler2<-GSEAQuickAnalysis(Res.DE.analysis=res.de,
+```{r GSEAquickAnalysis_Mouse2, eval=TRUE}
+res.gprofiler2<-GSEAQuickAnalysis(Internect.Connection=FALSE,
+                                  Res.DE.analysis=res.de,
                                   ColumnsCriteria=2,
                                   ColumnsLog2ordered=NULL,
                                   Set.Operation="union",
@@ -251,14 +265,16 @@ res.gprofiler2<-GSEAQuickAnalysis(Res.DE.analysis=res.de,
                                   Save.plots=TRUE)
 ```
 
+* `GSEAQuickAnalysis()` requires an internet connection, so the input `Internect.Connection` is set by default to `FALSE`. Once the user is sure to have an internet connection, the user may set `Internect.Connection=TRUE` in order to realize the enrichment analysis.
 * Write `?GSEAQuickAnalysis` in your console for more information about the function.
 * In order to display the different output graph, set `Display.plots=TRUE`.
 * In order to save the different results in a folder, select a folder path in `path.result` of the function `DEanalysisGlobal()` and set `Save.plots=TRUE`.
 
-```{r GSEAprepro_Mouse2, eval=FALSE}
+```{r GSEAprepro_Mouse2, eval=TRUE}
 res.preprocessing<-GSEApreprocessing(Res.DE.analysis=res.de,
                                      ColumnsCriteria=2,
                                      Set.Operation="union",
+                                     Rnk.files=FALSE,
                                      Save.files=FALSE)
 ```
 
