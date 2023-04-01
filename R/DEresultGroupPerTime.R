@@ -247,8 +247,10 @@ DEresultGroupPerTime<-function(DESeq.result,
         Id.Column.spe<-c(seq_len(nb.pair.of.group)*3)[index.group.selec]
         Id.Column.nospe<-c(seq_len(nb.pair.of.group)*3)[-index.group.selec]
         # (1:nb.pair.of.group)
-        sum.row.spe<-apply(X=DE.per.2BC[,Id.Column.spe], MARGIN=1, FUN=sum)
-        sum.row.no.spe<-apply(X=DE.per.2BC[,Id.Column.nospe], MARGIN=1, FUN=sum)
+        sum.row.spe<-apply(X=data.frame(DE.per.2BC[,Id.Column.spe]),
+                           MARGIN=1, FUN=sum)
+        sum.row.no.spe<-apply(X=data.frame(DE.per.2BC[,Id.Column.nospe]),
+                              MARGIN=1, FUN=sum)
         #
         Nb.DE.per.group[g]<-length(which(sum.row.spe>0))
         #
