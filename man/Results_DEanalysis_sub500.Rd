@@ -18,7 +18,7 @@ RawCounts_Schleiss2021_CLLsub500
 }
 \details{
 Each list in Results_DEanalysis_sub500 contains the outputs
-"Summary.Inputs", "DE.results" and "DESeq.dds" of DEanalysisGlobal()
+"Summary.Inputs", "DE.results" and "List.Glossary" of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
 for each of the following raw counts :
 RawCounts_Weger2021_MOUSEsub500, RawCounts_Leong2014_FISSIONsub500wt and
 RawCounts_Schleiss2021_CLLsub500

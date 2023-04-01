@@ -15,6 +15,7 @@ MFUZZanalysis(
   Max.clust = 10,
   Membership,
   Min.std = 0.1,
+  Plot.Mfuzz = TRUE,
   path.result = NULL,
   Name.folder.mfuzz = NULL
 )
@@ -79,6 +80,10 @@ to each cluster.}
 \item{Min.std}{Numeric positive value.
 All genes where their standard deviations are smaller than the threshold
 \code{Min.std} will be excluded.}
+
+\item{Plot.Mfuzz}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, all graphs will be plotted.
+Otherwise no graph will be plotted.}
 
 \item{path.result}{Character or \code{NULL}. Path to save all results.
 If \code{path.result} contains a sub folder entitled
@@ -177,6 +182,7 @@ MFUZZanalysis(ExprData=data.clust.sim,
               DataNumberCluster=NULL,
               Membership=0.5,
               Min.std=0.1,
+              Plot.Mfuzz=TRUE,
               path.result=NULL)
 }
 \seealso{

@@ -14,6 +14,7 @@ MFUZZclustersNumber(
   Method = "hcpc",
   Max.clust,
   Min.std = 0.1,
+  Plot.Cluster = TRUE,
   path.result = NULL
 )
 }
@@ -62,6 +63,10 @@ the maximum number of clusters. The default is \code{Max.clust=10}.}
 
 \item{Min.std}{Numeric positive value. All genes where their
 standard deviations are smaller than the threshold Min.std will be excluded.}
+
+\item{Plot.Cluster}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, the output graph will be plotted.
+Otherwise the graph will be plotted.}
 
 \item{path.result}{Character or \code{NULL}.
 Path to save the plot described in the section \code{Value}.
@@ -182,6 +187,7 @@ MFUZZclustersNumber(ExprData=data.clust.sim,
                     Individual.position=3,
                     Method="hcpc",
                     Max.clust=5,
+                    Plot.Cluster=TRUE,
                     path.result=NULL)
 }
 \seealso{

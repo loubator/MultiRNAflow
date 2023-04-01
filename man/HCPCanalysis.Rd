@@ -13,6 +13,7 @@ HCPCanalysis(
   sample.deletion,
   Supp.del.sample = FALSE,
   gene.deletion,
+  Plot.HCPC = TRUE,
   Color.Group = NULL,
   Phi,
   Theta,
@@ -75,7 +76,8 @@ If \code{FALSE}, the samples selected with \code{sample.deletion}
 will be deleted.
 If \code{TRUE}, the samples selected with \code{sample.deletion}
 will be plotted.
-These individuals are called supplementary individuals in \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
+These individuals are called supplementary individuals in
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 
 \item{gene.deletion}{\code{NULL} or a vector of characters or a vector
 of integers.
@@ -85,6 +87,10 @@ If \code{gene.deletion} is a vector of integers, all the corresponding
 row numbers of \code{ExprData} will be deleted.
 If \code{gene.deletion=NULL} all genes of \code{ExprData} will be used
 in the construction of the PCA.}
+
+\item{Plot.HCPC}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, all graphs will be plotted.
+Otherwise no graph will be plotted.}
 
 \item{Color.Group}{NULL or a data.frame with \eqn{N_{bc}} rows and
 two columns where \eqn{N_{bc}} is the number of biological conditions.
@@ -200,6 +206,7 @@ Res.hcpc.analysis<-HCPCanalysis(ExprData=res.sim.count$Sim.dat,
                                 sample.deletion=NULL,
                                 Supp.del.sample=FALSE,
                                 gene.deletion=NULL,
+                                Plot.HCPC=TRUE,
                                 Color.Group=NULL,
                                 Phi=25, Theta=140,
                                 Cex.point=1, Cex.label=0.6, epsilon=0.4,

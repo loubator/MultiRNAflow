@@ -10,10 +10,11 @@ PCAgraphics(
   Group.position,
   Time.position,
   Individual.position,
-  Mean.Accross.Time,
   gene.deletion,
   sample.deletion,
-  Supp.del.sample,
+  Supp.del.sample = FALSE,
+  Plot.PCA = TRUE,
+  Mean.Accross.Time = FALSE,
   Color.Group = NULL,
   D3.mouvement = FALSE,
   Phi,
@@ -60,17 +61,8 @@ Furthermore, if individual names are just numbers, they will be transform in
 a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
 a "r" will be added to each individual name ("r" for replicate).}
 
-\item{Mean.Accross.Time}{\code{TRUE} or \code{FALSE}.
-If \code{FALSE} and if \code{Time.position} is not set as \code{NULL},
-consecutive time points within a sample are linked to help visualization of
-temporal patterns.
-If \code{TRUE} and if \code{Time.position} is not set as \code{NULL},
-the mean per time of all genes is computed for each biological condition and
-the means of consecutive time points within biological condition are
-linked to help visualization of temporal patterns.}
-
 \item{gene.deletion}{\code{NULL} or a vector of characters or
-a vector of integers.
+a vector of integers. \code{NULL} as default.
 If \code{gene.deletion} is a vector of characters, all genes with names in
 \code{gene.deletion} will be deleted from \code{ExprData}.
 If \code{gene.deletion} is a vector of integers,
@@ -79,7 +71,7 @@ If \code{gene.deletion=NULL} all genes of \code{ExprData} will be used in
 the construction of the PCA.}
 
 \item{sample.deletion}{\code{NULL} or a vector of characters or
-a vector of integers.
+a vector of integers. \code{NULL} as default.
 If \code{sample.deletion} is a vector of characters, all samples with names
 in \code{sample.deletion} will not be used in the construction of the PCA.
 If \code{sample.deletion} is a vector of integers,
@@ -88,14 +80,29 @@ in the construction of the PCA.
 If \code{sample.deletion=NULL} all samples will be used in the construction
 of the PCA.}
 
-\item{Supp.del.sample}{\code{TRUE} or \code{FALSE}.
+\item{Supp.del.sample}{\code{TRUE} or \code{FALSE}. \code{FALSE} as default.
 If \code{FALSE}, the samples selected with \code{sample.deletion}
 will be deleted.
 If \code{TRUE}, the samples selected with \code{sample.deletion}
 will be plotted.
-These individuals are called supplementary individuals in \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
+These individuals are called supplementary individuals
+in \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 
-\item{Color.Group}{NULL or a data.frame with \eqn{N_{bc}} rows and
+\item{Plot.PCA}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, PCA graphs will be plotted.
+Otherwise no graph will be plotted.}
+
+\item{Mean.Accross.Time}{\code{TRUE} or \code{FALSE}.
+\code{FALSE} as default.
+If \code{FALSE} and if \code{Time.position} is not set as \code{NULL},
+consecutive time points within a sample are linked to help visualization of
+temporal patterns.
+If \code{TRUE} and if \code{Time.position} is not set as \code{NULL},
+the mean per time of all genes is computed for each biological condition and
+the means of consecutive time points within biological condition are
+linked to help visualization of temporal patterns.}
+
+\item{Color.Group}{\code{NULL} or a data.frame with \eqn{N_{bc}} rows and
 two columns where \eqn{N_{bc}} is the number of biological conditions.
 If \code{Color.Group} is a data.frame, the first column must contain
 the name of each biological condition and the second column must contain
@@ -138,7 +145,7 @@ at the beginning of all names of the saved graphs.}
 \value{
 The function returns the outputs from the function
 \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}} and several 2D and 3D PCA graphs depending
-on the experimental design
+on the experimental design (if \code{Plot.PCA=TRUE})
 \itemize{
 \item When samples belong only to different biological conditions,
 the function returns a 2D and two 3D PCA graphs.
@@ -224,10 +231,11 @@ PCAgraphics(ExprData=res.sim.count$Sim.dat,
             Group.position=1,
             Time.position=2,
             Individual.position=3,
-            Mean.Accross.Time=FALSE,
             gene.deletion=c("Gene1","Gene5"),
             sample.deletion=c(2,6),
             Supp.del.sample=FALSE,
+            Plot.PCA=TRUE,
+            Mean.Accross.Time=FALSE,
             Color.Group=data.color.group,
             D3.mouvement=FALSE,
             Phi=25, Theta=140, Cex.label=0.7, Cex.point=0.7, epsilon=0.2,

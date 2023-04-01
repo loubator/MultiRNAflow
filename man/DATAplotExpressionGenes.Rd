@@ -12,6 +12,7 @@ DATAplotExpressionGenes(
   Time.position,
   Individual.position,
   Color.Group = NULL,
+  Plot.Expression = TRUE,
   path.result = NULL,
   Name.folder.profile = NULL
 )
@@ -64,6 +65,10 @@ If \code{Color.Group=NULL}, the function will automatically attribute
 a color for each biological condition.
 If samples belong to different time points only,
 \code{Color.Group} will not be used.}
+
+\item{Plot.Expression}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, the graph will be plotted.
+Otherwise no graph will be plotted.}
 
 \item{path.result}{Character or \code{NULL}. Path to save all results.
 If \code{path.result} contains a sub folder entitled
@@ -135,19 +140,19 @@ In the string of characters 'CLL_P_t0_r1',
 't0' is localized after the second underscore, so \code{Time.position=3}.
 }
 \examples{
-res.sim.count=RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
+res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
                                   Nb.Gene=10)
 #
-Res.evo=DATAplotExpressionGenes(ExprData=res.sim.count$Sim.dat,
-                                Vector.row.gene=c(1,3),
-                                Column.gene=1,
-                                Group.position=1,
-                                Time.position=2,
-                                Individual.position=3,
-                                Color.Group=NULL,
-                                path.result=NULL,
-                                Name.folder.profile=NULL)
-print(Res.evo)
+Res.evo<-DATAplotExpressionGenes(ExprData=res.sim.count$Sim.dat,
+                                 Vector.row.gene=c(1,3),
+                                 Column.gene=1,
+                                 Group.position=1,
+                                 Time.position=2,
+                                 Individual.position=3,
+                                 Color.Group=NULL,
+                                 Plot.Expression=TRUE,
+                                 path.result=NULL,
+                                 Name.folder.profile=NULL)
 }
 \seealso{
 The function calls the function \code{\link[=DATAplotExpression1Gene]{DATAplotExpression1Gene()}}

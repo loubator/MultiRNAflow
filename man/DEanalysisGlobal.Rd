@@ -14,6 +14,7 @@ DEanalysisGlobal(
   pval.vect.t = NULL,
   log.FC.min = 1,
   LRT.supp.info = FALSE,
+  Plot.DE.graph = TRUE,
   path.result = NULL,
   Name.folder.DE = NULL
 )
@@ -79,6 +80,10 @@ If \code{TRUE}, the algorithm realizes another statistical test in order to
 detect if, among all biological conditions and/or times,
 at least one has a different behavior than the others
 (see the input \code{test} in \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}).}
+
+\item{Plot.DE.graph}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, all graphs will be plotted.
+Otherwise no graph will be plotted.}
 
 \item{path.result}{Character or \code{NULL}. Path to save all results.
 If \code{path.result} contains a sub folder entitled
@@ -350,6 +355,7 @@ res.all=DEanalysisGlobal(RawCounts=RawCounts_T1Wt,
                          pval.vect.t=NULL,
                          log.FC.min=1,
                          LRT.supp.info=FALSE,
+                         Plot.DE.graph=TRUE,
                          path.result=NULL,
                          Name.folder.DE=NULL)
 }

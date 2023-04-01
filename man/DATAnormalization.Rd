@@ -64,7 +64,7 @@ Each corresponds to a method of normalization proposed by \code{DESeq2}
 \item{Blind.rlog.vst}{TRUE or FALSE. See input 'blind' in \code{\link[DESeq2:rlog]{DESeq2::rlog()}}.
 It is recommended to set \code{Blind.rlog.vst=FALSE} for downstream analysis.}
 
-\item{Plot.Boxplot}{\code{TRUE} or \code{FALSE}. TRUE by default.
+\item{Plot.Boxplot}{\code{TRUE} or \code{FALSE}. \code{TRUE} by default.
 If \code{Plot.Boxplot=TRUE}, the function \code{\link[=DATAplotBoxplotSamples]{DATAplotBoxplotSamples()}} will be
 called and boxplots will be plotted. Otherwise, no boxplots will be plotted.}
 

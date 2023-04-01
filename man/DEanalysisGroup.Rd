@@ -9,6 +9,7 @@ DEanalysisGroup(
   pval.min = 0.05,
   log.FC.min = 1,
   LRT.supp.info = TRUE,
+  Plot.DE.graph = TRUE,
   path.result = NULL,
   SubFile.name = NULL
 )
@@ -32,6 +33,10 @@ If \code{TRUE}, the algorithm realizes another statistical test in order
 to detect if, among all biological conditions and/or times, at least one has
 a different behavior than the others
 (see the input 'test' in \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}).}
+
+\item{Plot.DE.graph}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, all graphs will be plotted.
+Otherwise no graph will be plotted.}
 
 \item{path.result}{Character or \code{NULL}.
 If \code{path.result} is a character, it must be a path to a folder,
@@ -119,6 +124,7 @@ res.sum.group<-DEanalysisGroup(DESeq.result=dds.DE.G,
                                pval.min=0.01,
                                log.FC.min=1,
                                LRT.supp.info=FALSE,
+                               Plot.DE.graph=TRUE,
                                path.result=NULL,
                                SubFile.name=NULL)
 }

@@ -5,6 +5,7 @@
 \title{GSEA analysis with gprofiler2}
 \usage{
 GSEAQuickAnalysis(
+  Internect.Connection = FALSE,
   Res.DE.analysis,
   ColumnsCriteria = 1,
   ColumnsLog2ordered = NULL,
@@ -12,10 +13,17 @@ GSEAQuickAnalysis(
   Organism = "hsapiens",
   MaxNumberGO = 20,
   Background = FALSE,
+  Display.plots = TRUE,
   Save.plots = FALSE
 )
 }
 \arguments{
+\item{Internect.Connection}{\code{TRUE} or \code{FALSE}.
+\code{FALSE} as default.
+If \code{TRUE}, the function realizes an enrichment analysis.
+If \code{FALSE}, the function returns a message indicating that
+the user must have an internet connection.}
+
 \item{Res.DE.analysis}{A list corresponding to the output of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.}
 
 \item{ColumnsCriteria}{A vector of integers where each integer indicates
@@ -54,6 +62,10 @@ by comparing the functions and biological pathways among the selected
 DE genes with all functions and biological pathways included in the database
 of \code{gprofiler2} (link in \code{See Also}).
 See also \code{\link[gprofiler2:gost]{gprofiler2::gost()}}.}
+
+\item{Display.plots}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, all graphs will be plotted.
+Otherwise no graph will be plotted.}
 
 \item{Save.plots}{\code{TRUE} or \code{FALSE} or a Character.
 If \code{Save.plots=TRUE} and the output \code{path.result} of
@@ -114,13 +126,16 @@ res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
 #
 #--------------------------------------------------------------------------#
 ## Internet is needed in order to run the following lines of code
-# resGpA<-GSEAQuickAnalysis(Res.DE.analysis=res.all,
+# resGpA<-GSEAQuickAnalysis(Internect.Connection=FALSE,
+#                           Res.DE.analysis=res.all,
 #                           ColumnsCriteria=2,
 #                           ColumnsLog2ordered=NULL,
 #                           Set.Operation="union",
 #                           Organism="mmusculus",
 #                           MaxNumberGO=20,
-#                           Background=FALSE, Save.plots=FALSE)
+#                           Background=FALSE,
+#                           Display.plots=TRUE,
+#                           Save.plots=FALSE)
 #--------------------------------------------------------------------------#
 #
 #--------------------------------------------------------------------------#

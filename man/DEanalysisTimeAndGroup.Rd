@@ -11,6 +11,7 @@ DEanalysisTimeAndGroup(
   log.FC.min,
   pval.min,
   pval.vect.t,
+  Plot.DE.graph = TRUE,
   path.result,
   SubFile.name
 )
@@ -42,6 +43,10 @@ time ti and the reference time t0 if its Benjamini-Hochberg adjusted p-value
 (see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below the i-th threshold of \code{pval.vect.t}.
 If NULL, \code{pval.vect.t} will be vector of dimension \eqn{T-1} filled
 with \code{pval.min}.}
+
+\item{Plot.DE.graph}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, all graphs will be plotted.
+Otherwise no graph will be plotted.}
 
 \item{path.result}{Character or \code{NULL}.
 If \code{path.result} is a character, it must be a path to a folder,
@@ -194,6 +199,7 @@ res.G.T<-DEanalysisTimeAndGroup(DESeq.result=dds.DE,
                                 pval.min=0.05,
                                 pval.vect.t=NULL,
                                 log.FC.min=0.1,
+                                Plot.DE.graph=TRUE,
                                 path.result=NULL,
                                 SubFile.name=NULL)
 }

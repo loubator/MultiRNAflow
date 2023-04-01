@@ -51,7 +51,8 @@ Furthermore, if individual names are just numbers, they will be transform in
 a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
 a "r" will be added to each individual name ("r" for replicate).}
 
-\item{gene.deletion}{NULL or a vector of characters or a vector of integers.
+\item{gene.deletion}{\code{NULL} or a vector of characters or a vector of
+integers. \code{NULL} as default.
 If \code{gene.deletion} is a vector of characters, all genes with names in
 \code{gene.deletion} will be deleted from \code{ExprData}.
 If \code{gene.deletion} is a vector of integers,
@@ -60,7 +61,7 @@ If \code{gene.deletion=NULL} all genes of \code{ExprData} will be used
 in the construction of the PCA.}
 
 \item{sample.deletion}{\code{NULL} or a vector of characters or
-a vector of integers.
+a vector of integers. \code{NULL} as default.
 If \code{sample.deletion} is a vector of characters, all samples with names
 in \code{sample.deletion} will not be used in the construction of the PCA.
 If \code{sample.deletion} is a vector of integers,
@@ -70,9 +71,12 @@ If \code{sample.deletion=NULL} all samples will be used
 in the construction of the PCA.}
 
 \item{Supp.del.sample}{\code{TRUE} or \code{FALSE}.
-If FALSE, the samples selected with \code{sample.deletion} will be deleted.
-If TRUE, the samples selected with \code{sample.deletion} will be plotted.
-These individuals are called supplementary individuals in \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
+If \code{FALSE}, the samples selected with \code{sample.deletion} will
+be deleted.
+If \code{TRUE}, the samples selected with \code{sample.deletion} will
+be plotted.
+These individuals are called supplementary individuals in
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 }
 \value{
 The function returns the output of the \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}} function

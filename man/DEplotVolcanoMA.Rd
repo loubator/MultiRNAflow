@@ -8,6 +8,7 @@ DEplotVolcanoMA(
   Res.DE.analysis,
   NbGene.plotted = 2,
   SizeLabel = 3,
+  Display.plots = TRUE,
   Save.plots = FALSE
 )
 }
@@ -23,6 +24,10 @@ MA plots. By default, \code{NbGene.plotted}=2.}
 
 \item{SizeLabel}{Numeric. Give the size of the names of plotted genes.
 By default, \code{SizeLabel}=3.}
+
+\item{Display.plots}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+If \code{TRUE}, all graphs will be plotted.
+Otherwise no graph will be plotted.}
 
 \item{Save.plots}{\code{TRUE} or \code{FALSE} or a Character.
 \code{FALSE} as default. Path to save the Volcano and MA plots.
@@ -78,7 +83,10 @@ data(Results_DEanalysis_sub500)
 # Results of DEanalysisGlobal() with the dataset of Antoszewski
 res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
 #
-DEplotVolcanoMA(res.all, NbGene.plotted=5, Save.plots=FALSE)
+resVolcanoMA<-DEplotVolcanoMA(res.all,
+                              NbGene.plotted=5,
+                              Display.plots=TRUE,
+                              Save.plots=FALSE)
 #
 #--------------------------------------------------------------------------#
 ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
