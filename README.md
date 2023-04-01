@@ -1,5 +1,7 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 # MultiRNAflow
-GitHub repository of my R package MultiRNAflow for Bioconductor
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -7,7 +9,8 @@ GitHub repository of my R package MultiRNAflow for Bioconductor
 Our R package MultiRNAflow, built from the R package DESeq2 , provides
 an easy to use unified framework allowing to automatically make both
 unsupervised and supervised (DE) analysis for datasets with an arbitrary
-number of biological conditions and time points.
+number of biological conditions and time points. Specifically, our
+package realizes:
 
 In particular, our code makes a deep downstream analysis of DE
 information, e.g. identifying temporal patterns across biological
@@ -102,6 +105,6 @@ Once all packages have been installed, you may install and load our
 package.
 
 ``` r
-BiocManager::install(pkgs="MultiRNAflow") # to install
+# BiocManager::install(pkgs="MultiRNAflow") # to install
 library(MultiRNAflow)
 ```
