@@ -116,6 +116,10 @@ The name of the samples was renamed in order to be used with our package.}
 \usage{
 data(RawCounts_Weger2021_MOUSEsub500)
 }
+\value{
+Mouse times series dataset with four biological conditions
+and with 6 time measurements.
+}
 \description{
 This time series count data (read counts) represents
 the temporal transcriptional response

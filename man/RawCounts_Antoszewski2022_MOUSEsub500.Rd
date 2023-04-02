@@ -31,6 +31,9 @@ The name of the samples was renamed in order to be used with our package.}
 \usage{
 data(RawCounts_Antoszewski2022_MOUSEsub500)
 }
+\value{
+Mouse dataset with four biological conditions.
+}
 \description{
 There are 4 groups : samples with or without hyper activation
 of the gene NOTTCH1 (N1ha versus N1wt) and with or without knock out

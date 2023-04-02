@@ -74,6 +74,10 @@ I rewrite the name of the sample in order to be used with my package.}
 \usage{
 data(RawCounts_Schleiss2021_CLLsub500)
 }
+\value{
+Human CCL times series dataset with two biological conditions
+and with 9 time measurements.
+}
 \description{
 This time series count data (read counts) represents
 the temporal transcriptional response of primary human chronic lymphocytic

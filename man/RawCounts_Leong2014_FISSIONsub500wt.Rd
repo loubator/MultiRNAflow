@@ -40,6 +40,9 @@ The name of the samples was renamed in order to be used with our package.}
 \usage{
 data(RawCounts_Leong2014_FISSIONsub500wt)
 }
+\value{
+Yeast dataset with 6 time measurements.
+}
 \description{
 Raw counts data for fission yeast RNA-Seq experiment with
 two groups (wt and mut), 6 times (0, 15min, 30min, 60min, 120min, 180min)

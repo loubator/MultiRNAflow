@@ -10,6 +10,11 @@ A list of 3 lists.
 \usage{
 data(Results_DEanalysis_sub500)
 }
+\value{
+\code{Results_DEanalysis_sub500} contains the outputs of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} of: RawCounts_Weger2021_MOUSEsub500,
+RawCounts_Leong2014_FISSIONsub500wt and RawCounts_Schleiss2021_CLLsub500
+}
 \description{
 The list Results_DEanalysis_sub500 contains the results of
 \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} for each of the following raw counts :
