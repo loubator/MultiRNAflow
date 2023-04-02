@@ -56,6 +56,8 @@
 #' \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE169116}.
 #' The name of the samples was renamed in order to be used with our package.}
 #'
+#' @return Mouse dataset with four biological conditions.
+#'
 #' @usage data(RawCounts_Antoszewski2022_MOUSEsub500)
 #'
 #' @references

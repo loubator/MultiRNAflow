@@ -77,6 +77,8 @@
 #' \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE56761}.
 #' The name of the samples was renamed in order to be used with our package.}
 #'
+#' @return Yeast dataset with 6 time measurements.
+#'
 #' @usage data(RawCounts_Leong2014_FISSIONsub500wt)
 #'
 #' @references

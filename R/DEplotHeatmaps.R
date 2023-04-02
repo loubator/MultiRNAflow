@@ -94,7 +94,7 @@
 #' res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
 #' #
 #' resHeatmap<-DEplotHeatmaps(Res.DE.analysis=res.all,
-#'                            ColumnsCriteria=2,
+#'                            ColumnsCriteria=3, ## Specific genes N1haT1ko
 #'                            Set.Operation="union",
 #'                            NbGene.analysis=20,
 #'                            Color.Group=NULL,

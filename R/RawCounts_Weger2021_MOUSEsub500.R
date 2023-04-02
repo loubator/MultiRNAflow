@@ -124,6 +124,9 @@
 #' \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE135898}.
 #' The name of the samples was renamed in order to be used with our package.}
 #'
+#' @return Mouse times series dataset with four biological conditions
+#' and with 6 time measurements.
+#'
 #' @usage data(RawCounts_Weger2021_MOUSEsub500)
 #'
 #' @references

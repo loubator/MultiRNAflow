@@ -14,6 +14,10 @@
 #' RawCounts_Weger2021_MOUSEsub500, RawCounts_Leong2014_FISSIONsub500wt and
 #' RawCounts_Schleiss2021_CLLsub500
 #'
+#' @return \code{Results_DEanalysis_sub500} contains the outputs of
+#' [DEanalysisGlobal()] of: RawCounts_Weger2021_MOUSEsub500,
+#' RawCounts_Leong2014_FISSIONsub500wt and RawCounts_Schleiss2021_CLLsub500
+#'
 #' @usage data(Results_DEanalysis_sub500)
 #'
 #' @examples

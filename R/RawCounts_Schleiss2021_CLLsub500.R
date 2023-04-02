@@ -112,6 +112,9 @@
 #' \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE130385}.
 #' I rewrite the name of the sample in order to be used with my package.}
 #'
+#' @return Human CCL times series dataset with two biological conditions
+#' and with 9 time measurements.
+#'
 #' @usage data(RawCounts_Schleiss2021_CLLsub500)
 #'
 #' @references
