@@ -1,7 +1,7 @@
 Package: MultiRNAflow
 Title: A R package for analysing RNA-seq raw counts with several biological conditions
     and different time points
-Version: 0.99.5
+Version: 0.99.6
 Authors@R: c(
     person("Rodolphe", "Loubaton",
            email = "loubaton.rodolphe@gmail.com",
@@ -29,6 +29,7 @@ Description: Our R package MultiRNAflow provides an easy to use unified framewor
 License: GPL-3
 Encoding: UTF-8
 LazyData: false
+URL: https://github.com/loubator/MultiRNAflow
 biocViews: Sequencing, RNASeq, GeneExpression, Transcription,
     TimeCourse, Preprocessing, Visualization,
     Normalization, PrincipalComponent, Clustering,
