@@ -7,6 +7,6 @@ test_that("Test DEanalysisTimeAndGroup", {
                                         Plot.DE.graph=TRUE,
                                         path.result=NULL,
                                         SubFile.name=NULL),
-                 "Res.DE.analysis must a 'DESeqDataSet' object",
+                 "Res.DE.analysis must be a 'DESeqDataSet' object",
                  fixed=TRUE)
 })

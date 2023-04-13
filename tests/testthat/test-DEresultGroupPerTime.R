@@ -3,6 +3,6 @@ test_that("Test DEresultGroupPerTime", {
                                       LRT.supp.info=TRUE,
                                       pval.min=0.05,
                                       log.FC.min=1),
-                 "Res.DE.analysis must a 'DESeqDataSet' object",
+                 "Res.DE.analysis must be a 'DESeqDataSet' object",
                  fixed=TRUE)
 })
