@@ -60,7 +60,8 @@ its Benjamini-Hochberg adjusted p-value (see \code{\link[stats:p.adjust]{stats::
 the threshold \code{pval.min}. Default value is 0.05.}
 
 \item{pval.vect.t}{\code{NULL} or vector of dimension \eqn{T-1} filled with
-numeric values between 0 and 1, with \eqn{T} the number of time measurements.
+numeric values between 0 and 1, with \eqn{T} the number of
+time measurements.
 A gene will be considered as differentially expressed (DE) between
 the time ti and the reference time t0 if its Benjamini-Hochberg adjusted
 p-value (see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below the i-th threshold
@@ -96,8 +97,8 @@ If \code{NULL}, the results will not be saved in a folder.
 \code{NULL} as default.}
 
 \item{Name.folder.DE}{Character or \code{NULL}.
-If \code{Name.folder.DE} is a character, the folder names which will contain
-all results will be "DEanalysis_\code{Name.folder.DE}".
+If \code{Name.folder.DE} is a character, the folder names which will
+contain all results will be "DEanalysis_\code{Name.folder.DE}".
 Otherwise, the folder name will be "DEanalysis".}
 }
 \value{
@@ -191,8 +192,8 @@ the column names of \code{DE.results}.
 \item a list (output \code{Summary.Inputs}) containing a summary of sample
 information and inputs of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
-\item If data belong to different time points and different biological conditions,
-the function returns
+\item If data belong to different time points and different biological
+conditions, the function returns
 \itemize{
 \item a data.frame (output \code{Results}) which contains
 \itemize{
@@ -337,7 +338,8 @@ I this example, 'CLL' describe the type of cells
 (here chronic lymphocytic leukemia) and is not used in our analysis.
 
 In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
+'r1' is localized after the third underscore,
+so \code{Individual.position=4},
 'P' is localized after the first underscore, so \code{Group.position=2} and
 't0' is localized after the second underscore, so \code{Time.position=3}.
 }

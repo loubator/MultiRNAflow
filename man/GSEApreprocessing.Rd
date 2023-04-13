@@ -88,21 +88,22 @@ will be those DE at only one time ti (except the reference time t0).
 }
 \examples{
 data(Results_DEanalysis_sub500)
-# Results of DEanalysisGlobal() with the dataset of Antoszewski
+## Results of DEanalysisGlobal() with the dataset of Antoszewski
 res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
-#
+##
 resGp<-GSEApreprocessing(Res.DE.analysis=res.all,
                          ColumnsCriteria=2,
                          Set.Operation="union",
                          Rnk.files=TRUE,
                          Save.files=FALSE)
-#
-#--------------------------------------------------------------------------#
+##
+##-------------------------------------------------------------------------#
 ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-# data(RawCounts_Antoszewski2022_MOUSEsub500)
-# res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#                           Column.gene=1, Group.position=1,
-#                           Time.position=NULL, Individual.position=2,
-#                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
-#                           path.result=NULL, Name.folder.DE=NULL)
+## data(RawCounts_Antoszewski2022_MOUSEsub500)
+## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
+##                           Column.gene=1, Group.position=1,
+##                           Time.position=NULL, Individual.position=2,
+##                           pval.min=0.05, log.FC.min=1,
+##                           LRT.supp.info=FALSE,
+##                           path.result=NULL, Name.folder.DE=NULL)
 }

@@ -57,29 +57,29 @@ The function creates a faceted barplot from a data.frame
 containing two or three qualitative variables and one quantitative variable.
 }
 \examples{
-Group.ex=c('G1', 'G2','G3')
-Time.ex=c('t1', 't2','t3', 't4')
-Spe.sign.ex=c("Pos","Neg")
-Nb.Spe=sample(3:60, length(Group.ex)*length(Time.ex), replace=FALSE)
-Nb.Spe.sign=sample(3:60, length(Group.ex)*length(Time.ex)*2, replace=FALSE)
-#--------------------------------------------------------------------------#
-Melt.Dat.1=data.frame(Group=rep(Group.ex,times=length(Time.ex)),
-                      Time=rep(Time.ex,each=length(Group.ex)),
-                      Nb.Spe.DE=Nb.Spe)
-#
+Group.ex<-c('G1', 'G2',' G3')
+Time.ex<-c('t1', 't2', 't3', 't4')
+Spe.sign.ex<-c("Pos","Neg")
+Nb.Spe<-sample(3:60, length(Group.ex)*length(Time.ex), replace=FALSE)
+Nb.Spe.sign<-sample(3:60, length(Group.ex)*length(Time.ex)*2, replace=FALSE)
+##-------------------------------------------------------------------------#
+Melt.Dat.1<-data.frame(Group=rep(Group.ex,times=length(Time.ex)),
+                       Time=rep(Time.ex,each=length(Group.ex)),
+                       Nb.Spe.DE=Nb.Spe)
+
 DEplotBarplotFacetGrid(Data=Melt.Dat.1,Abs.col=2,Legend.col=2,
                        Facet.col=1,Value.col=3,
                        Color.Legend=NULL)
 DEplotBarplotFacetGrid(Data=Melt.Dat.1,Abs.col=1,Legend.col=1,
                        Facet.col=2,Value.col=3,
                        Color.Legend=NULL)
-#--------------------------------------------------------------------------#
+##-------------------------------------------------------------------------#
 Melt.Dat.2=data.frame(Group=rep(Group.ex,times=length(Time.ex)*2),
                       Time=rep(Time.ex,each=length(Group.ex)*2),
                       Spe.sign=rep(Spe.sign.ex,
                                    times=length(Time.ex)*length(Group.ex)*2),
                       Nb.Spe.DE=Nb.Spe.sign)
-                      #
+
 DEplotBarplotFacetGrid(Data=Melt.Dat.2,
                        Abs.col=1,
                        Legend.col=3,

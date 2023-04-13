@@ -79,14 +79,14 @@ from the output of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 \details{
 \itemize{
 \item If \code{Set.Operation="union"} then the rows extracted from \code{Data}
-are those such that the sum of the selected columns in \code{Res.DE.analysis}
-is >0.
+are those such that the sum of the selected columns in
+\code{Res.DE.analysis} is >0.
 For example, if \code{Res.DE.analysis} is the outputs from
 \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}, the rows extracted from \code{Data} will be those DE
 at least at one time.
 \item If \code{Set.Operation="intersect"} then the rows extracted from data are
-those such that the product of the selected columns in \code{Res.DE.analysis}
-is >0.
+those such that the product of the selected columns in
+\code{Res.DE.analysis} is >0.
 For example, if \code{Res.DE.analysis} is the outputs from
 \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}, the rows extracted from \code{Data} will be those DE
 at all time ti (except the reference time t0).
@@ -104,9 +104,9 @@ The time in the first column of \code{Color.Time} must be either
 }
 \examples{
 data(Results_DEanalysis_sub500)
-# Results of DEanalysisGlobal() with the dataset of Antoszewski
+## Results of DEanalysisGlobal() with the dataset of Antoszewski
 res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
-#
+
 resHeatmap<-DEplotHeatmaps(Res.DE.analysis=res.all,
                            ColumnsCriteria=3, ## Specific genes N1haT1ko
                            Set.Operation="union",
@@ -116,15 +116,16 @@ resHeatmap<-DEplotHeatmaps(Res.DE.analysis=res.all,
                            SizeLabelCols=5,
                            Display.plots=TRUE,
                            Save.plots=FALSE)
-#
-#--------------------------------------------------------------------------#
+##
+##-------------------------------------------------------------------------#
 ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-# data(RawCounts_Antoszewski2022_MOUSEsub500)
-# res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#                           Column.gene=1, Group.position=1,
-#                           Time.position=NULL, Individual.position=2,
-#                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
-#                           path.result=NULL, Name.folder.DE=NULL)
+## data(RawCounts_Antoszewski2022_MOUSEsub500)
+## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
+##                           Column.gene=1, Group.position=1,
+##                           Time.position=NULL, Individual.position=2,
+##                           pval.min=0.05, log.FC.min=1,
+##                           LRT.supp.info=FALSE,
+##                           path.result=NULL, Name.folder.DE=NULL)
 }
 \seealso{
 The function calls the function \code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}

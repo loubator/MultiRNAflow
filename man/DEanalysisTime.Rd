@@ -7,7 +7,7 @@
 DEanalysisTime(
   DESeq.result,
   pval.min = 0.05,
-  pval.vect.t = rep(0.05, times = 6),
+  pval.vect.t = NULL,
   log.FC.min = 1,
   LRT.supp.info = FALSE,
   Plot.DE.graph = TRUE,
@@ -24,7 +24,8 @@ its Benjamini-Hochberg adjusted p-value (see \code{\link[stats:p.adjust]{stats::
 the threshold pval.min. Default value is 0.05}
 
 \item{pval.vect.t}{\code{NULL} or vector of dimension \eqn{T-1} filled with
-numeric values between 0 and 1, with \eqn{T} the number of time measurements.
+numeric values between 0 and 1, with \eqn{T} the number of time
+measurements.
 A gene will be considered as differentially expressed (DE) between the time
 ti and the reference time t0 if its Benjamini-Hochberg adjusted p-value
 (see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below the i-th threshold of \code{pval.vect.t}.
@@ -68,8 +69,8 @@ reference time t0.
 \item a binary column (1 and 0) where 1 means the gene is DE at at least
 between one time ti versus the reference time t0.
 \item a column where each element is succession of 0 and 1.
-The positions of '1' indicate the set of times ti such that the gene is DE
-between ti and the reference time t0.
+The positions of '1' indicate the set of times ti such that the gene is
+DE between ti and the reference time t0.
 }
 \item an alluvial graph of differentially expressed (DE) genes
 (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}})
@@ -94,24 +95,24 @@ the analysis of DE genes between each time versus the reference time t0.
 }
 \examples{
 data(RawCounts_Leong2014_FISSIONsub500wt)
-# We take only the first three time for the speed of the example
+## We take only the first three time for the speed of the example
 RawCounts_Fission_3t<-RawCounts_Leong2014_FISSIONsub500wt[,1:10]
-DESeq2.info=DEanalysisPreprocessing(RawCounts=RawCounts_Fission_3t,
-                                    Column.gene=1,
-                                    Group.position=NULL,
-                                    Time.position=2,
-                                    Individual.position=3)
-#
-dds.DE.T <- DESeq2::DESeq(DESeq2.info$DESeq2.obj,quiet=TRUE,betaPrior=FALSE)
-#
-res.T=DEanalysisTime(DESeq.result=dds.DE.T,
-                     pval.min=0.05,
-                     pval.vect.t=c(0.01,0.05,0.05),
-                     log.FC.min=1,
-                     LRT.supp.info=FALSE,
-                     Plot.DE.graph=TRUE,
-                     path.result=NULL,
-                     SubFile.name=NULL)
+DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_Fission_3t,
+                                     Column.gene=1,
+                                     Group.position=NULL,
+                                     Time.position=2,
+                                     Individual.position=3)
+##
+dds.DE.T<-DESeq2::DESeq(DESeq2.info$DESeq2.obj,quiet=TRUE,betaPrior=FALSE)
+##
+res.T<-DEanalysisTime(DESeq.result=dds.DE.T,
+                      pval.min=0.05,
+                      pval.vect.t=c(0.01,0.05,0.05),
+                      log.FC.min=1,
+                      LRT.supp.info=FALSE,
+                      Plot.DE.graph=TRUE,
+                      path.result=NULL,
+                      SubFile.name=NULL)
 }
 \seealso{
 The outputs of the function will be used by the main function

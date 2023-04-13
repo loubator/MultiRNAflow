@@ -79,17 +79,17 @@ In the string of characters 'CLL_P_t0_r1',
 't0' is localized after the second underscore, so \code{Time.position=3}.
 }
 \examples{
-Grp.test=rep(c("P","NP"),each=27)
-Tps.test=rep(paste("t",0:8,sep=""),times=6)
-Pat.test=rep(paste("pcl",1:6,sep=""),each=9)
-#
-Name.sel.test=paste(Grp.test,Pat.test,Tps.test,sep="_")
-Mat.test.1=data.frame(Gene.name=paste("Name",1:10,sep=""),
+Grp.test=rep(c("P", "NP"), each=27)
+Tps.test=rep(paste0("t", 0:8), times=6)
+Pat.test=rep(paste0("pcl", 1:6), each=9)
+
+Name.sel.test=paste(Grp.test, Pat.test, Tps.test, sep="_")
+Mat.test.1=data.frame(Gene.name=paste0("Name", 1:10),
                       matrix(sample(1:100,length(Name.sel.test)*10,
                                     replace=TRUE),
                              ncol=length(Name.sel.test), nrow=10))
-colnames(Mat.test.1)=c("Gene.name",Name.sel.test)
-#--------------------------------------------------------------------------#
+colnames(Mat.test.1)=c("Gene.name", Name.sel.test)
+##-------------------------------------------------------------------------#
 DESeq2.info.test=DEanalysisPreprocessing(RawCounts=Mat.test.1,
                                          Column.gene=1,
                                          Group.position=1,

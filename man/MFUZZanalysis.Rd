@@ -64,7 +64,8 @@ If \code{DataNumberCluster=NULL}, a number of clusters will be automatically
 computed for each biological condition (see \code{\link[=MFUZZclustersNumber]{MFUZZclustersNumber()}}).}
 
 \item{Method}{"kmeans" or "hcpc". The method used for selecting the number
-of cluster to be used for the temporal cluster analysis (see \code{Details}).
+of cluster to be used for the temporal cluster analysis
+(see \code{Details}).
 Only used if \code{DataNumberCluster} is not \code{NULL}.}
 
 \item{Max.clust}{Integer strictly superior to 1 indicating the maximum
@@ -141,7 +142,8 @@ I this example, 'CLL' describe the type of cells
 (here chronic lymphocytic leukemia) and is not used in our analysis.
 
 In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
+'r1' is localized after the third underscore,
+so \code{Individual.position=4},
 'P' is localized after the first underscore, so \code{Group.position=2} and
 't0' is localized after the second underscore, so \code{Time.position=3}.
 
@@ -167,13 +169,13 @@ colnames(data.clust.sim)<-c("G1_t0_r1","G1_t1_r1","G1_t2_r1",
                             "G1_t0_r2","G1_t1_r2","G1_t2_r2",
                             "G2_t0_r3","G2_t1_r3","G2_t2_r3",
                             "G2_t0_r4","G2_t1_r4","G2_t2_r4")
-#--------------------------------------------------------------------------#
+##-------------------------------------------------------------------------#
 # Plot the temporal expression of each individual
 graphics::matplot(t(rbind(data.clust.sim[,1:3], data.clust.sim[,4:6],
                           data.clust.sim[,7:9], data.clust.sim[,10:12])),
                           type=c("b"), pch=19, col=rep(c("black","red"),
                           each=6*10), xlab="Time", ylab="Gene expression")
-#--------------------------------------------------------------------------#
+##-------------------------------------------------------------------------#
 MFUZZanalysis(ExprData=data.clust.sim,
               Column.gene=NULL,
               Group.position=1,

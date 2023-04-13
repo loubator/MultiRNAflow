@@ -62,7 +62,8 @@ Each corresponds to a method of normalization proposed by \code{DESeq2}
 \code{\link[DESeq2:rlog]{DESeq2::rlog()}} for "rlog" and \code{\link[DESeq2:vst]{DESeq2::vst()}} for "vst").}
 
 \item{Blind.rlog.vst}{TRUE or FALSE. See input 'blind' in \code{\link[DESeq2:rlog]{DESeq2::rlog()}}.
-It is recommended to set \code{Blind.rlog.vst=FALSE} for downstream analysis.}
+It is recommended to set \code{Blind.rlog.vst=FALSE}
+for downstream analysis.}
 
 \item{Plot.Boxplot}{\code{TRUE} or \code{FALSE}. \code{TRUE} by default.
 If \code{Plot.Boxplot=TRUE}, the function \code{\link[=DATAplotBoxplotSamples]{DATAplotBoxplotSamples()}} will be
@@ -79,8 +80,8 @@ two columns where \eqn{N_{bc}} is the number of biological conditions.
 If \code{Color.Group} is a data.frame, the first column must contain
 the name of each biological condition and the second column must contain
 the colors associated to each biological condition.
-If \code{Color.Group=NULL}, the function will automatically attribute a color
-for each biological condition.
+If \code{Color.Group=NULL}, the function will automatically attribute a
+color for each biological condition.
 If samples belong to different time points only,
 \code{Color.Group} will not be used.}
 
@@ -142,7 +143,8 @@ the type of cells (here chronic lymphocytic leukemia) and
 is not used in our analysis.
 
 In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
+'r1' is localized after the third underscore,
+so \code{Individual.position=4},
 'P' is localized after the first underscore, so \code{Group.position=2} and
 't0' is localized after the second underscore, so \code{Time.position=3}.
 }

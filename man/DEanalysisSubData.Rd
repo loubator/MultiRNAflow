@@ -88,14 +88,14 @@ If \code{Res.DE.analysis} is a vector, \code{ColumnsCriteria} and
 }
 \examples{
 Data.EX<-data.frame(matrix(sample(x=1:150, size=20), nrow=5))
-colnames(Data.EX)<-paste("Gene",1:4,sep="")
-#--------------------------------------------------------------------------#
-# Exemple of output from the function DEanalysisGlobal()
+colnames(Data.EX)<-paste0("Gene", 1:4)
+##-------------------------------------------------------------------------#
+## Exemple of output from the function DEanalysisGlobal()
 res.DEanalysisGlobal.Ex<-list(data.frame(Gene=paste("Gene",1:5,sep="."),
                                          DE1=c(0,1,0,0,1),
                                          DE2=c(0,1,0,1,0)))
 names(res.DEanalysisGlobal.Ex)<-c("DE.results")
-#--------------------------------------------------------------------------#
+##-------------------------------------------------------------------------#
 res.SubDE<-DEanalysisSubData(Data=Data.EX,
                              Res.DE.analysis=res.DEanalysisGlobal.Ex,
                              ColumnsCriteria=c(2,3),

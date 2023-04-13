@@ -56,14 +56,14 @@ A '1' in one of these columns means the gene is up-regulated
 (or over-expressed) for the biological condition associated
 to the given column.
 A gene is called up-regulated for a given biological condition BC1 if
-the gene is specific to the biological condition BC1 and expressions in BC1
-are higher than in the other biological conditions.
+the gene is specific to the biological condition BC1 and expressions in
+BC1 are higher than in the other biological conditions.
 A '-1' in one of these columns means the gene is down-regulated
 (or under-expressed) for the biological condition associated to the given
 column.
 A gene is called regulated for a given biological condition BC1 if
-the gene is specific to the biological condition BC1 and expressions in BC1
-are lower than in the other biological conditions.
+the gene is specific to the biological condition BC1 and expressions in
+BC1 are lower than in the other biological conditions.
 A '0' in one of these columns means the gene is not specific to
 the biological condition associated to the given column.
 }

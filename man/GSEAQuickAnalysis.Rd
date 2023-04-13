@@ -24,7 +24,8 @@ If \code{TRUE}, the function realizes an enrichment analysis.
 If \code{FALSE}, the function returns a message indicating that
 the user must have an internet connection.}
 
-\item{Res.DE.analysis}{A list corresponding to the output of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.}
+\item{Res.DE.analysis}{A list corresponding to the output
+of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.}
 
 \item{ColumnsCriteria}{A vector of integers where each integer indicates
 a column of \code{Res.DE.analysis$DE.results} to be selected for
@@ -42,7 +43,8 @@ fold change values (see \code{Details}).}
 \item{Set.Operation}{A character. The user must choose between "union"
 (default), "intersect", "setdiff" (see \code{Details}).}
 
-\item{Organism}{A character indicating the organism where data were taken from.
+\item{Organism}{A character indicating the organism
+where data were taken from.
 See vignette of the R package \code{gprofiler2} for supported organisms.
 See \code{\link[gprofiler2:gost]{gprofiler2::gost()}}.}
 
@@ -86,7 +88,8 @@ The function returns
 }
 }
 \description{
-The function realizes, from the outputs of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}},
+The function realizes,
+from the outputs of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}},
 an enrichment analysis (GSEA) of a subset of genes with
 the R package \code{gprofiler2}.
 }
@@ -121,31 +124,31 @@ will be those DE at only one time ti (except the reference time t0).
 }
 \examples{
 data(Results_DEanalysis_sub500)
-# Results of DEanalysisGlobal() with the dataset of Antoszewski
+## Results of DEanalysisGlobal() with the dataset of Antoszewski
 res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
-#
-#--------------------------------------------------------------------------#
+
+##-------------------------------------------------------------------------#
 ## Internet is needed in order to run the following lines of code
-# resGpA<-GSEAQuickAnalysis(Internect.Connection=FALSE,
-#                           Res.DE.analysis=res.all,
-#                           ColumnsCriteria=2,
-#                           ColumnsLog2ordered=NULL,
-#                           Set.Operation="union",
-#                           Organism="mmusculus",
-#                           MaxNumberGO=20,
-#                           Background=FALSE,
-#                           Display.plots=TRUE,
-#                           Save.plots=FALSE)
-#--------------------------------------------------------------------------#
-#
-#--------------------------------------------------------------------------#
+## resGpA<-GSEAQuickAnalysis(Internect.Connection=FALSE,
+##                           Res.DE.analysis=res.all,
+##                           ColumnsCriteria=2,
+##                           ColumnsLog2ordered=NULL,
+##                           Set.Operation="union",
+##                           Organism="mmusculus",
+##                           MaxNumberGO=20,
+##                           Background=FALSE,
+##                           Display.plots=TRUE,
+##                           Save.plots=FALSE)
+##-------------------------------------------------------------------------#
+
+##-------------------------------------------------------------------------#
 ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-# data(RawCounts_Antoszewski2022_MOUSEsub500)
-# res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#                           Column.gene=1, Group.position=1,
-#                           Time.position=NULL, Individual.position=2,
-#                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
-#                           path.result=NULL, Name.folder.DE=NULL)
+## data(RawCounts_Antoszewski2022_MOUSEsub500)
+## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
+##                           Column.gene=1, Group.position=1,
+##                           Time.position=NULL, Individual.position=2,
+##                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
+##                           path.result=NULL, Name.folder.DE=NULL)
 }
 \seealso{
 The function uses the R package \code{gprofiler2}

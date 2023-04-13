@@ -7,8 +7,8 @@
 DEplotVennBarplotGroup(Mat.DE.pair.group)
 }
 \arguments{
-\item{Mat.DE.pair.group}{Binary matrix or data.frame with \eqn{N_g} rows and
-\eqn{((N_{bc}-1)*N_{bc})/2} columns with
+\item{Mat.DE.pair.group}{Binary matrix or data.frame with \eqn{N_g} rows
+and \eqn{((N_{bc}-1)*N_{bc})/2} columns with
 \eqn{N_{bc}} the number of biological conditions.}
 }
 \value{
@@ -32,17 +32,17 @@ the number of genes for each possible intersection in an UpSet plot
 }
 \examples{
 set.seed(1994)
-#--------------------------------------------------------------------------#
-# Binary matrix
-Bin.Table.G=matrix(c(sample(c(0,1),replace=TRUE,size=240,c(0.75,0.35)),
-                     sample(c(0,1),replace=TRUE,size=240,c(0.3,0.7)),
-                     rep(0,18)),
-                   ncol=6, byrow = TRUE)
+##-------------------------------------------------------------------------#
+## Binary matrix
+Bin.Table.G<-matrix(c(sample(c(0,1), replace=TRUE, size=240,c(0.75,0.35)),
+                      sample(c(0,1), replace=TRUE, size=240,c(0.3,0.7)),
+                      rep(0,18)),
+                    ncol=6, byrow=TRUE)
 colnames(Bin.Table.G)=c(".A..B.",".A..C.",".A..D.",
                         ".B..C.",".B..D.",".C..D.")
-#--------------------------------------------------------------------------#
-# Results
-res.t.upset=DEplotVennBarplotGroup(Mat.DE.pair.group=Bin.Table.G)
+##-------------------------------------------------------------------------#
+## Results
+res.t.upset<-DEplotVennBarplotGroup(Mat.DE.pair.group=Bin.Table.G)
 print(res.t.upset$Upset.global)
 print(res.t.upset$Upset.threshold)
 }

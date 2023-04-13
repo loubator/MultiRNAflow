@@ -110,16 +110,16 @@ the analysis of DE genes between all pairs of biological conditions.
 }
 \examples{
 data(RawCounts_Antoszewski2022_MOUSEsub500)
-# No time points. We take only two groups for the speed of the example
+## No time points. We take only two groups for the speed of the example
 RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
 DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_T1Wt,
                                      Column.gene=1,
                                      Group.position=1,
                                      Time.position=NULL,
                                      Individual.position=2)
-#
+##
 dds.DE.G<-DESeq2::DESeq(DESeq2.info$DESeq2.obj, quiet=TRUE, betaPrior=FALSE)
-#
+##
 res.sum.group<-DEanalysisGroup(DESeq.result=dds.DE.G,
                                pval.min=0.01,
                                log.FC.min=1,

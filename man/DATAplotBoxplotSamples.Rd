@@ -69,8 +69,8 @@ two columns where \eqn{N_{bc}} is the number of biological conditions.
 If \code{Color.Group} is a data.frame, the first column must contain
 the name of each biological condition and the second column must contain
 the colors associated to each biological condition.
-If \code{Color.Group=NULL}, the function will automatically attribute a color
-for each biological condition.
+If \code{Color.Group=NULL}, the function will automatically attribute a
+color for each biological condition.
 If samples belong to different time points only,
 \code{Color.Group} will not be used.}
 
@@ -85,8 +85,9 @@ If \code{y.label=NULL}, the label will be either "log2(Gene expression +1)"
 (if \code{Log2.transformation=FALSE}).}
 }
 \value{
-The function returns a graph which plots the distribution of all gene
-expressions using a boxplot for each sample (see \code{\link[ggplot2:geom_boxplot]{ggplot2::geom_boxplot()}}).
+The function returns a graph which plots the distribution of all
+gene expressions using a boxplot for each sample
+(see \code{\link[ggplot2:geom_boxplot]{ggplot2::geom_boxplot()}}).
 }
 \description{
 From a gene expression dataset
@@ -116,7 +117,8 @@ I this example, 'CLL' describe the type of cells
 (here chronic lymphocytic leukemia) and is not used in our analysis.
 
 In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
+'r1' is localized after the third underscore,
+so \code{Individual.position=4},
 'P' is localized after the first underscore, so \code{Group.position=2} and
 't0' is localized after the second underscore, so \code{Time.position=3}.
 

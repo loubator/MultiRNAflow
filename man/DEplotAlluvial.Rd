@@ -54,10 +54,12 @@ corresponding to genes and
 \item if \code{Temporal.Group=TRUE} : \eqn{T-1} columns corresponding to times
 (with \eqn{T} the number of time points).
 A '1' in the n-th row and t-th column means that the n-th gene is
-differentially expressed (DE) at time t, compared with the reference time t0.
+differentially expressed (DE) at time t, compared with
+the reference time t0.
 \item if \code{Temporal.Group=FALSE} :
 \eqn{G} columns corresponding to the number of group.
-A '1' in the \eqn{n}-th row and \eqn{g}-th column means that the n-th gene is
+A '1' in the \eqn{n}-th row and \eqn{g}-th column means
+that the n-th gene is
 \itemize{
 \item DE at least one time ti, compared with the reference time t0,
 for the group \eqn{g}.
@@ -87,13 +89,14 @@ column names (t1,t2,...).
 }
 \examples{
 set.seed(1994)
-#
+
 NbTime.vst0<-4
 BinTable<-matrix(sample(c(0,1),replace=TRUE,
                         size=NbTime.vst0*120,c(0.60,0.40)),
                  ncol=NbTime.vst0)
-colnames(BinTable)<-paste("t",1:NbTime.vst0,sep="")
-#
+colnames(BinTable)<-paste0("t", 1:NbTime.vst0)
+
+##-------------------------------------------------------------------------#
 res.alluvial<-DEplotAlluvial(table.DE.time=BinTable)
 print(res.alluvial$g.alluvial)
 print(res.alluvial$g.alluvial.freq)
@@ -101,8 +104,8 @@ print(res.alluvial$g.alluvial.freq)
 \seealso{
 The \code{\link[=DEplotAlluvial]{DEplotAlluvial()}} function
 \itemize{
-\item is used by the following functions of our package : \code{\link[=DEanalysisTime]{DEanalysisTime()}} and
-\code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
+\item is used by the following functions of our package : \code{\link[=DEanalysisTime]{DEanalysisTime()}}
+and \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
 \item calls the R package \link{ggplot2} in order to plot the two graphs.
 }
 }

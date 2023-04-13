@@ -16,8 +16,8 @@ DEplotVolcanoMA(
 \item{Res.DE.analysis}{A list. Output from \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
 (see \code{Examples}).}
 
-\item{NbGene.plotted}{Non negative integer. The algorithm computes the sum of
-all the absolute \eqn{log_2} fold change present in the element
+\item{NbGene.plotted}{Non negative integer. The algorithm computes the sum
+of all the absolute \eqn{log_2} fold change present in the element
 \code{DE.results} of \code{Res.DE.analysis} for each gene.
 Only the highest \code{NbGene.plotted} genes are plotted in the volcano and
 MA plots. By default, \code{NbGene.plotted}=2.}
@@ -80,22 +80,22 @@ each pair of biological conditions, for all fixed time point.
 }
 \examples{
 data(Results_DEanalysis_sub500)
-# Results of DEanalysisGlobal() with the dataset of Antoszewski
+## Results of DEanalysisGlobal() with the dataset of Antoszewski
 res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
-#
+
 resVolcanoMA<-DEplotVolcanoMA(res.all,
                               NbGene.plotted=5,
                               Display.plots=TRUE,
                               Save.plots=FALSE)
-#
-#--------------------------------------------------------------------------#
+
+##-------------------------------------------------------------------------#
 ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-# data(RawCounts_Antoszewski2022_MOUSEsub500)
-# res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#                           Column.gene=1, Group.position=1,
-#                           Time.position=NULL, Individual.position=2,
-#                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
-#                           path.result=NULL, Name.folder.DE=NULL)
+## data(RawCounts_Antoszewski2022_MOUSEsub500)
+## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
+##                           Column.gene=1, Group.position=1,
+##                           Time.position=NULL, Individual.position=2,
+##                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
+##                           path.result=NULL, Name.folder.DE=NULL)
 }
 \seealso{
 The function calls the output of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.

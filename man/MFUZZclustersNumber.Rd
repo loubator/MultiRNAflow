@@ -159,7 +159,7 @@ If there are several biological conditions, the algorithm computes
 one optimal number of clusters per biological condition.
 }
 \examples{
-# Data simulation
+## Data simulation
 set.seed(33)
 data.clust.sim<-matrix(rnorm(12*10*3, sd=0.2,
                              mean=rep(c(rep(c(1,6,9,4,3,1,6.5,0.7,10),
@@ -168,18 +168,19 @@ data.clust.sim<-matrix(rnorm(12*10*3, sd=0.2,
                                         times=2)),
                              each=10)),
                        nrow=30, ncol=12)
-#
+##
 colnames(data.clust.sim)<-c("G1_t0_r1","G1_t1_r1","G1_t2_r1",
                             "G1_t0_r2","G1_t1_r2","G1_t2_r2",
                             "G2_t0_r3","G2_t1_r3","G2_t2_r3",
                             "G2_t0_r4","G2_t1_r4","G2_t2_r4")
-#--------------------------------------------------------------------------#
-# Plot the temporal expression of each individual
+##-------------------------------------------------------------------------#
+## Plot the temporal expression of each individual
 graphics::matplot(t(rbind(data.clust.sim[,1:3], data.clust.sim[,4:6],
                           data.clust.sim[,7:9], data.clust.sim[,10:12])),
                   type=c("b"), pch=19, col=rep(c("black","red"), each=6*10),
                   xlab="Time", ylab="Gene expression")
-#--------------------------------------------------------------------------#
+
+##-------------------------------------------------------------------------#
 MFUZZclustersNumber(ExprData=data.clust.sim,
                     Column.gene=NULL,
                     Group.position=1,

@@ -216,7 +216,8 @@ I this example, 'CLL' describe the type of cells
 (here chronic lymphocytic leukemia) and is not used in our analysis.
 
 In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
+'r1' is localized after the third underscore,
+so \code{Individual.position=4},
 'P' is localized after the first underscore, so \code{Group.position=2} and
 't0' is localized after the second underscore, so \code{Time.position=3}.
 }
@@ -224,14 +225,14 @@ In the string of characters 'CLL_P_t0_r1',
 res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=2,
                                    Nb.Gene=20)
 #
-data.color.group=data.frame(Name=c("G1","G2"), Col=c("black","red"))
-#--------------------------------------------------------------------------#
+data.color.group=data.frame(Name=c("G1", "G2"), Col=c("black", "red"))
+##-------------------------------------------------------------------------#
 PCAgraphics(ExprData=res.sim.count$Sim.dat,
             Column.gene=1,
             Group.position=1,
             Time.position=2,
             Individual.position=3,
-            gene.deletion=c("Gene1","Gene5"),
+            gene.deletion=c("Gene1", "Gene5"),
             sample.deletion=c(2,6),
             Supp.del.sample=FALSE,
             Plot.PCA=TRUE,

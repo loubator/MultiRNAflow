@@ -142,7 +142,7 @@ In the string of characters 'CLL_P_t0_r1',
 \examples{
 res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
                                   Nb.Gene=10)
-#
+##
 Res.evo<-DATAplotExpressionGenes(ExprData=res.sim.count$Sim.dat,
                                  Vector.row.gene=c(1,3),
                                  Column.gene=1,

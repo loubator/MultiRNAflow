@@ -55,7 +55,8 @@ of the function \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
 }
 \examples{
 data(RawCounts_Schleiss2021_CLLsub500)
-# We take only the first three time (both group) for the speed of the example
+## We take only the first three time (both group)
+## for the speed of the example
 Index3t<-c(2:4,11:13,20:22, 29:31,38:40,47:49)
 RawCounts_P_NP_3t<-RawCounts_Schleiss2021_CLLsub500[,c(1,Index3t)]
 DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_P_NP_3t,
@@ -63,9 +64,9 @@ DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_P_NP_3t,
                                      Group.position=2,
                                      Time.position=4,
                                      Individual.position=3)
-#
+##
 dds.DE <- DESeq2::DESeq(DESeq2.info$DESeq2.obj)
-#
+##
 res.G.T.2<-DEresultGroupPerTime(DESeq.result=dds.DE,
                                 LRT.supp.info=FALSE,
                                 log.FC.min=1,

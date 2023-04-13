@@ -95,14 +95,15 @@ I this example, 'CLL' describe the type of cells
 (here chronic lymphocytic leukemia) and is not used in our analysis.
 
 In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
+'r1' is localized after the third underscore,
+so \code{Individual.position=4},
 'P' is localized after the first underscore, so \code{Group.position=2} and
 't0' is localized after the second underscore, so \code{Time.position=3}.
 }
 \examples{
 res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
                                    Nb.Gene=10)
-#--------------------------------------------------------------------------#
+##-------------------------------------------------------------------------#
 res.dat.PCA<-PCApreprocessing(ExprData=res.sim.count$Sim.dat,
                               Column.gene=1,
                               Group.position=1,

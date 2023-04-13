@@ -56,9 +56,9 @@ a vector indicating the time for each sample and/or
 a vector indicating the biological condition for each sample.
 }
 \description{
-This function generates new reduced column names according to the presence of
-biological conditions and/or time points, and extract the different factors
-(individual's names, time measurements, biological conditions)
+This function generates new reduced column names according to the presence
+of biological conditions and/or time points, and extract the different
+factors (individual's names, time measurements, biological conditions)
 from the column names of the dataset (see \code{Details}).
 }
 \details{
@@ -83,14 +83,16 @@ I this example, 'CLL' describe the type of cells
 (here chronic lymphocytic leukemia) and is not used in our analysis.
 
 In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
+'r1' is localized after the third underscore,
+so \code{Individual.position=4},
 'P' is localized after the first underscore, so \code{Group.position=2} and
 't0' is localized after the second underscore, so \code{Time.position=3}.
 }
 \examples{
-# Data simulated with our function RawCountsSimulation()
-Data.sim<-RawCountsSimulation(Nb.Group=3,Nb.Time=2,Nb.per.GT=3,Nb.Gene=10)
-#--------------------------------------------------------------------------#
+## Data simulated with our function RawCountsSimulation()
+Data.sim<-RawCountsSimulation(Nb.Group=3, Nb.Time=2, Nb.per.GT=3,
+                              Nb.Gene=10)
+##-------------------------------------------------------------------------#
 res.test.colnames=ColnamesToFactors(ExprData=Data.sim$Sim.dat,
                                     Column.gene=1,
                                     Group.position=1,
@@ -100,6 +102,6 @@ print(res.test.colnames)
 }
 \seealso{
 The \code{\link[=ColnamesToFactors]{ColnamesToFactors()}} function is used by the following
-functions of our package : \code{\link[=DEanalysisPreprocessing]{DEanalysisPreprocessing()}}, \code{\link[=PCApreprocessing]{PCApreprocessing()}},
-\code{\link[=MFUZZclustersNumber]{MFUZZclustersNumber()}} and \code{\link[=MFUZZanalysis]{MFUZZanalysis()}}.
+functions of our package : \code{\link[=DEanalysisPreprocessing]{DEanalysisPreprocessing()}},
+\code{\link[=PCApreprocessing]{PCApreprocessing()}}, \code{\link[=MFUZZclustersNumber]{MFUZZclustersNumber()}} and \code{\link[=MFUZZanalysis]{MFUZZanalysis()}}.
 }

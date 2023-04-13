@@ -49,8 +49,8 @@ information in the string of character in each sample name.}
 the individual (e.g patient, replicate, mouse, yeasts culture ...)
 in the string of characters in each sample names (see \code{Details}).
 The names of different individuals must be all different.
-Furthermore, if individual names are just numbers, they will be transform in
-a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
+Furthermore, if individual names are just numbers, they will be transform
+in a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
 a "r" will be added to each individual name ("r" for replicate).}
 
 \item{Color.Group}{NULL or a data.frame with \eqn{N_{bc}} rows and
@@ -108,15 +108,16 @@ the type of cells (here chronic lymphocytic leukemia)
 and is not used in our analysis.
 
 In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
+'r1' is localized after the third underscore,
+so \code{Individual.position=4},
 'P' is localized after the first underscore, so \code{Group.position=2} and
 't0' is localized after the second underscore, so \code{Time.position=3}.
 }
 \examples{
-# Simulation raw counts
+## Simulation raw counts
 res.sim.count<-RawCountsSimulation(Nb.Group=2,Nb.Time=3,Nb.per.GT=4,
                                    Nb.Gene=10)
-#
+##
 Res.evo<-DATAplotExpression1Gene(ExprData=res.sim.count$Sim.dat,
                                  row.gene=1,
                                  Column.gene=1,
