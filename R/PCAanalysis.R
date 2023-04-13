@@ -23,7 +23,8 @@
 #' (here chronic lymphocytic leukemia) and is not used in our analysis.
 #'
 #' In the string of characters 'CLL_P_t0_r1',
-#' 'r1' is localized after the third underscore, so \code{Individual.position=4},
+#' 'r1' is localized after the third underscore,
+#' so \code{Individual.position=4},
 #' 'P' is localized after the first underscore, so \code{Group.position=2} and
 #' 't0' is localized after the second underscore, so \code{Time.position=3}.
 #'
@@ -187,7 +188,7 @@
 #' @examples
 #' res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=2,
 #'                                    Nb.Gene=20)
-#' #--------------------------------------------------------------------------#
+#' ##-------------------------------------------------------------------------#
 #' Res.acp.analysis<-PCAanalysis(ExprData=res.sim.count$Sim.dat,
 #'                               Column.gene=1,
 #'                               Group.position=1,
@@ -199,7 +200,8 @@
 #'                               Plot.PCA=TRUE,
 #'                               Mean.Accross.Time=FALSE,
 #'                               Color.Group=NULL,
-#'                               Phi=25, Theta=140, Cex.label=0.7,Cex.point=0.7,
+#'                               Phi=25, Theta=140,
+#'                               Cex.label=0.7,Cex.point=0.7,
 #'                               epsilon=0.2,
 #'                               D3.mouvement=FALSE,
 #'                               path.result=NULL,
@@ -220,170 +222,194 @@ PCAanalysis<-function(ExprData,
                       D3.mouvement=FALSE,
                       path.result=NULL,
                       Name.folder.pca=NULL){
-  #---------------------------------------------------------------------------#
-  # Preprocessing
-  res.Factors<-ColnamesToFactors(ExprData=ExprData,
-                                 Column.gene=Column.gene,
-                                 Group.position=Group.position,
-                                 Time.position=Time.position,
-                                 Individual.position=Individual.position)
-  Vector.group<-res.Factors$Group.Info
-  Vector.time<-res.Factors$Time.Info
-  #---------------------------------------------------------------------------#
-  # Folder creation if no existence
-  #---------------------------------------------------------------------------#
-  if(is.null(Name.folder.pca)==TRUE){
-    Name.folder.pca<-""
-    SubFolder.name<-"1_UnsupervisedAnalysis"
-  }else{
-    Name.folder.pca<-paste("_",Name.folder.pca,sep="")
-    SubFolder.name<-paste("1_UnsupervisedAnalysis",Name.folder.pca,sep="")
-  }# if(is.null(Name.folder.pca)==TRUE)
-  #
-  if(is.null(path.result)==FALSE){
-    if(SubFolder.name%in%dir(path = path.result)==FALSE){
-      print("Folder creation")
-      dir.create(path=paste(path.result,"/",SubFolder.name,sep=""))
-      path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Preprocessing
+    res.Factors<-ColnamesToFactors(ExprData=ExprData,
+                                   Column.gene=Column.gene,
+                                   Group.position=Group.position,
+                                   Time.position=Time.position,
+                                   Individual.position=Individual.position)
+
+    Vector.group<-res.Factors$Group.Info
+    Vector.time<-res.Factors$Time.Info
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Folder creation if no existence
+    if(is.null(Name.folder.pca)){
+        Name.folder.pca<-""
+        SubFolder.name<-"1_UnsupervisedAnalysis"
     }else{
-      path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
-    }# if(SubFolder.name%in%dir(path = path.result)==FALSE)
-  }else{
-    path.result.f<-NULL
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  if(is.null(Vector.group)==FALSE){
-    if(is.null(Vector.time)==FALSE){
-      Name.file.pca<-paste("BothGroupTime",Name.folder.pca,sep="")
+        Name.folder.pca<-paste0("_", Name.folder.pca)
+        SubFolder.name<-paste0("1_UnsupervisedAnalysis", Name.folder.pca)
+    }# if(is.null(Name.folder.pca)==TRUE)
+
+    if(!is.null(path.result)){
+        if(!SubFolder.name%in%dir(path=path.result)){
+            print("Folder creation")
+            dir.create(path=file.path(path.result, SubFolder.name))
+            path.result.f<-file.path(path.result, SubFolder.name)
+        }else{
+            path.result.f<-file.path(path.result, SubFolder.name)
+        }## if(!SubFolder.name%in%dir(path=path.result))
     }else{
-      Name.file.pca<-paste("Group",Name.folder.pca,sep="")
-    }# if(is.null(Vector.time)==FALSE)
-  }else{
-    Name.file.pca<-paste("Time",Name.folder.pca,sep="")
-  }# if(is.null(Vector.group)==FALSE)
-  #
-  if(is.null(path.result.f)==FALSE){
-    nom.dossier.result<-paste("1-2_PCAanalysis",Name.folder.pca,sep="")
-    if(nom.dossier.result%in%dir(path = path.result.f)==FALSE){
-      dir.create(path=paste(path.result.f,"/",nom.dossier.result,sep=""))
-      path.result.new<-paste(path.result.f,"/",nom.dossier.result,sep="")
+        path.result.f<-NULL
+    }## if(!is.null(path.result))
+
+    ##------------------------------------------------------------------------#
+    if(!is.null(Vector.group)){
+        if(!is.null(Vector.time)){
+            Name.file.pca<-paste0("BothGroupTime", Name.folder.pca)
+        }else{
+            Name.file.pca<-paste0("Group", Name.folder.pca)
+        }## if(!is.null(Vector.time))
     }else{
-      path.result.new<-paste(path.result.f,"/",nom.dossier.result,sep="")
-    }# if(nom.dossier.result%in%dir(path = path.result.f)==FALSE)
-  }else{
-    path.result.new<-NULL
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  # Main results
-  #---------------------------------------------------------------------------#
-  tb.spinfoini<-as.numeric(table(res.Factors$Individual.info))
-  max.tb<-max(tb.spinfoini)
-  Var.sample<-stats::var(tb.spinfoini)
-  if(Mean.Accross.Time==FALSE & Var.sample==0 & max.tb>1){#tb.spinfoini[1]>1
-    res.PCA<-PCAgraphics(ExprData=ExprData,
-                         Column.gene=Column.gene,
-                         Group.position=Group.position,
-                         Time.position=Time.position,
-                         Individual.position=Individual.position,
-                         sample.deletion=sample.deletion,
-                         Supp.del.sample=Supp.del.sample,
-                         Plot.PCA=Plot.PCA,
-                         Mean.Accross.Time=FALSE,
-                         gene.deletion=gene.deletion,
-                         Color.Group=Color.Group,
-                         D3.mouvement=D3.mouvement,
-                         Phi=Phi,Theta=Theta, epsilon=epsilon,
-                         Cex.point=Cex.point, Cex.label=Cex.label,
-                         path.result=path.result.new,
-                         Name.file.pca=Name.file.pca)
-  }else{
-    res.PCA<-PCAgraphics(ExprData=ExprData,
-                         Column.gene=Column.gene,
-                         Group.position=Group.position,
-                         Time.position=Time.position,
-                         Individual.position=Individual.position,
-                         sample.deletion=sample.deletion,
-                         Supp.del.sample=Supp.del.sample,
-                         gene.deletion=gene.deletion,
-                         Plot.PCA=Plot.PCA,
-                         Mean.Accross.Time=TRUE,
-                         Color.Group=Color.Group,
-                         D3.mouvement=D3.mouvement,
-                         Phi=Phi,Theta=Theta, epsilon=epsilon,
-                         Cex.point=Cex.point, Cex.label=Cex.label,
-                         path.result=path.result.new,
-                         Name.file.pca=Name.file.pca)
-  }# if(Mean.Accross.Time==FALSE & Var.sample==0 & max.tb>1)
-  #---------------------------------------------------------------------------#
-  if(is.null(Vector.group)==FALSE & is.null(Vector.time)==FALSE){
-    Tt.Del<-gsub("t","", gsub("T","",as.character(Vector.time)))
-    Time.name<-levels(as.factor(paste("T",Tt.Del,sep="")))
-    #-------------------------------------------------------------------------#
-    Group.Levels<-levels(as.factor(Vector.group))
-    res.PCA.per.g<-vector(mode="list", length=length(Group.Levels))
-    names(res.PCA.per.g)<-paste("PCA.results.Group_", Group.Levels, sep="")
-    #
-    for(g in seq_len(length(Group.Levels))){
-      Index.g<-which(Vector.group==Group.Levels[g])
-      #
-      if(is.null(Column.gene)==TRUE){
-        Sub.data.g<-ExprData[,Index.g]
-        Index.g.f<-Index.g
-      }else{
-        Sub.data.g<-cbind(ExprData[,Column.gene],
-                          ExprData[,-Column.gene][,Index.g])
-      }# if(is.null(Column.gene)==TRUE)
-      #-----------------------------------------------------------------------#
-      Name.file.pca.g<-paste("Group_", Group.Levels[g], sep="")
-      #-----------------------------------------------------------------------#
-      tb.spinfoini<-as.numeric(table(res.Factors$Individual.info))
-      Var.sample<-stats::var(tb.spinfoini)
-      #-----------------------------------------------------------------------#
-      if(Mean.Accross.Time==FALSE & Var.sample==0 & tb.spinfoini[1]>1){
-        res.PCA.g<-PCAgraphics(ExprData=Sub.data.g,
-                               Column.gene=Column.gene,
-                               Group.position=NULL,
-                               Time.position=Time.position,
-                               Individual.position=Individual.position,
-                               sample.deletion=sample.deletion,
-                               Supp.del.sample=Supp.del.sample,
-                               gene.deletion=gene.deletion,
-                               Plot.PCA=Plot.PCA,
-                               Mean.Accross.Time=FALSE,
-                               Color.Group=Color.Group,
-                               D3.mouvement=D3.mouvement,
-                               Phi=Phi, Theta=Theta, epsilon=epsilon,
-                               Cex.point=Cex.point, Cex.label=Cex.label,
-                               path.result=path.result.new,
-                               Name.file.pca=Name.file.pca.g)
-      }else{
-        res.PCA.g<-PCAgraphics(ExprData=Sub.data.g,
-                               Column.gene=Column.gene,
-                               Group.position=NULL,
-                               Time.position=Time.position,
-                               Individual.position=Individual.position,
-                               sample.deletion=sample.deletion,
-                               Supp.del.sample=Supp.del.sample,
-                               gene.deletion=gene.deletion,
-                               Plot.PCA=Plot.PCA,
-                               Mean.Accross.Time=TRUE,
-                               Color.Group=Color.Group,
-                               D3.mouvement=D3.mouvement,
-                               Phi=Phi, Theta=Theta, epsilon=epsilon,
-                               Cex.point=Cex.point, Cex.label=Cex.label,
-                               path.result=path.result.new,
-                               Name.file.pca=Name.file.pca.g)
-      }# if(Mean.Accross.Time==FALSE & Var.sample==0 & tb.spinfoini[1]>1)
-      names(res.PCA.g)<-paste(names(res.PCA.g),".Group_",Group.Levels[g],
-                              sep="")
-      res.PCA.per.g[[g]]<-res.PCA.g
-    }# for(g in 1:length(Group.Levels))
-    # List.plot.PCA=res.PCA$List.plot.PCA
-    return(list(res.pca=res.PCA$res.pca,
-                PCA.results.per.Group=res.PCA.per.g))
-  }else{
-    # List.plot.PCA=res.PCA$List.plot.PCA
-    return(list(res.pca=res.PCA$res.pca,
-                PCA.results.per.Group=NULL))
-  }# if(is.null(Vector.group)==FALSE & is.null(Vector.time)==FALSE)
-}# PCAanalysis()
+        Name.file.pca<-paste0("Time", Name.folder.pca)
+    }## if(!is.null(Vector.group))
+
+    if(!is.null(path.result.f)){
+        nom.dossier.result<-paste0("1-2_PCAanalysis", Name.folder.pca)
+
+        if(!nom.dossier.result%in%dir(path=path.result.f)){
+            dir.create(path=file.path(path.result.f, nom.dossier.result))
+            path.result.new<-file.path(path.result.f, nom.dossier.result)
+        }else{
+            path.result.new<-file.path(path.result.f, nom.dossier.result)
+        }## if(!nom.dossier.result%in%dir(path=path.result.f))
+    }else{
+        path.result.new<-NULL
+    }## if(!is.null(path.result.f))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Main results
+    tb.spinfoini<-as.numeric(table(res.Factors$Individual.info))
+    max.tb<-max(tb.spinfoini)
+    Var.sample<-stats::var(tb.spinfoini)
+
+    if(isFALSE(Mean.Accross.Time) & Var.sample==0 & max.tb>1){#tb.spinfoini[1]>1
+        res.PCA<-PCAgraphics(ExprData=ExprData,
+                             Column.gene=Column.gene,
+                             Group.position=Group.position,
+                             Time.position=Time.position,
+                             Individual.position=Individual.position,
+                             sample.deletion=sample.deletion,
+                             Supp.del.sample=Supp.del.sample,
+                             Plot.PCA=Plot.PCA,
+                             Mean.Accross.Time=FALSE,
+                             gene.deletion=gene.deletion,
+                             Color.Group=Color.Group,
+                             D3.mouvement=D3.mouvement,
+                             Phi=Phi,Theta=Theta, epsilon=epsilon,
+                             Cex.point=Cex.point, Cex.label=Cex.label,
+                             path.result=path.result.new,
+                             Name.file.pca=Name.file.pca)
+    }else{
+        res.PCA<-PCAgraphics(ExprData=ExprData,
+                             Column.gene=Column.gene,
+                             Group.position=Group.position,
+                             Time.position=Time.position,
+                             Individual.position=Individual.position,
+                             sample.deletion=sample.deletion,
+                             Supp.del.sample=Supp.del.sample,
+                             gene.deletion=gene.deletion,
+                             Plot.PCA=Plot.PCA,
+                             Mean.Accross.Time=TRUE,
+                             Color.Group=Color.Group,
+                             D3.mouvement=D3.mouvement,
+                             Phi=Phi,Theta=Theta, epsilon=epsilon,
+                             Cex.point=Cex.point, Cex.label=Cex.label,
+                             path.result=path.result.new,
+                             Name.file.pca=Name.file.pca)
+    }# if(Mean.Accross.Time==FALSE & Var.sample==0 & max.tb>1)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(!is.null(Vector.group) & !is.null(Vector.time)){
+        ##--------------------------------------------------------------------#
+        Tt.Del<-gsub("t", "", gsub("T", "", as.character(Vector.time)))
+        Time.name<-levels(as.factor(paste0("T", Tt.Del)))
+
+        ##--------------------------------------------------------------------#
+        Group.Levels<-levels(as.factor(Vector.group))
+        res.PCA.per.g<-vector(mode="list", length=length(Group.Levels))
+        names(res.PCA.per.g)<-paste0("PCA.results.Group_", Group.Levels)
+
+        for(g in seq_len(length(Group.Levels))){
+            Index.g<-which(Vector.group==Group.Levels[g])
+
+            if(is.null(Column.gene)){
+                Sub.data.g<-ExprData[,Index.g]
+                Index.g.f<-Index.g
+            }else{
+                Sub.data.g<-cbind(ExprData[,Column.gene],
+                                  ExprData[,-Column.gene][,Index.g])
+            }# if(is.null(Column.gene))
+
+            ##----------------------------------------------------------------#
+            Name.file.pca.g<-paste0("Group_", Group.Levels[g])
+
+            tb.spinfoini<-as.numeric(table(res.Factors$Individual.info))
+            Var.sample<-stats::var(tb.spinfoini)
+
+            ##----------------------------------------------------------------#
+            ##----------------------------------------------------------------#
+            if(isFALSE(Mean.Accross.Time) & Var.sample==0 & tb.spinfoini[1]>1){
+                res.PCA.g<-PCAgraphics(ExprData=Sub.data.g,
+                                       Column.gene=Column.gene,
+                                       Group.position=NULL,
+                                       Time.position=Time.position,
+                                       Individual.position=Individual.position,
+                                       sample.deletion=sample.deletion,
+                                       Supp.del.sample=Supp.del.sample,
+                                       gene.deletion=gene.deletion,
+                                       Plot.PCA=Plot.PCA,
+                                       Mean.Accross.Time=FALSE,
+                                       Color.Group=Color.Group,
+                                       D3.mouvement=D3.mouvement,
+                                       Phi=Phi, Theta=Theta, epsilon=epsilon,
+                                       Cex.point=Cex.point,
+                                       Cex.label=Cex.label,
+                                       path.result=path.result.new,
+                                       Name.file.pca=Name.file.pca.g)
+            }else{
+                res.PCA.g<-PCAgraphics(ExprData=Sub.data.g,
+                                       Column.gene=Column.gene,
+                                       Group.position=NULL,
+                                       Time.position=Time.position,
+                                       Individual.position=Individual.position,
+                                       sample.deletion=sample.deletion,
+                                       Supp.del.sample=Supp.del.sample,
+                                       gene.deletion=gene.deletion,
+                                       Plot.PCA=Plot.PCA,
+                                       Mean.Accross.Time=TRUE,
+                                       Color.Group=Color.Group,
+                                       D3.mouvement=D3.mouvement,
+                                       Phi=Phi, Theta=Theta, epsilon=epsilon,
+                                       Cex.point=Cex.point,
+                                       Cex.label=Cex.label,
+                                       path.result=path.result.new,
+                                       Name.file.pca=Name.file.pca.g)
+            }## if(isFALSE(Mean.Accross.Time)&Var.sample==0&tb.spinfoini[1]>1)
+
+            names(res.PCA.g)<-paste0(names(res.PCA.g),
+                                     ".Group_",
+                                     Group.Levels[g])
+            res.PCA.per.g[[g]]<-res.PCA.g
+        }## for(g in 1:length(Group.Levels))
+
+        ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        # List.plot.PCA=res.PCA$List.plot.PCA
+        return(list(res.pca=res.PCA$res.pca,
+                    PCA.results.per.Group=res.PCA.per.g))
+    }else{
+
+        ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        ## Output ## List.plot.PCA=res.PCA$List.plot.PCA
+        return(list(res.pca=res.PCA$res.pca,
+                    PCA.results.per.Group=NULL))
+    }## if(!is.null(Vector.group) & !is.null(Vector.time))
+}## PCAanalysis()

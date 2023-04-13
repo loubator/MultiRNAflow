@@ -48,8 +48,8 @@
 #' and Pcr1. Among these, atf21 is specifically induced under conditions of
 #' high osmolarity.
 #' We have therefore instigated a programme to investigate the role played by
-#' non coding RNAs (ncRNAs) in response to osmotic stress challenge in wild type
-#' and atf21Delta cells.
+#' non coding RNAs (ncRNAs) in response to osmotic stress challenge in wild
+#' type and atf21Delta cells.
 #' By integrating global proteomics and RNA sequencing data, we identified
 #' a systematic program in which elevated antisense RNAs arising both
 #' from ncRNAs and from 3'-overlapping convergent gene-pairs is directly

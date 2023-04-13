@@ -27,7 +27,8 @@
 #' is not used in our analysis.
 #'
 #' In the string of characters 'CLL_P_t0_r1',
-#' 'r1' is localized after the third underscore, so \code{Individual.position=4},
+#' 'r1' is localized after the third underscore,
+#' so \code{Individual.position=4},
 #' 'P' is localized after the first underscore, so \code{Group.position=2} and
 #' 't0' is localized after the second underscore, so \code{Time.position=3}.
 #'
@@ -66,7 +67,8 @@
 #' (see [BiocGenerics::estimateSizeFactors()] for "rle",
 #' [DESeq2::rlog()] for "rlog" and [DESeq2::vst()] for "vst").
 #' @param Blind.rlog.vst TRUE or FALSE. See input 'blind' in [DESeq2::rlog()].
-#' It is recommended to set \code{Blind.rlog.vst=FALSE} for downstream analysis.
+#' It is recommended to set \code{Blind.rlog.vst=FALSE}
+#' for downstream analysis.
 #' @param Plot.Boxplot \code{TRUE} or \code{FALSE}. \code{TRUE} by default.
 #' If \code{Plot.Boxplot=TRUE}, the function [DATAplotBoxplotSamples()] will be
 #' called and boxplots will be plotted. Otherwise, no boxplots will be plotted.
@@ -80,8 +82,8 @@
 #' If \code{Color.Group} is a data.frame, the first column must contain
 #' the name of each biological condition and the second column must contain
 #' the colors associated to each biological condition.
-#' If \code{Color.Group=NULL}, the function will automatically attribute a color
-#' for each biological condition.
+#' If \code{Color.Group=NULL}, the function will automatically attribute a
+#' color for each biological condition.
 #' If samples belong to different time points only,
 #' \code{Color.Group} will not be used.
 #' @param Plot.genes \code{TRUE} or \code{FALSE}.
@@ -112,7 +114,7 @@
 #'
 #' @importFrom DESeq2 vst varianceStabilizingTransformation rlog
 #' estimateSizeFactors counts
-#' @importFrom SummarizedExperiment assay
+#' @importFrom SummarizedExperiment assay colData
 #' @importFrom grDevices pdf dev.off
 #' @importFrom utils write.table
 #'
@@ -148,157 +150,182 @@ DATAnormalization<-function(RawCounts,
                             Plot.genes=FALSE,
                             path.result=NULL,
                             Name.folder.norm=NULL){
-  #---------------------------------------------------------------------------#
-  # Sample must belong to different biological condition or time points
-  if(is.null(Time.position)==TRUE & is.null(Group.position)==TRUE){
-    stop("'Time.position' and 'Group.position' can not be both NULL")
-  }# (is.null(Time.position)==TRUE & is.null(Group.position)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Different normalization authorized
-  if(Normalization%in%c("rlog","vst","rle")==FALSE){
-    stop("Normalization mut be 'vst', 'rlog' or 'rle'")
-  }# (Normalization%in%c("rlog","vst","rle")==FALSE)
-  #---------------------------------------------------------------------------#
-  # Folder creation if no existence
-  #---------------------------------------------------------------------------#
-  if(is.null(Name.folder.norm)==TRUE){
-    Name.folder.norm<-""
-    SubFolder.name<-"1_UnsupervisedAnalysis"
-  }else{
-    Name.folder.norm<-paste("_",Name.folder.norm,sep="")
-    SubFolder.name<-paste("1_UnsupervisedAnalysis",Name.folder.norm,sep="")
-  }# if(is.null(Name.folder.norm)==TRUE)
-  #
-  if(is.null(path.result)==FALSE){
-    if(SubFolder.name%in%dir(path=path.result)==FALSE){
-      print("Folder creation")
-      dir.create(path=paste(path.result,"/",SubFolder.name,sep=""))
-      path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Sample must belong to different biological condition or time points
+    if(is.null(Time.position) & is.null(Group.position)){
+        stop("'Time.position' and 'Group.position' can not be both NULL")
+    }## if(is.null(Time.position) & is.null(Group.position))
+
+    ## Different normalization authorized
+    if(!Normalization%in%c("rlog","vst","rle")){
+        stop("Normalization mut be 'vst', 'rlog' or 'rle'")
+    }## if(!Normalization%in%c("rlog","vst","rle"))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Folder creation if no existence
+    if(is.null(Name.folder.norm)){
+        Name.folder.norm<-""
+        SubFolder.name<-"1_UnsupervisedAnalysis"
     }else{
-      path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
-    }# if(SubFolder.name%in%dir(path = path.result)==FALSE)
-  }else{
-    path.result.f<-NULL
-  }# if(is.null(path.result)==FALSE)
-  #
-  if(is.null(path.result.f)==FALSE){
-    nom.dossier.result<-paste("1-1_Normalization",Name.folder.norm,sep="")
-    if(nom.dossier.result%in%dir(path=path.result.f)==FALSE){
-      dir.create(path=paste(path.result.f,"/",nom.dossier.result,sep=""))
-      path.result.new<-paste(path.result.f,"/",nom.dossier.result,sep="")
+        Name.folder.norm<-paste0("_", Name.folder.norm)
+        SubFolder.name<-paste0("1_UnsupervisedAnalysis", Name.folder.norm)
+    }## if(is.null(Name.folder.norm))
+
+    if(!is.null(path.result)){
+        if(!SubFolder.name%in%dir(path=path.result)){
+            print("Folder creation")
+            dir.create(path=file.path(path.result, SubFolder.name))
+            path.result.f<-file.path(path.result, SubFolder.name)
+        }else{
+            path.result.f<-file.path(path.result, SubFolder.name)
+        }## if(!SubFolder.name%in%dir(path=path.result))
     }else{
-      path.result.new<-paste(path.result.f,"/",nom.dossier.result,sep="")
-    }# if(nom.dossier.result%in%dir(path = path.result.f)==FALSE)
-  }else{
-    path.result.new<-NULL
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Name of all genes
-  if(is.null(Column.gene)==TRUE){
-    if(is.null(row.names(RawCounts))==TRUE){
-      Name.G<-as.character(seq_len(nrow(RawCounts)))# 1:nrow(RawCounts)
+        path.result.f<-NULL
+    }## if(!is.null(path.result))
+
+    if(!is.null(path.result.f)){
+        nom.dossier.result<-paste0("1-1_Normalization", Name.folder.norm)
+        #
+        if(!nom.dossier.result%in%dir(path=path.result.f)){
+            dir.create(path=file.path(path.result.f, nom.dossier.result))
+            path.result.new<-file.path(path.result.f, nom.dossier.result)
+        }else{
+            path.result.new<-file.path(path.result.f, nom.dossier.result)
+        }## if(!nom.dossier.result%in%dir(path=path.result.f))
     }else{
-      Name.G<-row.names(RawCounts)
-    }# is.null(row.names(RawCounts))==TRUE
-  }else{
-    Name.G<-RawCounts[,Column.gene]
-  }# if(is.null(Column.gene)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Columns with only expression
-  if(is.null(Column.gene)==TRUE){
-    ind.col.expr<-seq_len(ncol(RawCounts))#c(1:ncol(RawCounts))
-  }else{
-    ind.col.expr<-seq_len(ncol(RawCounts))[-Column.gene]
-  }# if(is.null(Column.gene)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Preprocessing
-  resPreProcessing<-DEanalysisPreprocessing(RawCounts=RawCounts,
-                                            Column.gene=Column.gene,
-                                            Group.position=Group.position,
-                                            Time.position=Time.position,
-                                            Individual.position=Individual.position)
-  DESeq2.obj<-resPreProcessing$DESeq2.obj
-  FactorBoxplt<-resPreProcessing$DESeq2.obj@colData
-  #---------------------------------------------------------------------------#
-  # Normalization vst
-  if(Normalization=="vst"){
-    if(nrow(RawCounts)>1000){
-      log2.data.prepare<-DESeq2::vst(DESeq2.obj,blind=Blind.rlog.vst)
+        path.result.new<-NULL
+    }## if(!is.null(path.result.f))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Name of all genes
+    if(is.null(Column.gene)){
+        if(is.null(row.names(RawCounts))){
+            Name.G<-as.character(seq_len(nrow(RawCounts)))
+        }else{
+            Name.G<-row.names(RawCounts)
+        }## is.null(row.names(RawCounts))
     }else{
-      log2.data.prepare<-DESeq2::varianceStabilizingTransformation(DESeq2.obj,
-                                                                   blind=Blind.rlog.vst)
-    }# if(nrow(RawCounts)>1000)
-    log2.data<-round(SummarizedExperiment::assay(log2.data.prepare),digits=3)
-    #
-    Norm.dat<-data.frame(Gene=Name.G,log2.data)
-    row.names(Norm.dat)<-Name.G
-    #
-    Log2Trf<-FALSE
-    YlabelNorm<-"vst normalized counts"
-  }# if(Normalization=="vst")
-  #---------------------------------------------------------------------------#
-  # Normalization rlog
-  if(Normalization=="rlog"){
-    log2.data.prepare <- DESeq2::rlog(DESeq2.obj,blind=Blind.rlog.vst)
-    log2.data<-round(SummarizedExperiment::assay(log2.data.prepare),digits=3)
-    #
-    Norm.dat<-data.frame(Gene=Name.G,log2.data)
-    row.names(Norm.dat)<-Name.G
-    #
-    Log2Trf<-FALSE
-    YlabelNorm<-"rlog normalized counts"
-  }# if(Normalization=="rlog")
-  #---------------------------------------------------------------------------#
-  # Normalization rle
-  if(Normalization=="rle"){
-    dds.SF<-DESeq2::estimateSizeFactors(DESeq2.obj)
-    rle.data<-round(DESeq2::counts(dds.SF, normalized=TRUE),digits=3)
-    Norm.dat<-data.frame(Gene=Name.G,rle.data)
-    row.names(Norm.dat)<-Name.G
-    #
-    Log2Trf<-TRUE
-    YlabelNorm<-"log2(rle normalized counts+1)"
-  }# if(Normalization=="rle")
-  colnames(Norm.dat)[-1]<-colnames(RawCounts)[ind.col.expr]
-  #---------------------------------------------------------------------------#
-  # Boxplot
-  res.bxplt<-DATAplotBoxplotSamples(ExprData=Norm.dat,
-                                    Column.gene=Column.gene,
-                                    Group.position=Group.position,
-                                    Time.position=Time.position,
-                                    Individual.position=Individual.position,
-                                    Log2.transformation=Log2Trf,
-                                    Colored.By.Factors=Colored.By.Factors,
-                                    Color.Group=Color.Group,
-                                    Plot.genes=Plot.genes,
-                                    y.label=YlabelNorm)
-  #---------------------------------------------------------------------------#
-  # Save of the boxplot graph
-  if(is.null(path.result)==FALSE){
-    #-------------------------------------------------------------------------#
-    # Save of the normalized data
-    utils::write.table(Norm.dat,
-                       file=paste(path.result.new,"/",
-                                  Normalization,"_NormalizedData",
-                                  ".csv",sep=""),
-                       sep=";",row.names = FALSE)
-    #
-    grDevices::pdf(file = paste(path.result.new,"/",Normalization,
-                                "_NormalizedBoxplotSamples.pdf",sep=""),
-                   width = 11, height = 8)#width = 8, height = 11
-    print(res.bxplt)
-    grDevices::dev.off()
-    #
-    if(Plot.Boxplot==TRUE){
-      print(res.bxplt)
-    }# if(Plot.Boxplot==TRUE)
-  }else{
-    if(Plot.Boxplot==TRUE){
-      print(res.bxplt)
-    }# if(Plot.Boxplot==TRUE)
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  return(list(NormalizedData=Norm.dat,
-              NormalizedBoxplot=res.bxplt))
+        Name.G<-RawCounts[,Column.gene]
+    }## if(is.null(Column.gene))
+
+    ## Columns with only expression
+    if(is.null(Column.gene)){
+        ind.col.expr<-seq_len(ncol(RawCounts))
+    }else{
+        ind.col.expr<-seq_len(ncol(RawCounts))[-Column.gene]
+    }## if(is.null(Column.gene))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Preprocessing
+    resPreProcessing<-DEanalysisPreprocessing(RawCounts=RawCounts,
+                                              Column.gene=Column.gene,
+                                              Group.position=Group.position,
+                                              Time.position=Time.position,
+                                              Individual.position=Individual.position)
+    DESeq2.obj<-resPreProcessing$DESeq2.obj
+    FactorBoxplt<-SummarizedExperiment::colData(DESeq2.obj)
+    ## SummarizedExperiment::colData(DESeq2.obj) == DESeq2.obj@colData
+    ## SummarizedExperiment::rowData(DESeq2.obj)
+    ## dimnames(DESeq2.obj)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    # Normalization vst
+    if(Normalization == "vst"){
+        if(nrow(RawCounts) > 1000){
+            log2.data.prepare<-DESeq2::vst(DESeq2.obj, blind=Blind.rlog.vst)
+        }else{
+            log2.data.prepare<-DESeq2::varianceStabilizingTransformation(DESeq2.obj,
+                                                                         blind=Blind.rlog.vst)
+        }## if(nrow(RawCounts)>1000)
+        log2.data<-round(SummarizedExperiment::assay(log2.data.prepare),
+                         digits=3)
+        ##
+        Norm.dat<-data.frame(Gene=Name.G, log2.data)
+        row.names(Norm.dat)<-Name.G
+        ##
+        Log2Trf<-FALSE
+        YlabelNorm<-"vst normalized counts"
+    }## if(Normalization=="vst")
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Normalization rlog
+    if(Normalization=="rlog"){
+        log2.data.prepare<-DESeq2::rlog(DESeq2.obj, blind=Blind.rlog.vst)
+        log2.data<-round(SummarizedExperiment::assay(log2.data.prepare),
+                         digits=3)
+        ##
+        Norm.dat<-data.frame(Gene=Name.G,log2.data)
+        row.names(Norm.dat)<-Name.G
+        ##
+        Log2Trf<-FALSE
+        YlabelNorm<-"rlog normalized counts"
+    }## if(Normalization=="rlog")
+
+    ## Normalization rle
+    if(Normalization=="rle"){
+        dds.SF<-DESeq2::estimateSizeFactors(DESeq2.obj)
+        rle.data<-round(DESeq2::counts(dds.SF, normalized=TRUE), digits=3)
+        Norm.dat<-data.frame(Gene=Name.G, rle.data)
+        row.names(Norm.dat)<-Name.G
+        #
+        Log2Trf<-TRUE
+        YlabelNorm<-"log2(rle normalized counts+1)"
+    }## if(Normalization=="rle")
+    colnames(Norm.dat)[-1]<-colnames(RawCounts)[ind.col.expr]
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Boxplot
+    res.bxplt<-DATAplotBoxplotSamples(ExprData=Norm.dat,
+                                      Column.gene=Column.gene,
+                                      Group.position=Group.position,
+                                      Time.position=Time.position,
+                                      Individual.position=Individual.position,
+                                      Log2.transformation=Log2Trf,
+                                      Colored.By.Factors=Colored.By.Factors,
+                                      Color.Group=Color.Group,
+                                      Plot.genes=Plot.genes,
+                                      y.label=YlabelNorm)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Save of the boxplot graph
+    if(!is.null(path.result)){
+        ## Save of the normalized data
+        utils::write.table(Norm.dat,
+                           file=file.path(path.result.new,
+                                          paste0(Normalization,
+                                                 "_NormalizedData", ".csv")),
+                           sep=";", row.names=FALSE)
+
+        grDevices::pdf(file=file.path(path.result.new,
+                                      paste0(Normalization,
+                                             "_NormalizedBoxplotSamples",
+                                             ".pdf")), width=11, height=8)
+        print(res.bxplt)
+        grDevices::dev.off()
+
+        if(isTRUE(Plot.Boxplot)){
+            print(res.bxplt)
+        }## if(isTRUE(Plot.Boxplot))
+
+    }else{
+
+        if(isTRUE(Plot.Boxplot)){
+            print(res.bxplt)
+        }## if(isTRUE(Plot.Boxplot))
+
+    }## if(!is.null(path.result))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(list(NormalizedData=Norm.dat,
+                NormalizedBoxplot=res.bxplt))
 }# DATAnormalization()

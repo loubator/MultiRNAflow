@@ -9,7 +9,8 @@
 #' its Benjamini-Hochberg adjusted p-value (see [stats::p.adjust()]) is below
 #' the threshold pval.min. Default value is 0.05
 #' @param pval.vect.t \code{NULL} or vector of dimension \eqn{T-1} filled with
-#' numeric values between 0 and 1, with \eqn{T} the number of time measurements.
+#' numeric values between 0 and 1, with \eqn{T} the number of time
+#' measurements.
 #' A gene will be considered as differentially expressed (DE) between the time
 #' ti and the reference time t0 if its Benjamini-Hochberg adjusted p-value
 #' (see [stats::p.adjust()]) is below the i-th threshold of \code{pval.vect.t}.
@@ -48,8 +49,8 @@
 #'   * a binary column (1 and 0) where 1 means the gene is DE at at least
 #'   between one time ti versus the reference time t0.
 #'   * a column where each element is succession of 0 and 1.
-#'   The positions of '1' indicate the set of times ti such that the gene is DE
-#'   between ti and the reference time t0.
+#'   The positions of '1' indicate the set of times ti such that the gene is
+#'   DE between ti and the reference time t0.
 #' * an alluvial graph of differentially expressed (DE) genes
 #' (see [DEplotAlluvial()])
 #' * a graph showing the number of DE genes as a function of time for each
@@ -73,294 +74,345 @@
 #'
 #' @examples
 #' data(RawCounts_Leong2014_FISSIONsub500wt)
-#' # We take only the first three time for the speed of the example
+#' ## We take only the first three time for the speed of the example
 #' RawCounts_Fission_3t<-RawCounts_Leong2014_FISSIONsub500wt[,1:10]
-#' DESeq2.info=DEanalysisPreprocessing(RawCounts=RawCounts_Fission_3t,
-#'                                     Column.gene=1,
-#'                                     Group.position=NULL,
-#'                                     Time.position=2,
-#'                                     Individual.position=3)
-#' #
-#' dds.DE.T <- DESeq2::DESeq(DESeq2.info$DESeq2.obj,quiet=TRUE,betaPrior=FALSE)
-#' #
-#' res.T=DEanalysisTime(DESeq.result=dds.DE.T,
-#'                      pval.min=0.05,
-#'                      pval.vect.t=c(0.01,0.05,0.05),
-#'                      log.FC.min=1,
-#'                      LRT.supp.info=FALSE,
-#'                      Plot.DE.graph=TRUE,
-#'                      path.result=NULL,
-#'                      SubFile.name=NULL)
+#' DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_Fission_3t,
+#'                                      Column.gene=1,
+#'                                      Group.position=NULL,
+#'                                      Time.position=2,
+#'                                      Individual.position=3)
+#' ##
+#' dds.DE.T<-DESeq2::DESeq(DESeq2.info$DESeq2.obj,quiet=TRUE,betaPrior=FALSE)
+#' ##
+#' res.T<-DEanalysisTime(DESeq.result=dds.DE.T,
+#'                       pval.min=0.05,
+#'                       pval.vect.t=c(0.01,0.05,0.05),
+#'                       log.FC.min=1,
+#'                       LRT.supp.info=FALSE,
+#'                       Plot.DE.graph=TRUE,
+#'                       path.result=NULL,
+#'                       SubFile.name=NULL)
 
 DEanalysisTime<-function(DESeq.result,
                          pval.min=0.05,
-                         pval.vect.t=rep(0.05, times=6),
+                         pval.vect.t=NULL,
                          log.FC.min=1,
-                         LRT.supp.info = FALSE,
+                         LRT.supp.info=FALSE,
                          Plot.DE.graph=TRUE,
                          path.result=NULL,
                          SubFile.name=NULL){
-  #---------------------------------------------------------------------------#
-  # 1) Parameters
-  #---------------------------------------------------------------------------#
-  # Gene names and number of genes
-  # Gene.Names<-row.names(SummarizedExperiment::assay(DESeq.result))
-  res.dds<-DESeq.result@rowRanges@partitioning@NAMES
-  # DESeq2::results(DESeq.result)
-  if(is.null(res.dds)==TRUE){# is.null(row.names(res.dds))==TRUE)
-    Row.name.res<-paste("Gene", seq_len(length(res.dds)), sep="")#nrow(res.dds)
-  }else{
-    Row.name.res<-res.dds#row.names(res.dds)
-  }# if(is.null(row.names(res.dds.group))==TRUE)
-  #
-  Nb.gene<-length(Row.name.res)
-  # Time
-  Levels.time<-levels(as.factor(DESeq.result@colData$Time))
-  ref.level.time<-Levels.time[1]
-  Other.t<-Levels.time[-1]
-  Nb.time<-length(Levels.time)
-  Other.t.num<-as.numeric(gsub("T","",gsub("t","",Other.t)))
-  ref.level.time.num<-as.numeric(gsub("T","",gsub("t","",ref.level.time)))
-  # pval.vect.t adjustment if necessary
-  if(is.null(pval.vect.t)==FALSE){
-    if(length(pval.vect.t)>Nb.time-1){
-      pval.vect.t<-pval.vect.t[seq_len(Nb.time-1)]# 1:(Nb.time-1)
-    }# if(length(pval.vect.t)>Nb.time-1)
-    if(length(pval.vect.t)<Nb.time-1){
-      pval.vect.t<-c(pval.vect.t,
-                     rep(pval.min,times=Nb.time-length(pval.vect.t)-1))
-    }# if(length(pval.vect.t)<Nb.time-1)
-  }else{
-    pval.vect.t<-rep(pval.min, times=Nb.time-1)
-  }# if(is.null(pval.vect.t)==FALSE)
-  #---------------------------------------------------------------------------#
-  # 2) Data.frames initialisation
-  #---------------------------------------------------------------------------#
-  # Table with all results
-  Table.Results<-as.data.frame(matrix(data=0,nrow=Nb.gene, ncol=(Nb.time-1)*3))
-  colnames(Table.Results)<-paste(rep(c("Log2FoldChange.","Pvalue.adjusted.",
-                                       "DE."), times=Nb.time-1),
-                                 rep(paste("t",Other.t.num,".versus.t",
-                                           ref.level.time.num,sep=""), each=3),
-                                 sep="")
-  row.names(Table.Results)<-Row.name.res
-  # Table which indicates the times where each gene is DE
-  table.DE.Times<-matrix(data=0, nrow=Nb.gene, ncol=Nb.time-1)
-  colnames(table.DE.Times)<-paste("t",Other.t.num,sep="")
-  row.names(table.DE.Times)<-Row.name.res
-  # Table which contains all log2 fold change
-  table.log2FC<-matrix(data=0, nrow=Nb.gene, ncol=Nb.time-1)
-  colnames(table.log2FC)<-paste("t",Other.t.num,sep="")
-  row.names(table.log2FC)<-Row.name.res
-  #---------------------------------------------------------------------------#
-  # 3) Filling of data.frames and DE genes
-  #---------------------------------------------------------------------------#
-  if(LRT.supp.info==TRUE){
-    res.LRT<-DESeq2::results(DESeq.result, test="LRT")
-    # the argument 'reduced' is useless because there is only the factor time
-    padj.LRT<-res.LRT$padj
-    if(length(which(is.na(padj.LRT)))>0){
-      padj.LRT[which(is.na(padj.LRT))]<-1
-    }# if(length(which(is.na(padj.LRT)))>0)
-  }# if(LRT.supp.info==TRUE)
-  #
-  DE.gene.all.ti<-c()
-  for(i in seq_len(length(Other.t))){# 1:length(Other.t)
-    res.dds.norm.diff.i<-DESeq2::results(DESeq.result, test="Wald",
-                                         contrast=c("Time", Other.t[i],
-                                                    ref.level.time))
-    #
-    Pvalue.adj<-res.dds.norm.diff.i$padj
-    if(length(which(is.na(Pvalue.adj)))>0){
-      Pvalue.adj[which(is.na(Pvalue.adj))]<-1
-    }# if(length(which(is.na(Pvalue.adj)))>0)
-    #
-    Log2.FC<-res.dds.norm.diff.i$log2FoldChange
-    if(length(which(is.na(Log2.FC)))>0){
-      Log2.FC[which(is.na(Log2.FC))]<-0
-    }# if(length(which(is.na(Log2.FC)))>0)
-    #
-    ind.logFC.sel<-which(abs(Log2.FC)>log.FC.min)
-    ind.padj.sel<-which(Pvalue.adj<pval.vect.t[i])
-    #
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(class(DESeq.result)[1]!="DESeqDataSet"){
+        stop("Res.DE.analysis must a 'DESeqDataSet' object")
+    }## if(class(DESeq.result)[1]!="DESeqDataSet")
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 1) Parameters
+    ## Gene names and number of genes
+    ## Gene.Names<-row.names(SummarizedExperiment::assay(DESeq.result))
+    ## res.dds<-DESeq.result@rowRanges@partitioning@NAMES
+    # DESeq.result colData(dds)% rowData(dds)% dimnames(dds)
+
+    res.dds<-dimnames(DESeq.result)[[1]]
+    # DESeq2::results(DESeq.result)
+    if(is.null(res.dds)){# is.null(row.names(res.dds))==TRUE)
+        Row.name.res<-paste0("Gene", seq_len(length(res.dds)))
+    }else{
+        Row.name.res<-res.dds#row.names(res.dds)
+    }# if(is.null(row.names(res.dds.group))==TRUE)
+
+    Nb.gene<-length(Row.name.res)
+
+    ## Time, levels(as.factor(DESeq.result@colData$Time))
+    Levels.time<-levels(as.factor(SummarizedExperiment::colData(DESeq.result)[[1]]))
+    ref.level.time<-Levels.time[1]
+    Other.t<-Levels.time[-1]
+    Nb.time<-length(Levels.time)
+    Other.t.num<-as.numeric(gsub("T", "",
+                                 gsub("t", "", Other.t)))
+    ref.level.time.num<-as.numeric(gsub("T", "",
+                                        gsub("t", "", ref.level.time)))
+
+    ## pval.vect.t adjustment if necessary
+    if(!is.null(pval.vect.t)){
+        if(length(pval.vect.t)>Nb.time-1){
+            pval.vect.t<-pval.vect.t[seq_len(Nb.time-1)]
+        }## if(length(pval.vect.t)>Nb.time-1)
+
+        if(length(pval.vect.t)<Nb.time-1){
+            pval.vect.t<-c(pval.vect.t,
+                           rep(pval.min,times=Nb.time-length(pval.vect.t)-1))
+        }## if(length(pval.vect.t)<Nb.time-1)
+    }else{
+        pval.vect.t<-rep(pval.min, times=Nb.time-1)
+    }## if(is.null(pval.vect.t)==FALSE)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 2) Data.frames initialisation
+    ## Table with all results
+    Table.Results<-as.data.frame(matrix(data=0,
+                                        nrow=Nb.gene,
+                                        ncol=(Nb.time-1)*3))
+    colnames(Table.Results)<-paste0(rep(c("Log2FoldChange.",
+                                          "Pvalue.adjusted.",
+                                          "DE."), times=Nb.time-1),
+                                    rep(paste0("t", Other.t.num, ".versus.t",
+                                               ref.level.time.num),
+                                        each=3))
+    row.names(Table.Results)<-Row.name.res
+
+    # Table which indicates the times where each gene is DE
+    table.DE.Times<-matrix(data=0, nrow=Nb.gene, ncol=Nb.time-1)
+    colnames(table.DE.Times)<-paste0("t", Other.t.num)
+    row.names(table.DE.Times)<-Row.name.res
+
+    # Table which contains all log2 fold change
+    table.log2FC<-matrix(data=0, nrow=Nb.gene, ncol=Nb.time-1)
+    colnames(table.log2FC)<-paste0("t", Other.t.num)
+    row.names(table.log2FC)<-Row.name.res
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 3) Filling of data.frames and DE genes
     if(LRT.supp.info==TRUE){
-      ind.padj.LRT.sel<-which(padj.LRT<pval.min)
-      DE.gene.ti<-sort(intersect(intersect(ind.logFC.sel,ind.padj.sel),
-                                 ind.padj.LRT.sel))
+        res.LRT<-DESeq2::results(DESeq.result, test="LRT")
+        # the argument 'reduced' is useless because there is only the factor time
+
+        padj.LRT<-res.LRT$padj
+        if(length(which(is.na(padj.LRT)))>0){
+            padj.LRT[which(is.na(padj.LRT))]<-1
+        }# if(length(which(is.na(padj.LRT)))>0)
+    }# if(LRT.supp.info==TRUE)
+
+    DE.gene.all.ti<-c()
+    for(i in seq_len(length(Other.t))){# 1:length(Other.t)
+        res.dds.norm.diff.i<-DESeq2::results(DESeq.result, test="Wald",
+                                             contrast=c("Time",
+                                                        Other.t[i],
+                                                        ref.level.time))
+
+        Pvalue.adj<-res.dds.norm.diff.i$padj
+        if(length(which(is.na(Pvalue.adj)))>0){
+            Pvalue.adj[which(is.na(Pvalue.adj))]<-1
+        }# if(length(which(is.na(Pvalue.adj)))>0)
+
+        Log2.FC<-res.dds.norm.diff.i$log2FoldChange
+        if(length(which(is.na(Log2.FC)))>0){
+            Log2.FC[which(is.na(Log2.FC))]<-0
+        }# if(length(which(is.na(Log2.FC)))>0)
+
+        ind.logFC.sel<-which(abs(Log2.FC)>log.FC.min)
+        ind.padj.sel<-which(Pvalue.adj<pval.vect.t[i])
+
+        if(LRT.supp.info==TRUE){
+            ind.padj.LRT.sel<-which(padj.LRT<pval.min)
+            DE.gene.ti<-sort(intersect(intersect(ind.logFC.sel, ind.padj.sel),
+                                       ind.padj.LRT.sel))
+        }else{
+            DE.gene.ti<-sort(intersect(ind.logFC.sel, ind.padj.sel))
+        }
+
+        Table.Results[,(i-1)*3+1]<-round(Log2.FC,digits=3)
+        Table.Results[,(i-1)*3+2]<-Pvalue.adj#round(Pvalue.adj,digits=3)
+        table.log2FC[,i]<-Log2.FC
+        DE.gene.all.ti<-c(DE.gene.all.ti, DE.gene.ti)
+        table.DE.Times[DE.gene.ti,i]<-1
+        Table.Results[DE.gene.ti,(i-1)*3+3]<-1
+    }# end for(i in 1:length(Other.t))
+
+    DE.at.least.1t<-rep(0, times=nrow(Table.Results))
+    DE.at.least.1t[sort(unique(DE.gene.all.ti))]<-1
+
+    Pattern.tps<-apply(table.DE.Times,
+                       MARGIN=1,
+                       FUN=function(x) paste(as.character(x), collapse = ""))
+
+    Table.Results.f<-data.frame(Gene=Row.name.res,
+                                DE.1time.minimum=DE.at.least.1t,
+                                DE.Temporal.Pattern=paste0(".",
+                                                           Pattern.tps,
+                                                           "."),
+                                Table.Results)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 4) Graphs
+    Nb.Graph<-(1 - min(Nb.time, 1)) + 5*min(Nb.time, 1)
+    List.plots.DE.time<-vector(mode="list", length=Nb.Graph)
+
+    ##------------------------------------------------------------------------#
+    if(Nb.time==2){
+        Pos.2t<-length(which(table.DE.Times*table.log2FC>0))
+        Neg.2t<-length(which(table.DE.Times*table.log2FC<0))
+
+        ## To avoid " no visible binding for global variable"
+        ## in devtools::check()
+        Number.DE<-Attribute<-NULL
+        data.sign.2t<-data.frame(Attribute=c("UpRegulated", "DownRegulated"),
+                                 Number.DE=c(Pos.2t, Neg.2t))
+
+        data.sign.2t$Attribute<-factor(data.sign.2t$Attribute,
+                                       levels=rev(levels(factor(data.sign.2t$Attribute))))
+
+        barplot2t<-ggplot2::ggplot(data=data.sign.2t,
+                                   ggplot2::aes(x="t1 vs t0",
+                                                y=Number.DE,
+                                                fill=Attribute)) +
+            ggplot2::xlab("DE")+ ggplot2::ylab("Number of DE genes")+
+            ggplot2::geom_bar(stat="identity")+
+            ggplot2::scale_fill_manual(values=c("#E41A1C", "steelblue"))+
+            ggplot2::theme_minimal()
+        # ggplot2::scale_fill_brewer(palette="Paired")+
+
+        List.plots.DE.time[[1]]<-res.allu.g$g.alluvial
+        names(List.plots.DE.time)[1]<-"Number.Up.Down.Regulated"
+    }# if(Nb.time==2)
+
+    ##------------------------------------------------------------------------#
+    if(Nb.time>2){
+        title.alluvial.T<-paste("Alluvial graph of genes which are DE",
+                                "at at least one time", sep=" ")
+        title.evolution.T<-paste("Time evolution of the number of genes",
+                                 "which are DE at at least one time within",
+                                 "each temporal group", sep=" ")
+
+        res.allu.g<-DEplotAlluvial(table.DE.time=table.DE.Times,
+                                   Temporal.Group=TRUE,
+                                   title.alluvial=title.alluvial.T,
+                                   title.evolution=title.evolution.T)
+
+        List.plots.DE.time[[1]]<-res.allu.g$g.alluvial
+        names(List.plots.DE.time)[1]<-"Alluvial.graph"
+
+        List.plots.DE.time[[2]]<-res.allu.g$g.alluvial.freq
+        names(List.plots.DE.time)[2]<-"NumberDEgenes_acrossTime_perTemporalGroup"
+
+        ##--------------------------------------------------------------------#
+        ## Number DE gene per time with or without sign
+        res.nb.DEPerTime<-DEplotBarplotTime(table.DE.time=table.DE.Times,
+                                            Log2.FC.matrix=table.log2FC)
+
+        List.plots.DE.time[[3]]<-res.nb.DEPerTime$g.nb.DEPerTime.sign
+        names(List.plots.DE.time)[3]<-"NumberDEgenes_UpDownRegulated_perTime"
+
+        ##--------------------------------------------------------------------#
+        # Upset Venn graph with or not over vs t0
+        res.VennBarplot<-DEplotVennBarplotTime(table.DE.time=table.DE.Times,
+                                               Log2.FC.matrix=table.log2FC)
+
+        List.plots.DE.time[[4]]<-res.VennBarplot$Upset.graph
+        names(List.plots.DE.time)[4]<-"VennBarplot"
+
+        List.plots.DE.time[[5]]<-res.VennBarplot$Upset.graph.with.nb.over
+        names(List.plots.DE.time)[5]<-"VennBarplot_withNumberUpRegulated"
+    }# if(Nb.time>2)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 5) Save
+    if(!is.null(SubFile.name)){
+        SubFile.name<-paste0("_", SubFile.name)
+    }# if(is.null(SubFile.name)==TRUE)
+
+    ##------------------------------------------------------------------------#
+    if(Nb.time==2){
+        if(!is.null(path.result)){
+            NbUDfile<-paste0("Plot_NumberDEgenes_UpDownRegulated",
+                             SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, NbUDfile),
+                           width=11, height=8)
+            print(barplot2t)
+            grDevices::dev.off()
+        }else{
+            if(Plot.DE.graph==TRUE){
+                print(barplot2t)
+            }
+        }# if(is.null(path.result)==FALSE)
+    }# if(Nb.time==2){
+
+    ##------------------------------------------------------------------------#
+    if(Nb.time>2){
+        if(!is.null(path.result)){
+            # Save alluvial graph
+            Allufile<-paste0("Plot_AlluvialGraph", SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, Allufile),
+                           width=11, height=8)
+            print(res.allu.g$g.alluvial)
+            grDevices::dev.off()
+
+            ##----------------------------------------------------------------#
+            # Save graph nb de gene per group per time
+            NbaccrosTfile<-paste0("Plot_NumberDEgenes_acrossTime_perTemporalGroup",
+                                  SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, NbaccrosTfile),
+                           width=11, height=8)
+            print(res.allu.g$g.alluvial.freq)
+            grDevices::dev.off()
+
+            ##----------------------------------------------------------------#
+            # Save graph NB DE per time with or not sign
+            NbUDtfile<-paste0("Plot_NumberDEgenes_UpDownRegulated_perTime",
+                                  SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, NbUDtfile),
+                           width=11, height=8)
+            print(res.nb.DEPerTime$g.nb.DEPerTime.sign)
+            grDevices::dev.off()
+
+            ##----------------------------------------------------------------#
+            Venn1file<-paste0("Plot_VennBarplot", SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, Venn1file),
+                           width=11, height=8)
+            print(res.VennBarplot$Upset.graph)
+            grDevices::dev.off()
+
+            ##----------------------------------------------------------------#
+            Venn2file<-paste0("Plot_VennBarplot_withNumberUpRegulated",
+                              SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, Venn2file),
+                           width=11, height=8)
+            print(res.VennBarplot$Upset.graph.with.nb.over)
+            grDevices::dev.off()
+            ##----------------------------------------------------------------#
+        }else{
+            if(Plot.DE.graph==TRUE){
+                print(res.allu.g$g.alluvial)
+                print(res.allu.g$g.alluvial.freq)
+                #
+                print(res.nb.DEPerTime$g.nb.DEPerTime.sign)
+                #
+                print(res.VennBarplot$Upset.graph)
+                print(res.VennBarplot$Upset.graph.with.nb.over)
+            }
+        }# if(is.null(path.result)==FALSE)
+    }# if(Nb.time>2)
+
+    ##------------------------------------------------------------------------#
+    if(Nb.time>2){
+        DE.Temporal.Pattern.f<-res.VennBarplot$DE.pattern.t.01.sum
     }else{
-      DE.gene.ti<-sort(intersect(ind.logFC.sel,ind.padj.sel))
-    }
-    #
-    Table.Results[,(i-1)*3+1]<-round(Log2.FC,digits=3)
-    Table.Results[,(i-1)*3+2]<-Pvalue.adj#round(Pvalue.adj,digits=3)
-    table.log2FC[,i]<-Log2.FC
-    DE.gene.all.ti<-c(DE.gene.all.ti, DE.gene.ti)
-    table.DE.Times[DE.gene.ti,i]<-1
-    Table.Results[DE.gene.ti,(i-1)*3+3]<-1
-  }# end for(i in 1:length(Other.t))
-  #
-  DE.at.least.1t<-rep(0,times=nrow(Table.Results))
-  DE.at.least.1t[sort(unique(DE.gene.all.ti))]<-1
-  #
-  Pattern.tps<-apply(table.DE.Times,
-                     MARGIN=1,
-                     FUN=function(x) paste(as.character(x), collapse = ""))
-  #
-  Table.Results.f<-data.frame(Gene=Row.name.res,
-                              DE.1time.minimum=DE.at.least.1t,
-                              DE.Temporal.Pattern=paste(".",Pattern.tps,".",
-                                                        sep=""),
-                              Table.Results)
-  #---------------------------------------------------------------------------#
-  # 4) Graphs
-  #---------------------------------------------------------------------------#
-  Nb.Graph<-(1-min(Nb.time,1))+5*min(Nb.time,1)
-  List.plots.DE.time<-vector(mode="list", length=Nb.Graph)
-  #---------------------------------------------------------------------------#
-  if(Nb.time==2){
-    Pos.2t<-length(which(table.DE.Times*table.log2FC>0))
-    Neg.2t<-length(which(table.DE.Times*table.log2FC<0))
-    # To avoid " no visible binding for global variable" in devtools::check()
-    Number.DE<-Attribute<-NULL
-    data.sign.2t<-data.frame(Attribute=c("UpRegulated","DownRegulated"),
-                             Number.DE=c(Pos.2t,Neg.2t))
-    #
-    data.sign.2t$Attribute<-factor(data.sign.2t$Attribute,
-                                   levels=rev(levels(factor(data.sign.2t$Attribute))))
-    #
-    barplot2t<-ggplot2::ggplot(data=data.sign.2t,
-                               ggplot2::aes(x="t1 vs t0", y=Number.DE,
-                                            fill=Attribute)) +
-      ggplot2::xlab("DE")+ ggplot2::ylab("Number of DE genes")+
-      ggplot2::geom_bar(stat="identity")+
-      ggplot2::scale_fill_manual(values=c("#E41A1C","steelblue"))+
-      ggplot2::theme_minimal()# ggplot2::scale_fill_brewer(palette="Paired")+
-    #
-    List.plots.DE.time[[1]]<-res.allu.g$g.alluvial
-    names(List.plots.DE.time)[1]<-"Number.Up.Down.Regulated"
-  }# if(Nb.time==2)
-  #---------------------------------------------------------------------------#
-  if(Nb.time>2){
-    title.alluvial.T<-paste("Alluvial graph of genes which are DE",
-                            "at at least one time", sep=" ")
-    title.evolution.T<-paste("Time evolution of the number of genes",
-                             "which are DE at at least one time within",
-                             "each temporal group", sep=" ")
-    res.allu.g<-DEplotAlluvial(table.DE.time=table.DE.Times,
-                               Temporal.Group=TRUE,
-                               title.alluvial=title.alluvial.T,
-                               title.evolution=title.evolution.T)
-    #
-    List.plots.DE.time[[1]]<-res.allu.g$g.alluvial
-    names(List.plots.DE.time)[1]<-"Alluvial.graph"
-    #
-    List.plots.DE.time[[2]]<-res.allu.g$g.alluvial.freq
-    names(List.plots.DE.time)[2]<-"NumberDEgenes_acrossTime_perTemporalGroup"
-    #-------------------------------------------------------------------------#
-    # Number DE gene per time with or without sign
-    res.nb.DEPerTime<-DEplotBarplotTime(table.DE.time=table.DE.Times,
-                                        Log2.FC.matrix=table.log2FC)
-    #
-    List.plots.DE.time[[3]]<-res.nb.DEPerTime$g.nb.DEPerTime.sign
-    names(List.plots.DE.time)[3]<-"NumberDEgenes_UpDownRegulated_perTime"
-    #-------------------------------------------------------------------------#
-    # Upset Venn graph with or not over vs t0
-    res.VennBarplot<-DEplotVennBarplotTime(table.DE.time=table.DE.Times,
-                                           Log2.FC.matrix=table.log2FC)
-    #
-    List.plots.DE.time[[4]]<-res.VennBarplot$Upset.graph
-    names(List.plots.DE.time)[4]<-"VennBarplot"
-    #
-    List.plots.DE.time[[5]]<-res.VennBarplot$Upset.graph.with.nb.over
-    names(List.plots.DE.time)[5]<-"VennBarplot_withNumberUpRegulated"
-  }# if(Nb.time>2)
-  #---------------------------------------------------------------------------#
-  # 5) Save
-  #---------------------------------------------------------------------------#
-  if(is.null(SubFile.name)==FALSE){
-    SubFile.name<-paste("_", SubFile.name, sep="")
-  }# if(is.null(SubFile.name)==TRUE)
-  #---------------------------------------------------------------------------#
-  if(Nb.time==2){
-    if(is.null(path.result)==FALSE){
-      grDevices::pdf(file=paste(path.result, "/",
-                                "Plot_NumberDEgenes_UpDownRegulated",
-                                SubFile.name, ".pdf", sep=""),
-                     width=11, height=8)
-      print(barplot2t)
-      grDevices::dev.off()
-    }else{
-      if(Plot.DE.graph==TRUE){
-        print(barplot2t)
-      }
-    }# if(is.null(path.result)==FALSE)
-  }# if(Nb.time==2){
-  #---------------------------------------------------------------------------#
-  if(Nb.time>2){
-    if(is.null(path.result)==FALSE){
-      # Save alluvial graph
-      grDevices::pdf(file=paste(path.result, "/", "Plot_AlluvialGraph",
-                                SubFile.name, ".pdf", sep=""),
-                     width=11, height=8)
-      print(res.allu.g$g.alluvial)
-      grDevices::dev.off()
-      #-----------------------------------------------------------------------#
-      # Save graph nb de gene per group per time
-      grDevices::pdf(file=paste(path.result,"/",
-                                "Plot_NumberDEgenes_acrossTime_perTemporalGroup",
-                                SubFile.name,".pdf",sep=""),
-                     width=11, height=8)
-      print(res.allu.g$g.alluvial.freq)
-      grDevices::dev.off()
-      #-----------------------------------------------------------------------#
-      # Save graph NB DE per time with or not sign
-      grDevices::pdf(file=paste(path.result,"/",
-                                "Plot_NumberDEgenes_UpDownRegulated_perTime",
-                                SubFile.name, ".pdf",sep=""),
-                     width=11, height=8)
-      print(res.nb.DEPerTime$g.nb.DEPerTime.sign)
-      grDevices::dev.off()
-      #-----------------------------------------------------------------------#
-      grDevices::pdf(file=paste(path.result,"/", "Plot_VennBarplot",
-                                SubFile.name,".pdf",sep=""),
-                     width=11, height=8)
-      print(res.VennBarplot$Upset.graph)
-      grDevices::dev.off()
-      #-----------------------------------------------------------------------#
-      grDevices::pdf(file=paste(path.result, "/",
-                                "Plot_VennBarplot_withNumberUpRegulated",
-                                SubFile.name, ".pdf", sep=""),
-                     width=11, height=8)
-      print(res.VennBarplot$Upset.graph.with.nb.over)
-      grDevices::dev.off()
-      #-----------------------------------------------------------------------#
-    }else{
-      if(Plot.DE.graph==TRUE){
-        print(res.allu.g$g.alluvial)
-        print(res.allu.g$g.alluvial.freq)
+        DE.Temporal.Pattern.f<-data.frame(matrix(NA, nrow=1, ncol=4))
+        colnames(DE.Temporal.Pattern.f)<-c("DE.Temporal.Pattern",
+                                           "0.ti.over.t0",
+                                           "1.ti.over.t0",
+                                           "Total")
         #
-        print(res.nb.DEPerTime$g.nb.DEPerTime.sign)
-        #
-        print(res.VennBarplot$Upset.graph)
-        print(res.VennBarplot$Upset.graph.with.nb.over)
-      }
-    }# if(is.null(path.result)==FALSE)
-  }# if(Nb.time>2)
-  #---------------------------------------------------------------------------#
-  if(Nb.time>2){
-    DE.Temporal.Pattern.f<-res.VennBarplot$DE.pattern.t.01.sum
-  }else{
-    DE.Temporal.Pattern.f<-data.frame(matrix(NA, nrow=1, ncol=4))
-    colnames(DE.Temporal.Pattern.f)<-c("DE.Temporal.Pattern", "0.ti.over.t0",
-                                       "1.ti.over.t0", "Total")
-    #
-    DE.Temporal.Pattern.f[1,]<-c(1, data.sign.2t$Number.DE[c(2,1)],
-                                 sum(data.sign.2t$Number.DE[c(2,1)]))
-  }# if(Nb.time>2)
-  #---------------------------------------------------------------------------#
-  # 6) End et outputs
-  #---------------------------------------------------------------------------#
-  # List.Plots.DE.Time=List.plots.DE.time
-  return(list(Results=Table.Results.f,
-              DE.Temporal.Pattern=DE.Temporal.Pattern.f))
+        DE.Temporal.Pattern.f[1,]<-c(1, data.sign.2t$Number.DE[c(2,1)],
+                                     sum(data.sign.2t$Number.DE[c(2,1)]))
+    }# if(Nb.time>2)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 6) End et outputs
+    # List.Plots.DE.Time=List.plots.DE.time
+    return(list(Results=Table.Results.f,
+                DE.Temporal.Pattern=DE.Temporal.Pattern.f))
 }# DEanalysisTime()

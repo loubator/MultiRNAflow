@@ -25,7 +25,8 @@
 #' (here chronic lymphocytic leukemia) and is not used in our analysis.
 #'
 #' In the string of characters 'CLL_P_t0_r1',
-#' 'r1' is localized after the third underscore, so \code{Individual.position=4},
+#' 'r1' is localized after the third underscore,
+#' so \code{Individual.position=4},
 #' 'P' is localized after the first underscore, so \code{Group.position=2} and
 #' 't0' is localized after the second underscore, so \code{Time.position=3}.
 #'
@@ -88,8 +89,8 @@
 #' If \code{Color.Group} is a data.frame, the first column must contain
 #' the name of each biological condition and the second column must contain
 #' the colors associated to each biological condition.
-#' If \code{Color.Group=NULL}, the function will automatically attribute a color
-#' for each biological condition.
+#' If \code{Color.Group=NULL}, the function will automatically attribute a
+#' color for each biological condition.
 #' If samples belong to different time points only,
 #' \code{Color.Group} will not be used.
 #' @param Plot.genes \code{TRUE} or \code{FALSE}.
@@ -101,8 +102,9 @@
 #' (if \code{Log2.transformation=TRUE}) either "Gene expression"
 #' (if \code{Log2.transformation=FALSE}).
 #'
-#' @return The function returns a graph which plots the distribution of all gene
-#' expressions using a boxplot for each sample (see [ggplot2::geom_boxplot()]).
+#' @return The function returns a graph which plots the distribution of all
+#' gene expressions using a boxplot for each sample
+#' (see [ggplot2::geom_boxplot()]).
 #'
 #' @seealso The [DATAplotBoxplotSamples()] function
 #' * is used by the following function of our package: [DATAnormalization()].
@@ -141,209 +143,262 @@ DATAplotBoxplotSamples<-function(ExprData,
                                  Color.Group=NULL,
                                  Plot.genes=FALSE,
                                  y.label=NULL){
-  #---------------------------------------------------------------------------#
-  # To avoid "no visible binding for global variable" with devtools::check()
-  BioCond<-Time<-NULL
-  #---------------------------------------------------------------------------#
-  # Preprocessing
-  res.colnames<-ColnamesToFactors(ExprData=ExprData,
-                                  Column.gene=Column.gene,
-                                  Group.position=Group.position,
-                                  Time.position=Time.position,
-                                  Individual.position=Individual.position)
-  N.spl<-length(res.colnames$Final.Name)
-  #---------------------------------------------------------------------------#
-  # columns with only expression
-  if(is.null(Column.gene)==TRUE){
-    ind.col.expr<-seq_len(ncol(ExprData))
-  }else{
-    ind.col.expr<-seq_len(ncol(ExprData))[-Column.gene]
-  }# if(is.null(Column.gene)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Data reshaped
-  ExprData.f<-cbind(as.character(seq_len(nrow(ExprData))),
-                    ExprData[,ind.col.expr])
-  colnames(ExprData.f)<-c("Gene",res.colnames$Final.Name)
-  #---------------------------------------------------------------------------#
-  # Data used for boxplot
-  Norm.dat.melt<-reshape2::melt(ExprData.f, id=c("Gene"),
-                                value.name="Expr",
-                                variable.name="Samples")
-  colnames(Norm.dat.melt)<-c("Gene","Samples","Expression")
-  Norm.dat.melt$Samples<-as.factor(Norm.dat.melt$Samples)
-  #
-  if(Log2.transformation==TRUE){
-    Norm.dat.melt$Expression<-log2(Norm.dat.melt$Expression+1)
-    ylab.epr<-"log2(Gene expression +1)"
-  }else{
-    ylab.epr<-"Gene expression"
-  }# if(Log2.transformation==TRUE)
-  #
-  if(is.null(y.label)==FALSE){
-    ylab.epr<-y.label
-  }# if(is.null(y.label)==FALSE)
-  #---------------------------------------------------------------------------#
-  # Graph
-  Samples<-Expression<-NULL
-  if(Colored.By.Factors==FALSE){
-    if(Plot.genes==FALSE){
-      res.bxplt<-ggplot2::ggplot(Norm.dat.melt,
-                                 ggplot2::aes(x=Samples, y=Expression)) +
-        ggplot2::geom_boxplot(alpha=0.8, show.legend=FALSE, outlier.alpha=0.2,
-                              color="black", fill="#E69F00")+
-        ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90))
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## To avoid "no visible binding for global variable" with devtools::check()
+    BioCond<-Time<-NULL
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Preprocessing
+    res.colnames<-ColnamesToFactors(ExprData=ExprData,
+                                    Column.gene=Column.gene,
+                                    Group.position=Group.position,
+                                    Time.position=Time.position,
+                                    Individual.position=Individual.position)
+    N.spl<-length(res.colnames$Final.Name)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## columns with only expression
+    if(is.null(Column.gene)){
+        ind.col.expr<-seq_len(ncol(ExprData))
     }else{
-      Width.plt<-min(10/N.spl,0.3)
-      res.bxplt<-ggplot2::ggplot(Norm.dat.melt,
-                                 ggplot2::aes(x=Samples, y=Expression)) +
-        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=Width.plt,
-                                                               height=0.001),
-                             alpha=0.7, fill="#56B4E9", color="#56B4E9") +
-        ggplot2::geom_boxplot(alpha=0.8, show.legend=FALSE, outlier.alpha=0.2,
-                              color="black", fill="#E69F00")+
-        ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90))
-    }# if(Plot.genes==FALSE)
-    res.bxplt<-res.bxplt+ggplot2::labs(x="Samples", y=ylab.epr)
-  }else{
-    if(is.null(res.colnames$Group.Info)==FALSE){
-      Expr.colG<-ExprData.f
-      FactorBoxplG<-as.character(res.colnames$Group.Info)
-      Num.FactorBC<-CharacterNumbers(Vect.number=seq_len(length(FactorBoxplG)))
-      colnames(Expr.colG)<-c("Gene", paste(Num.FactorBC, FactorBoxplG, sep=""))
-      #
-      Max.digit.G<-floor(log10(abs(max(seq_len(length(FactorBoxplG))))))+ 1
-      #
-      Melt1F.G<-reshape2::melt(Expr.colG, id=c("Gene"),
-                               value.name = "Expr",
-                               variable.name = "BioCond")
-      substrg.BC<-substring(Melt1F.G$BioCond,first=Max.digit.G+1,last=1000000L)
-      Dat.bxplt.G<-data.frame(Norm.dat.melt[,-1], substrg.BC)
-      colnames(Dat.bxplt.G)<-c("Samples","Expression","BioCond")
-      #-----------------------------------------------------------------------#
-      Glevels<-levels(factor(res.colnames$Group.Info))
-      #
-      if(is.null(Color.Group)==TRUE){
-        MypaletteG<-c(RColorBrewer::brewer.pal(8,"Dark2"),
-                      RColorBrewer::brewer.pal(8,"Set2"))
-        if(length(Glevels)>16){
-          MypaletteG<-c(MypaletteG,hue_pal(l=90)(seq_len(length(Glevels)-1)))
-        }# if(length(Glevels)>16)
-        Color.Group<-data.frame(Name=Glevels,
-                                Col=MypaletteG[seq_len(length(Glevels))])
-      }else{
-        Id.LevelCol.G<-order(Color.Group[,1])
-        Color.Group<-data.frame(Name=Glevels,
-                                Col=Color.Group[Id.LevelCol.G,2])
-      }# if(is.null(Color.Group)==TRUE)
-      VcolG<-factor(res.colnames$Group.Info)
-      levels(VcolG)<-Color.Group$Col
-      #
-      LegendTitle<-"Biological \nconditions"
-      #-----------------------------------------------------------------------#
-      if(Plot.genes==FALSE){
-        res.bxplt<-ggplot2::ggplot(Dat.bxplt.G,
-                                   ggplot2::aes(x=factor(Samples),
-                                                y=Expression, fill=BioCond)) +
-          ggplot2::geom_boxplot(alpha = 1, outlier.alpha = 0.2) +
-          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9,
-                                                              color="black",
-                                                              face="bold")) +
-          ggplot2::labs(x="Samples", y=ylab.epr)+
-          ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90))+
-          ggplot2::guides(fill=ggplot2::guide_legend(LegendTitle))+
-          ggplot2::scale_fill_manual(values=levels(VcolG))
-      }else{
-        JitterCol<-factor(Dat.bxplt.G[,3])
-        levels(JitterCol)<-levels(VcolG)
-        #
-        res.bxplt<-ggplot2::ggplot(Dat.bxplt.G,
-                                   ggplot2::aes(x=factor(Samples),
-                                                y=Expression,
-                                                fill=BioCond)) +
-          ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3,
-                                                                 height=0.2),
-                               colour=JitterCol,
-                               alpha=0.9) +
-          ggplot2::geom_boxplot(alpha = 1, outlier.alpha = 0.2) +
-          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9,
-                                                              color="black",
-                                                              face="bold")) +
-          ggplot2::labs(x="Samples", y=ylab.epr)+
-          ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90))+
-          ggplot2::guides(fill=ggplot2::guide_legend(LegendTitle))+
-          ggplot2::scale_fill_manual(values=levels(VcolG))
-      }# if(Plot.genes==FALSE)
-    }# if(is.null(res.colnames$Group.Info)==FALSE)
-    #-------------------------------------------------------------------------#
-    if(is.null(res.colnames$Group.Info)==TRUE & is.null(res.colnames$Time.Info)==FALSE){
-      Expr.colT<-ExprData.f
-      FactorBoxplT<-as.character(res.colnames$Time.Info)
-      Num.FactorT<-CharacterNumbers(Vect.number=seq_len(length(FactorBoxplT)))
-      colnames(Expr.colT)<-c("Gene", paste(Num.FactorT, FactorBoxplT, sep=""))
-      Max.digit.G<-floor(log10(abs(max(seq_len(length(FactorBoxplT))))))+ 1
-      #
-      Melt1F.T<-reshape2::melt(Expr.colT, id=c("Gene"),
-                               value.name="Expr", variable.name="Time")
-      substrg.T<-substring(Melt1F.T$Time, first=Max.digit.G+1, last=1000000L)
-      substrg.T2<-gsub("T","", gsub("t","", as.character(substrg.T)))
-      substrg.Tf<-paste("t", substrg.T2, sep="")
-      Dat.bxplt.T<-data.frame(Norm.dat.melt[,-1], substrg.Tf)
-      colnames(Dat.bxplt.T)<-c("Samples","Expression","Time")
-      #-----------------------------------------------------------------------#
-      Tlevels<-levels(factor(substrg.Tf))
-      NbTime<-length(Tlevels)
-      #
-      Color.Time<-NULL
-      if(is.null(Color.Time)==TRUE){
-        Color.Time<-data.frame(Name=Tlevels,
-                               Col=c("#737373",# "#252525"
-                                     scales::hue_pal()(length(Tlevels)-1)))
-      }else{
-        Id.LevelColT<-order(Color.Time[,1])
-        Color.Time<-data.frame(Name=Tlevels,
-                               Col=Color.Time[Id.LevelColT,2])
-      }# if(is.null(Color.Time)==TRUE)
-      VcolT<- factor(paste("t",gsub("T","",
-                                    gsub("t","",
-                                         as.character(res.colnames$Time.Info))),
-                           sep=""))
-      levels(VcolT)<-Color.Time$Col
-      #-----------------------------------------------------------------------#
-      if(Plot.genes==FALSE){
-        res.bxplt<-ggplot2::ggplot(Dat.bxplt.T,
-                                   ggplot2::aes(x=factor(Samples),
-                                                y=Expression,fill=Time)) +
-          ggplot2::geom_boxplot(alpha = 1, outlier.alpha = 0.2) +
-          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9,
-                                                              color="black",
-                                                              face="bold")) +
-          ggplot2::labs(x="Samples", y=ylab.epr)+
-          ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90))+
-          ggplot2::guides(color=ggplot2::guide_legend("Time"))+
-          ggplot2::scale_fill_manual(values=levels(VcolT))
-      }else{
-        JitterCol<-factor(Dat.bxplt.T[,3])
-        levels(JitterCol)<-levels(VcolT)
-        #
-        res.bxplt<-ggplot2::ggplot(Dat.bxplt.T,
-                                   ggplot2::aes(x=factor(Samples),
-                                                y=Expression,fill=Time)) +
-          ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3,
-                                                                 height=0.2),
-                               colour=JitterCol,
-                               alpha=0.9) +
-          ggplot2::geom_boxplot(alpha = 1, outlier.alpha = 0.2) +
-          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9,
-                                                              color="black",
-                                                              face="bold")) +
-          ggplot2::labs(x="Samples", y=ylab.epr)+
-          ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90))+
-          ggplot2::guides(color=ggplot2::guide_legend("Time"))+
-          ggplot2::scale_fill_manual(values=levels(VcolT))
-      }# if(Plot.genes==FALSE)
-    }# if(is.null(res.colnames$Group.Info & res.colnames$Time.Info)==TRUE)
-  }# if(Colored.By.Factors==FALSE)
-  res.bxplt<-res.bxplt + ggplot2::ylim(min=min(Norm.dat.melt$Expression),
-                                       max=max(Norm.dat.melt$Expression)+0.1)
-  return(res.bxplt=res.bxplt)
-}# DATAplotBoxplotSamples
+        ind.col.expr<-seq_len(ncol(ExprData))[-Column.gene]
+    }## if(is.null(Column.gene))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Data reshaped
+    ExprData.f<-cbind(as.character(seq_len(nrow(ExprData))),
+                      ExprData[, ind.col.expr])
+    colnames(ExprData.f)<-c("Gene", res.colnames$Final.Name)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Data used for boxplot
+    Norm.dat.melt<-reshape2::melt(ExprData.f,
+                                  id=c("Gene"),
+                                  value.name="Expr",
+                                  variable.name="Samples")
+    colnames(Norm.dat.melt)<-c("Gene", "Samples", "Expression")
+    Norm.dat.melt$Samples<-as.factor(Norm.dat.melt$Samples)
+
+    if(isTRUE(Log2.transformation)){
+        Norm.dat.melt$Expression<-log2(Norm.dat.melt$Expression + 1)
+        ylab.epr<-"log2(Gene expression +1)"
+    }else{
+        ylab.epr<-"Gene expression"
+    }## if(isTRUE(Log2.transformation))
+
+    if(!is.null(y.label)){
+        ylab.epr<-y.label
+    }## if(!is.null(y.label))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Graph
+    Samples<-Expression<-NULL
+
+    if(isFALSE(Colored.By.Factors)){
+        if(isFALSE(Plot.genes)){
+            res.bxplt<-ggplot2::ggplot(Norm.dat.melt,
+                                       ggplot2::aes(x=Samples,
+                                                    y=Expression)) +
+                ggplot2::geom_boxplot(alpha=0.8,
+                                      show.legend=FALSE, outlier.alpha=0.2,
+                                      color="black", fill="#E69F00") +
+                ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))
+        }else{
+            Width.plt<-min(10/N.spl, 0.3)
+            res.bxplt<-ggplot2::ggplot(Norm.dat.melt,
+                                       ggplot2::aes(x=Samples,
+                                                    y=Expression)) +
+                ggplot2::geom_jitter(position=ggplot2::position_jitter(width=Width.plt,
+                                                                       height=0.001),
+                                     alpha=0.7,
+                                     fill="#56B4E9", color="#56B4E9") +
+                ggplot2::geom_boxplot(alpha=0.8,
+                                      show.legend=FALSE, outlier.alpha=0.2,
+                                      color="black", fill="#E69F00") +
+                ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))
+        }## if(isFALSE(Plot.genes))
+
+        res.bxplt<-res.bxplt +
+            ggplot2::labs(x="Samples", y=ylab.epr)
+
+    }else{
+        if(!is.null(res.colnames$Group.Info)){
+            ##----------------------------------------------------------------#
+            ## Setting
+            Expr.colG<-ExprData.f
+            FactorBoxplG<-as.character(res.colnames$Group.Info)
+            Num.FactorBC<-CharacterNumbers(Vect.number=seq_len(length(FactorBoxplG)))
+            colnames(Expr.colG)<-c("Gene", paste0(Num.FactorBC, FactorBoxplG))
+
+            Max.digit.G<-floor(log10(abs(max(seq_len(length(FactorBoxplG))))))
+            Max.digit.G<-Max.digit.G + 1
+
+            Melt1F.G<-reshape2::melt(Expr.colG, id=c("Gene"),
+                                     value.name="Expr",
+                                     variable.name="BioCond")
+            substrg.BC<-substring(Melt1F.G$BioCond,
+                                  first=Max.digit.G + 1,
+                                  last=1000000L)
+            Dat.bxplt.G<-data.frame(Norm.dat.melt[,-1],
+                                    substrg.BC)
+            colnames(Dat.bxplt.G)<-c("Samples", "Expression", "BioCond")
+
+            ##----------------------------------------------------------------#
+            Glevels<-levels(factor(res.colnames$Group.Info))
+
+            if(is.null(Color.Group)){
+                MypaletteG<-c(RColorBrewer::brewer.pal(8,"Dark2"),
+                              RColorBrewer::brewer.pal(8,"Set2"))
+                if(length(Glevels)>16){
+                    MypaletteG<-c(MypaletteG,
+                                  scales::hue_pal(l=90)(seq_len(length(Glevels)-1)))
+                }## if(length(Glevels)>16)
+                Color.Group<-data.frame(Name=Glevels,
+                                        Col=MypaletteG[seq_len(length(Glevels))])
+            }else{
+                Id.LevelCol.G<-order(Color.Group[,1])
+                Color.Group<-data.frame(Name=Glevels,
+                                        Col=Color.Group[Id.LevelCol.G, 2])
+            }## if(is.null(Color.Group))
+
+            VcolG<-factor(res.colnames$Group.Info)
+            levels(VcolG)<-Color.Group$Col
+
+            LegendTitle<-"Biological \nconditions"
+
+            ##----------------------------------------------------------------#
+            if(isFALSE(Plot.genes)){
+                res.bxplt<-ggplot2::ggplot(Dat.bxplt.G,
+                                           ggplot2::aes(x=factor(Samples),
+                                                        y=Expression,
+                                                        fill=BioCond)) +
+                    ggplot2::geom_boxplot(alpha=1, outlier.alpha=0.2) +
+                    ggplot2::theme(strip.text.x=ggplot2::element_text(size=9,
+                                                                      color="black",
+                                                                      face="bold")) +
+                    ggplot2::labs(x="Samples", y=ylab.epr)+
+                    ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90)) +
+                    ggplot2::guides(fill=ggplot2::guide_legend(LegendTitle)) +
+                    ggplot2::scale_fill_manual(values=levels(VcolG))
+            }else{
+                JitterCol<-factor(Dat.bxplt.G[,3])
+                levels(JitterCol)<-levels(VcolG)
+
+                res.bxplt<-ggplot2::ggplot(Dat.bxplt.G,
+                                           ggplot2::aes(x=factor(Samples),
+                                                        y=Expression,
+                                                        fill=BioCond)) +
+                    ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3,
+                                                                           height=0.2),
+                                         colour=JitterCol,
+                                         alpha=0.9) +
+                    ggplot2::geom_boxplot(alpha=1, outlier.alpha=0.2) +
+                    ggplot2::theme(strip.text.x=ggplot2::element_text(size=9,
+                                                                      color="black",
+                                                                      face="bold")) +
+                    ggplot2::labs(x="Samples", y=ylab.epr)+
+                    ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))+
+                    ggplot2::guides(fill=ggplot2::guide_legend(LegendTitle))+
+                    ggplot2::scale_fill_manual(values=levels(VcolG))
+            }# if(Plot.genes==FALSE)
+        }# if(is.null(res.colnames$Group.Info)==FALSE)
+
+        ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        if(is.null(res.colnames$Group.Info) & !is.null(res.colnames$Time.Info)){
+            ##----------------------------------------------------------------#
+            Expr.colT<-ExprData.f
+            FactorBoxplT<-as.character(res.colnames$Time.Info)
+            Num.FactorT<-CharacterNumbers(Vect.number=seq_len(length(FactorBoxplT)))
+            colnames(Expr.colT)<-c("Gene", paste0(Num.FactorT, FactorBoxplT))
+            Max.digit.G<-floor(log10(abs(max(seq_len(length(FactorBoxplT))))))
+            Max.digit.G<-Max.digit.G + 1
+
+            ##----------------------------------------------------------------#
+            Melt1F.T<-reshape2::melt(Expr.colT, id=c("Gene"),
+                                     value.name="Expr", variable.name="Time")
+            substrg.T<-substring(Melt1F.T$Time, first=Max.digit.G + 1,
+                                 last=1000000L)
+            substrg.T2<-gsub("T", "", gsub("t", "", as.character(substrg.T)))
+            substrg.Tf<-paste0("t", substrg.T2)
+            Dat.bxplt.T<-data.frame(Norm.dat.melt[,-1], substrg.Tf)
+            colnames(Dat.bxplt.T)<-c("Samples", "Expression", "Time")
+
+            ##----------------------------------------------------------------#
+            Tlevels<-levels(factor(substrg.Tf))
+            NbTime<-length(Tlevels)
+            Color.Time<-NULL
+
+            if(is.null(Color.Time)){
+                Color.Time<-data.frame(Name=Tlevels,
+                                       Col=c("#737373",# "#252525"
+                                             scales::hue_pal()(length(Tlevels)-1)))
+            }else{
+                Id.LevelColT<-order(Color.Time[, 1])
+                Color.Time<-data.frame(Name=Tlevels,
+                                       Col=Color.Time[Id.LevelColT, 2])
+            }## if(is.null(Color.Time))
+
+            VcolT<-paste0("t",
+                          gsub("T", "",
+                               gsub("t", "",
+                                    as.character(res.colnames$Time.Info))))
+            VcolT<-factor(VcolT)
+            levels(VcolT)<-Color.Time$Col
+
+            ##----------------------------------------------------------------#
+            if(isFALSE(Plot.genes)){
+                res.bxplt<-ggplot2::ggplot(Dat.bxplt.T,
+                                           ggplot2::aes(x=factor(Samples),
+                                                        y=Expression,
+                                                        fill=Time)) +
+                    ggplot2::geom_boxplot(alpha=1,
+                                          outlier.alpha=0.2) +
+                    ggplot2::theme(strip.text.x=ggplot2::element_text(size=9,
+                                                                      color="black",
+                                                                      face="bold")) +
+                    ggplot2::labs(x="Samples", y=ylab.epr)+
+                    ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))+
+                    ggplot2::guides(color=ggplot2::guide_legend("Time"))+
+                    ggplot2::scale_fill_manual(values=levels(VcolT))
+            }else{
+                JitterCol<-factor(Dat.bxplt.T[,3])
+                levels(JitterCol)<-levels(VcolT)
+
+                res.bxplt<-ggplot2::ggplot(Dat.bxplt.T,
+                                           ggplot2::aes(x=factor(Samples),
+                                                        y=Expression,
+                                                        fill=Time)) +
+                    ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3,
+                                                                           height=0.2),
+                                         colour=JitterCol,
+                                         alpha=0.9) +
+                    ggplot2::geom_boxplot(alpha=1, outlier.alpha=0.2) +
+                    ggplot2::theme(strip.text.x=ggplot2::element_text(size=9,
+                                                                      color="black",
+                                                                      face="bold")) +
+                    ggplot2::labs(x="Samples", y=ylab.epr)+
+                    ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))+
+                    ggplot2::guides(color=ggplot2::guide_legend("Time"))+
+                    ggplot2::scale_fill_manual(values=levels(VcolT))
+            }## if(isFALSE(Plot.genes))
+        }##if(is.null(res.colnames$Group.Info)&!is.null(res.colnames$Time.Info))
+    }## if(isFALSE(Colored.By.Factors))
+
+    ##------------------------------------------------------------------------#
+    ## Final ggplot2
+    res.bxplt<-res.bxplt +
+        ggplot2::ylim(min=min(Norm.dat.melt$Expression),
+                      max=max(Norm.dat.melt$Expression) + 0.1)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(res.bxplt=res.bxplt)
+}## DATAplotBoxplotSamples()

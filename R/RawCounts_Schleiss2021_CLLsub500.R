@@ -98,8 +98,8 @@
 #' in these samples, we also included non-proliferating control CLL samples.
 #' Gene expression was analyzed by RNA-seq before stimulation (T0) and at
 #' the time points 1h, 1h30, 3h30, 6h30, 12h, 24h, 48h and 96h after
-#' cell stimulation (n=54 data points), the latest time points corresponding to
-#' the emergence of the proliferation clusters."
+#' cell stimulation (n=54 data points), the latest time points corresponding
+#' to the emergence of the proliferation clusters."
 #'
 #' Overall design:
 #' "Temporal transcriptional response (T0 + 8 time points) of

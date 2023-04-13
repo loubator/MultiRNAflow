@@ -23,7 +23,8 @@
 #' (here chronic lymphocytic leukemia) and is not used in our analysis.
 #'
 #' In the string of characters 'CLL_P_t0_r1',
-#' 'r1' is localized after the third underscore, so \code{Individual.position=4},
+#' 'r1' is localized after the third underscore,
+#' so \code{Individual.position=4},
 #' 'P' is localized after the first underscore, so \code{Group.position=2} and
 #' 't0' is localized after the second underscore, so \code{Time.position=3}.
 #'
@@ -97,8 +98,9 @@
 #' @importFrom FactoMineR PCA
 #'
 #' @examples
-#' Sim.Dat.pca<-RawCountsSimulation(Nb.Group=2,Nb.Time=3,Nb.per.GT=4,Nb.Gene=10)
-#' #--------------------------------------------------------------------------#
+#' Sim.Dat.pca<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
+#'                                  Nb.Gene=10)
+#' ##-------------------------------------------------------------------------#
 #' res.pca.ex<-PCArealization(ExprData=Sim.Dat.pca$Sim.dat,
 #'                            Column.gene=1,
 #'                            Group.position=1,
@@ -107,7 +109,7 @@
 #'                            gene.deletion=c(3,5),
 #'                            sample.deletion=c("G1_t0_Ind2","G1_t1_Ind3"),
 #'                            Supp.del.sample=FALSE)
-#' #--------------------------------------------------------------------------#
+#' ##-------------------------------------------------------------------------#
 #' res.pca.ex<-PCArealization(ExprData=Sim.Dat.pca$Sim.dat,
 #'                            Column.gene=1,
 #'                            Group.position=1,
@@ -125,72 +127,88 @@ PCArealization<-function(ExprData,
                          gene.deletion,
                          sample.deletion,
                          Supp.del.sample=FALSE){
-  #---------------------------------------------------------------------------#
-  resPCAprepro<-PCApreprocessing(ExprData=ExprData,
-                                 Column.gene=Column.gene,
-                                 Group.position=Group.position,
-                                 Time.position=Time.position,
-                                 Individual.position=Individual.position)
-  #---------------------------------------------------------------------------#
-  # In this "if" section, we want to know if some samples must be deleted or
-  # be plotted as "supplementray", e.g. not used in the built of the axes
-  # of the PCA
-  if(is.null(sample.deletion)==FALSE){
-    if(is.numeric(sample.deletion)==TRUE){
-      if(is.null(Column.gene)==TRUE){
-        Ind.del.f<-sample.deletion
-      }else{
-        ColSplDel<-colnames(ExprData)[sample.deletion]
-        Ind.del.f<-which(colnames(ExprData)[-Column.gene]%in%ColSplDel)
-      }# if(is.null(Column.gene)==TRUE)
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    resPCAprepro<-PCApreprocessing(ExprData=ExprData,
+                                   Column.gene=Column.gene,
+                                   Group.position=Group.position,
+                                   Time.position=Time.position,
+                                   Individual.position=Individual.position)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## In this "if" section, we want to know if some samples must be deleted or
+    ## be plotted as "supplementray", e.g. not used in the built of the axes
+    ## of the PCA
+
+    if(!is.null(sample.deletion)){
+        if(is.numeric(sample.deletion)){
+            if(is.null(Column.gene)){
+                Ind.del.f<-sample.deletion
+            }else{
+                ColSplDel<-colnames(ExprData)[sample.deletion]
+                Ind.del.f<-which(colnames(ExprData)[-Column.gene]%in%ColSplDel)
+            }## if(is.null(Column.gene))
+        }else{
+            if(is.null(Column.gene)){
+                Ind.del.f<-which(colnames(ExprData)%in%sample.deletion)
+            }else{
+                Ind.del.f<-which(colnames(ExprData[,-Column.gene])%in%sample.deletion)
+            }## if(is.null(Column.gene))
+        }## if(is.numeric(sample.deletion))
+
+        ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        if(isFALSE(Supp.del.sample)){
+            Supp.del.sample.f<-NULL
+            data.pca<-resPCAprepro$data.to.pca[-Ind.del.f,]
+
+            ListFactors.F<-resPCAprepro$List.Factors
+
+            for(l in seq_len(length(ListFactors.F))){
+                if(!is.null(ListFactors.F[[l]])){
+                    VFct<-ListFactors.F[[l]]
+                    ListFactors.F[[l]]<-VFct[-Ind.del.f]
+                }## if(!is.null(ListFactors.F[[l]]))
+            }## for(l in 1:length(ListFactors.F))
+
+        }else{
+            Supp.del.sample.f<-Ind.del.f
+            data.pca<-resPCAprepro$data.to.pca
+            ListFactors.F<-resPCAprepro$List.Factors
+        }## if(isFALSE(Supp.del.sample))
+
+        ##--------------------------------------------------------------------#
     }else{
-      if(is.null(Column.gene)==TRUE){
-        Ind.del.f<-which(colnames(ExprData)%in%sample.deletion)
-      }else{
-        Ind.del.f<-which(colnames(ExprData[,-Column.gene])%in%sample.deletion)
-      }# if(is.null(Column.gene)==TRUE)
-    }# if(is.numeric(sample.deletion)==TRUE)
-    #-------------------------------------------------------------------------#
-    if(Supp.del.sample==FALSE){
-      Supp.del.sample.f<-NULL
-      data.pca<-resPCAprepro$data.to.pca[-Ind.del.f,]
-      #
-      ListFactors.F<-resPCAprepro$List.Factors
-      for(l in seq_len(length(ListFactors.F))){# 1:length(ListFactors.F)
-        if(is.null(ListFactors.F[[l]])==FALSE){
-          VFct<-ListFactors.F[[l]]
-          ListFactors.F[[l]]<-VFct[-Ind.del.f]
-        }# if(is.null(ListFactors.F[[l]])==FALSE)
-      }# for(l in 1:length(ListFactors.F))
+        Supp.del.sample.f<-NULL
+        data.pca<-resPCAprepro$data.to.pca
+        ListFactors.F<-resPCAprepro$List.Factors
+    }## if(!is.null(sample.deletion))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## In this "if" section, we want to know if some genes must be deleted
+    if(!is.null(gene.deletion)){
+        if(is.numeric(gene.deletion)){
+            GeneDel.f<-gene.deletion
+        }else{
+            GeneDel.f<-which(colnames(resPCAprepro$data.to.pca)%in%gene.deletion)
+        }## if(is.numeric(gene.deletion))
+        data.pca.f<-data.pca[,-GeneDel.f]
     }else{
-      Supp.del.sample.f<-Ind.del.f
-      data.pca<-resPCAprepro$data.to.pca
-      ListFactors.F<-resPCAprepro$List.Factors
-    }# if(Supp.del.sample==FALSE)
-    #-------------------------------------------------------------------------#
-  }else{
-    Supp.del.sample.f<-NULL
-    data.pca<-resPCAprepro$data.to.pca
-    ListFactors.F<-resPCAprepro$List.Factors
-  }# if(is.null(sample.deletion)==FALSE)
-  #---------------------------------------------------------------------------#
-  # In this "if" section, we want to know if some genes must be deleted
-  if(is.null(gene.deletion)==FALSE){
-    if(is.numeric(gene.deletion)==TRUE){
-      GeneDel.f<-gene.deletion
-    }else{
-      GeneDel.f<-which(colnames(resPCAprepro$data.to.pca)%in%gene.deletion)
-    }# if(is.numeric(gene.deletion)==TRUE)
-    data.pca.f<-data.pca[,-GeneDel.f]
-  }else{
-    data.pca.f<-data.pca
-  }# if(is.null(gene.deletion)==FALSE)
-  #---------------------------------------------------------------------------#
-  res.pca<-FactoMineR::PCA(X=data.pca.f,
-                           graph=FALSE,
-                           quali.sup=seq_len(resPCAprepro$nb.quali.var),
-                           ind.sup=Supp.del.sample.f)
-  #---------------------------------------------------------------------------#
-  return(list(res.pca=res.pca,
-              List.Factors=ListFactors.F))
-}# PCArealization()
+        data.pca.f<-data.pca
+    }## if(!is.null(gene.deletion))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    res.pca<-FactoMineR::PCA(X=data.pca.f,
+                             graph=FALSE,
+                             quali.sup=seq_len(resPCAprepro$nb.quali.var),
+                             ind.sup=Supp.del.sample.f)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(list(res.pca=res.pca,
+                List.Factors=ListFactors.F))
+}## PCArealization()

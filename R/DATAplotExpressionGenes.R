@@ -115,7 +115,7 @@
 #' @examples
 #' res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
 #'                                   Nb.Gene=10)
-#' #
+#' ##
 #' Res.evo<-DATAplotExpressionGenes(ExprData=res.sim.count$Sim.dat,
 #'                                  Vector.row.gene=c(1,3),
 #'                                  Column.gene=1,
@@ -137,102 +137,114 @@ DATAplotExpressionGenes<-function(ExprData,
                                   Plot.Expression=TRUE,
                                   path.result=NULL,
                                   Name.folder.profile=NULL){
-  #---------------------------------------------------------------------------#
-  # Folder creation if no existence
-  #---------------------------------------------------------------------------#
-  if(is.null(Name.folder.profile)==TRUE){
-    Name.folder.profile<-""
-    SubFolder.name<-"1_UnsupervisedAnalysis"
-  }else{
-    Name.folder.profile<-paste("_",Name.folder.profile,sep="")
-    SubFolder.name<-paste("1_UnsupervisedAnalysis", Name.folder.profile,sep="")
-  }# if(is.null(Name.folder.profile)==TRUE)
-  #
-  if(is.null(path.result)==FALSE){
-    if(SubFolder.name%in%dir(path = path.result)==FALSE){
-      print("Folder creation")
-      dir.create(path=paste(path.result,"/",SubFolder.name,sep=""))
-      path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Folder creation if no existence
+    if(is.null(Name.folder.profile)){
+        Name.folder.profile<-""
+        SubFolder.name<-"1_UnsupervisedAnalysis"
     }else{
-      path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
-    }
-  }else{
-    path.result.f<-NULL
-  }# if(is.null(path.result)==FALSE)
-  #
-  if(is.null(path.result.f)==FALSE){
-    nom.dossier.result<-paste("1-5_ProfileExpressionAnalysis",
-                              Name.folder.profile, sep="")
-    if(nom.dossier.result%in%dir(path = path.result.f)==FALSE){
-      dir.create(path=paste(path.result.f,"/",nom.dossier.result,sep=""))
-      path.result.new<-paste(path.result.f,"/",nom.dossier.result,sep="")
+        Name.folder.profile<-paste0("_", Name.folder.profile)
+        SubFolder.name<-paste0("1_UnsupervisedAnalysis", Name.folder.profile)
+    }## if(is.null(Name.folder.profile))
+
+    if(!is.null(path.result)){
+        if(!SubFolder.name%in%dir(path=path.result)){
+            print("Folder creation")
+            dir.create(path=file.path(path.result, SubFolder.name))
+            path.result.f<-file.path(path.result, SubFolder.name)
+        }else{
+            path.result.f<-file.path(path.result, SubFolder.name)
+        }
     }else{
-      path.result.new<-paste(path.result.f,"/",nom.dossier.result,sep="")
-    }# if(nom.dossier.result%in%dir(path = path.result.f)==FALSE)
-  }else{
-    path.result.new<-NULL
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  # Name all genes
-  if(is.null(Column.gene)==TRUE){
-    if(is.null(row.names(ExprData))==TRUE){
-      Name.G<-paste("Gene.",Vector.row.gene,sep="")
+        path.result.f<-NULL
+    }## if(!is.null(path.result)=)
+
+    if(!is.null(path.result.f)){
+        nom.dossier.result<-paste0("1-5_ProfileExpressionAnalysis",
+                                  Name.folder.profile)
+        if(!nom.dossier.result%in%dir(path = path.result.f)){
+            dir.create(path=file.path(path.result.f, nom.dossier.result))
+            path.result.new<-file.path(path.result.f, nom.dossier.result)
+        }else{
+            path.result.new<-file.path(path.result.f, nom.dossier.result)
+        }## if(nom.dossier.result%in%dir(path = path.result.f)==FALSE)
     }else{
-      Name.G<-row.names(ExprData)[Vector.row.gene]
-    }
-  }else{
-    Name.G<-ExprData[Vector.row.gene,Column.gene]
-  }# if(is.null(Column.gene)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Data with only expression
-  if(is.null(Column.gene)==TRUE){
-    ind.col.expr<-seq_len(ncol(ExprData))#c(1:ncol(ExprData))
-  }else{
-    ind.col.expr<-seq_len(ncol(ExprData))[-Column.gene]
-  }# if(is.null(Column.gene)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Data expression of the selected genes
-  ExprData.f<-data.frame(Gene=Name.G,
-                         as.matrix(ExprData[Vector.row.gene,ind.col.expr]))
-  row.names(ExprData.f)<-Name.G
-  colnames(ExprData.f)[-1]<-colnames(ExprData)[ind.col.expr]
-  #---------------------------------------------------------------------------#
-  List.All.G<-vector(mode="list",length=length(Vector.row.gene))
-  names(List.All.G)<-Name.G
-  #---------------------------------------------------------------------------#
-  cpt<-0
-  for(g.sel in Vector.row.gene){
-    cpt<-cpt+1
-    PlotExpr1G<-DATAplotExpression1Gene(ExprData=ExprData.f,
-                                        row.gene=cpt,
-                                        Column.gene=1,
-                                        Group.position=Group.position,
-                                        Time.position=Time.position,
-                                        Individual.position=Individual.position,
-                                        Color.Group=Color.Group)
-    List.All.G[[cpt]]<-PlotExpr1G
-  }# for(g.sel in Vector.row.gene)
-  #---------------------------------------------------------------------------#
-  # Save of all graph in a pdf file
-  if(is.null(path.result)==FALSE){
-    grDevices::pdf(paste(path.result.new, "/PlotsProfileGeneExpression",
-                         Name.folder.profile, ".pdf",sep=""),
-                   width = 11, height = 8,
-                   onefile = TRUE)
-    #
-    for(g.sel in seq_len(length(List.All.G))){
-      print(List.All.G[[g.sel]])
-    }# for(g.sel in Vector.row.gene)
-    #
-    grDevices::dev.off()
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  if(Plot.Expression==TRUE){
-    for(g.sel in seq_len(length(List.All.G))){
-      print(List.All.G[[g.sel]])
-    }# for(g.sel in Vector.row.gene)
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  return(list(DataForPlot=ExprData.f,
-              List.plots=List.All.G))
-}# DATAplotExpressionGenes
+        path.result.new<-NULL
+    }## if(is.null(path.result))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Name all genes
+    if(is.null(Column.gene)){
+        if(is.null(row.names(ExprData))){
+            Name.G<-paste0("Gene.", Vector.row.gene)
+        }else{
+            Name.G<-row.names(ExprData)[Vector.row.gene]
+        }
+    }else{
+        Name.G<-ExprData[Vector.row.gene, Column.gene]
+    }## if(is.null(Column.gene))
+
+    ## Data with only expression
+    if(is.null(Column.gene)){
+        ind.col.expr<-seq_len(ncol(ExprData))
+    }else{
+        ind.col.expr<-seq_len(ncol(ExprData))[-Column.gene]
+    }## if(is.null(Column.gene))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Data expression of the selected genes
+    ExprData.f<-data.frame(Gene=Name.G,
+                           as.matrix(ExprData[Vector.row.gene, ind.col.expr]))
+    row.names(ExprData.f)<-Name.G
+    colnames(ExprData.f)[-1]<-colnames(ExprData)[ind.col.expr]
+
+    ##------------------------------------------------------------------------#
+    List.All.G<-vector(mode="list", length=length(Vector.row.gene))
+    names(List.All.G)<-Name.G
+
+    cpt<-0
+    for(g.sel in Vector.row.gene){
+        cpt<-cpt+1
+        PlotExpr1G<-DATAplotExpression1Gene(ExprData=ExprData.f,
+                                            row.gene=cpt,
+                                            Column.gene=1,
+                                            Group.position=Group.position,
+                                            Time.position=Time.position,
+                                            Individual.position=Individual.position,
+                                            Color.Group=Color.Group)
+        List.All.G[[cpt]]<-PlotExpr1G
+    }## for(g.sel in Vector.row.gene)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Save of all graph in a pdf file
+    if(!is.null(path.result)){
+        grDevices::pdf(file.path(path.result.new,
+                                 paste0("PlotsProfileGeneExpression",
+                                        Name.folder.profile, ".pdf")),
+                       width=11, height=8, onefile=TRUE)
+
+        for(g.sel in seq_len(length(List.All.G))){
+            print(List.All.G[[g.sel]])
+        }## for(g.sel in Vector.row.gene)
+
+        grDevices::dev.off()
+    }## if(is.null(path.result)==FALSE)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(isTRUE(Plot.Expression)){
+        for(g.sel in seq_len(length(List.All.G))){
+            print(List.All.G[[g.sel]])
+        }## for(g.sel in Vector.row.gene)
+    }## if(isTRUE(Plot.Expression))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(list(DataForPlot=ExprData.f,
+                List.plots=List.All.G))
+}## DATAplotExpressionGenes()

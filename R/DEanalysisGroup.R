@@ -90,16 +90,16 @@
 #'
 #' @examples
 #' data(RawCounts_Antoszewski2022_MOUSEsub500)
-#' # No time points. We take only two groups for the speed of the example
+#' ## No time points. We take only two groups for the speed of the example
 #' RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
 #' DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_T1Wt,
 #'                                      Column.gene=1,
 #'                                      Group.position=1,
 #'                                      Time.position=NULL,
 #'                                      Individual.position=2)
-#' #
+#' ##
 #' dds.DE.G<-DESeq2::DESeq(DESeq2.info$DESeq2.obj, quiet=TRUE, betaPrior=FALSE)
-#' #
+#' ##
 #' res.sum.group<-DEanalysisGroup(DESeq.result=dds.DE.G,
 #'                                pval.min=0.01,
 #'                                log.FC.min=1,
@@ -115,99 +115,120 @@ DEanalysisGroup<-function(DESeq.result,
                           Plot.DE.graph=TRUE,
                           path.result=NULL,
                           SubFile.name=NULL){
-  #---------------------------------------------------------------------------#
-  # 1) Summary DESeq2 results
-  #---------------------------------------------------------------------------#
-  nb.group<-length(levels(DESeq.result@colData[[1]]))
-  nb.pair.of.group<-(nb.group*(nb.group-1))/2
-  #
-  Sum.DE.analysis.G<-DEresultGroup(DESeq.result=DESeq.result,
-                                   LRT.supp.info=LRT.supp.info,
-                                   log.FC.min=log.FC.min,
-                                   pval.min=pval.min)
-  #
-  Cont.per.group<-Sum.DE.analysis.G$Contingence.per.group
-  #---------------------------------------------------------------------------#
-  # 2) Barplot and Upset plot
-  #---------------------------------------------------------------------------#
-  if(nb.pair.of.group>1){
-    List.plots.DE.group<-vector(mode="list", length=3)
-    names(List.plots.DE.group)<-c("VennBarplot",
-                                  "NumberDEgenes_SpecificAndNoSpecific",
-                                  "NumberDEgenes_SpecificGenes")
-    #
-    G.Upset<-DEplotVennBarplotGroup(Mat.DE.pair.group=Sum.DE.analysis.G$DE.per.pair.G)
-    Spe.NoSpe.Barplot<-DEplotBarplot(Cont.per.group, dodge=FALSE)
-    Spe.Barplot<-DEplotBarplot(Cont.per.group[-3,], dodge=FALSE)
-    #
-    List.plots.DE.group[[1]]<-G.Upset$Upset.global
-    List.plots.DE.group[[2]]<-Spe.NoSpe.Barplot
-    List.plots.DE.group[[3]]<-Spe.Barplot
-  }else{
-    List.plots.DE.group<-vector(mode="list", length=1)
-    names(List.plots.DE.group)<-c("NumberDEgenes_UpDownRegulated")
-    #
-    Spe.NoSpe.Barplot<-DEplotBarplot(Cont.per.group, dodge=FALSE)
-    #
-    List.plots.DE.group[[1]]<-Spe.NoSpe.Barplot
-  }# if(nb.pair.of.group>1)
-  #---------------------------------------------------------------------------#
-  # 6) Save
-  #---------------------------------------------------------------------------#
-  if(is.null(SubFile.name)==FALSE){
-    SubFile.name<-paste("_", SubFile.name, sep="")
-  }# if(is.null(SubFile.name)==TRUE)
-  #
-  if(nb.pair.of.group==1){
-    if(is.null(path.result)==FALSE){
-      grDevices::pdf(file=paste(path.result, "/",
-                                "Plot_NumberDEgenes_UpDownRegulated",
-                                SubFile.name, "_OverUnder_DE_2groups", ".pdf",
-                                sep=""),
-                     width=11, height=8)
-      print(Spe.NoSpe.Barplot)
-      grDevices::dev.off()
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(class(DESeq.result)[1]!="DESeqDataSet"){
+        stop("Res.DE.analysis must a 'DESeqDataSet' object")
+    }## if(class(DESeq.result)[1]!="DESeqDataSet")
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 1) Summary DESeq2 results
+    ## DESeq.result@colData[[1]]
+    Fct.group<-as.factor(SummarizedExperiment::colData(DESeq.result)[[1]])
+    nb.group<-length(levels(Fct.group))
+    nb.pair.of.group<-(nb.group*(nb.group-1))/2
+
+    Sum.DE.analysis.G<-DEresultGroup(DESeq.result=DESeq.result,
+                                     LRT.supp.info=LRT.supp.info,
+                                     log.FC.min=log.FC.min,
+                                     pval.min=pval.min)
+
+    Cont.per.group<-Sum.DE.analysis.G$Contingence.per.group
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 2) Barplot and Upset plot
+
+    if(nb.pair.of.group>1){
+        List.plots.DE.group<-vector(mode="list", length=3)
+        names(List.plots.DE.group)<-c("VennBarplot",
+                                      "NumberDEgenes_SpecificAndNoSpecific",
+                                      "NumberDEgenes_SpecificGenes")
+
+        G.Upset<-DEplotVennBarplotGroup(Mat.DE.pair.group=Sum.DE.analysis.G$DE.per.pair.G)
+        Spe.NoSpe.Barplot<-DEplotBarplot(Cont.per.group, dodge=FALSE)
+        Spe.Barplot<-DEplotBarplot(Cont.per.group[-3,], dodge=FALSE)
+
+        List.plots.DE.group[[1]]<-G.Upset$Upset.global
+        List.plots.DE.group[[2]]<-Spe.NoSpe.Barplot
+        List.plots.DE.group[[3]]<-Spe.Barplot
     }else{
-      if(Plot.DE.graph==TRUE){
-        print(Spe.NoSpe.Barplot)
-      }
-    }# if(is.null(path.result)==FALSE)
-  }# if(nb.pair.of.group==1)
-  #---------------------------------------------------------------------------#
-  if(nb.pair.of.group>1){
-    if(is.null(path.result)==FALSE){
-      grDevices::pdf(file=paste(path.result, "/", "Plot_VennBarplot",
-                                SubFile.name, ".pdf", sep=""),
-                     width=11, height=8)
-      print(G.Upset$Upset.global)
-      grDevices::dev.off()
-      #-----------------------------------------------------------------------#
-      grDevices::pdf(file=paste(path.result, "/", "Plot_NumberDEgenes_",
-                                "SpecificAndNoSpecific_perBiologicalCondition",
-                                SubFile.name, ".pdf", sep=""),
-                     width=11, height=8)
-      print(Spe.NoSpe.Barplot)
-      grDevices::dev.off()
-      #-----------------------------------------------------------------------#
-      grDevices::pdf(file=paste(path.result, "/", "Plot_NumberSpecificGenes_",
+        List.plots.DE.group<-vector(mode="list", length=1)
+        names(List.plots.DE.group)<-c("NumberDEgenes_UpDownRegulated")
+        #
+        Spe.NoSpe.Barplot<-DEplotBarplot(Cont.per.group, dodge=FALSE)
+        #
+        List.plots.DE.group[[1]]<-Spe.NoSpe.Barplot
+    }# if(nb.pair.of.group>1)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 6) Save
+    if(!is.null(SubFile.name)){
+        SubFile.name<-paste0("_", SubFile.name)
+    }# if(is.null(SubFile.name)==TRUE)
+
+    if(nb.pair.of.group==1){
+        if(!is.null(path.result)){
+            OvUnd2Gfile<-paste0("Plot_NumberDEgenes_UpDownRegulated",
+                                SubFile.name, "_OverUnder_DE_2groups", ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, OvUnd2Gfile),
+                           width=11, height=8)
+            print(Spe.NoSpe.Barplot)
+            grDevices::dev.off()
+        }else{
+            if(Plot.DE.graph==TRUE){
+                print(Spe.NoSpe.Barplot)
+            }
+        }# if(is.null(path.result)==FALSE)
+    }# if(nb.pair.of.group==1)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(nb.pair.of.group>1){
+        if(!is.null(path.result)){
+            VennFile<-paste0("Plot_VennBarplot",  SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, VennFile),
+                           width=11, height=8)
+            print(G.Upset$Upset.global)
+            grDevices::dev.off()
+
+            ##----------------------------------------------------------------#
+            SpeFile<-paste0("Plot_NumberDEgenes_",
+                            "SpecificAndNoSpecific_perBiologicalCondition",
+                            SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, SpeFile),
+                           width=11, height=8)
+            print(Spe.NoSpe.Barplot)
+            grDevices::dev.off()
+
+            ##----------------------------------------------------------------#
+            UDregulates<-paste0("Plot_NumberSpecificGenes_",
                                 "UpDownRegulated_perBiologicalCondition",
-                                SubFile.name, ".pdf", sep=""),
-                     width=11, height=8)
-      print(Spe.Barplot)
-      grDevices::dev.off()
-    }else{
-      if(Plot.DE.graph==TRUE){
-        print(G.Upset$Upset.global)
-        # print(G.Upset$Upset.threshold)
-        print(Spe.NoSpe.Barplot)
-        print(Spe.Barplot)
-      }
-    }# if(is.null(path.result)==FALSE)
-  }# if(nb.pair.of.group>1)
-  #---------------------------------------------------------------------------#
-  # 6) End
-  #---------------------------------------------------------------------------#
-  # List.Plots.DE.Group=List.plots.DE.group
-  return(list(Results=Sum.DE.analysis.G$Results,
-              Summary.DEanalysis=Sum.DE.analysis.G$Contingence.per.group))
-}# DEanalysisGroup()
+                                SubFile.name, ".pdf")
+
+            grDevices::pdf(file=file.path(path.result, UDregulates),
+                           width=11, height=8)
+            print(Spe.Barplot)
+            grDevices::dev.off()
+        }else{
+            if(Plot.DE.graph==TRUE){
+                print(G.Upset$Upset.global)
+                # print(G.Upset$Upset.threshold)
+                print(Spe.NoSpe.Barplot)
+                print(Spe.Barplot)
+            }
+        }# if(is.null(path.result)==FALSE)
+    }# if(nb.pair.of.group>1)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## 6) End
+    ## List.Plots.DE.Group=List.plots.DE.group
+    return(list(Results=Sum.DE.analysis.G$Results,
+                Summary.DEanalysis=Sum.DE.analysis.G$Contingence.per.group))
+}## DEanalysisGroup()

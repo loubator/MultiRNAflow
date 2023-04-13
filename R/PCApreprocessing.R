@@ -25,7 +25,8 @@
 #' (here chronic lymphocytic leukemia) and is not used in our analysis.
 #'
 #' In the string of characters 'CLL_P_t0_r1',
-#' 'r1' is localized after the third underscore, so \code{Individual.position=4},
+#' 'r1' is localized after the third underscore,
+#' so \code{Individual.position=4},
 #' 'P' is localized after the first underscore, so \code{Group.position=2} and
 #' 't0' is localized after the second underscore, so \code{Time.position=3}.
 #'
@@ -82,7 +83,7 @@
 #' @examples
 #' res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
 #'                                    Nb.Gene=10)
-#' #--------------------------------------------------------------------------#
+#' ##-------------------------------------------------------------------------#
 #' res.dat.PCA<-PCApreprocessing(ExprData=res.sim.count$Sim.dat,
 #'                               Column.gene=1,
 #'                               Group.position=1,
@@ -94,62 +95,77 @@ PCApreprocessing<-function(ExprData,
                            Group.position,
                            Time.position,
                            Individual.position){
-  #---------------------------------------------------------------------------#
-  res.Factors<-ColnamesToFactors(ExprData=ExprData,
-                                 Column.gene=Column.gene,
-                                 Group.position=Group.position,
-                                 Time.position=Time.position,
-                                 Individual.position=Individual.position)
-  #
-  Vector.group<-res.Factors$Group.Info
-  Vector.time.ini<-res.Factors$Time.Info
-  Vector.patient<-res.Factors$Individual.info
-  #
-  if(is.null(Vector.time.ini)==FALSE){
-    Tt.Del<-gsub("t","",gsub("T","",as.character(Vector.time.ini)))
-    Vector.time<-paste("t",Tt.Del,sep="")
-  }else{
-    Vector.time<-Vector.time.ini
-  }# if(is.null(Vector.time.ini)==FALSE)
-  #---------------------------------------------------------------------------#
-  null.index.vector<-which(c(is.null(Vector.group), is.null(Vector.time)))
-  if(length(null.index.vector)==2){
-    stop("You need a qualitative variable")
-  }# if(length(null.index.vector)==2)
-  #---------------------------------------------------------------------------#
-  if(length(null.index.vector)==0){
-    final.list<-list(Quali.Sup.Group=as.factor(Vector.group),
-                     Quali.Sup.Time=as.factor(Vector.time))
-    paste.quali.var<-do.call("paste", c(final.list, sep = "_"))
-  }else{
-    final.list<-list(Quali.Sup.Group=as.factor(Vector.group),
-                     Quali.Sup.Time=as.factor(Vector.time))[-null.index.vector]
-    paste.quali.var<-as.character(unlist(final.list))
-  }# if(length(null.index.vector)==0)
-  #---------------------------------------------------------------------------#
-  if(is.null(Column.gene)==TRUE){
-    data.f<-cbind.data.frame(final.list, as.data.frame(t(ExprData)))
-  }else{
-    data.f<-cbind.data.frame(final.list,
-                             as.data.frame(t(ExprData[,-Column.gene])))
-  }# if(is.null(Column.gene)==TRUE)
-  row.names(data.f)<-paste(Vector.patient, "_", paste.quali.var,sep="")
-  #---------------------------------------------------------------------------#
-  Id.colname.gene<--seq_len(ncol(data.f)-nrow(ExprData))
-  # c(-1:(-ncol(data.f)+nrow(ExprData)))
-  Nb.unique.gene<-length(unique(ExprData[,Column.gene]))
-  if(is.null(Column.gene)==FALSE & Nb.unique.gene==nrow(ExprData)){
-    colnames(data.f)[Id.colname.gene]<-as.character(ExprData[,Column.gene])
-  }else{
-    colnames(data.f)[Id.colname.gene]<-paste("Gene.",
-                                             seq_len(nrow(ExprData)), sep="")
-  }# if(is.null(Column.gene)==FALSE & Nb.unique.gene==nrow(ExprData))
-  #---------------------------------------------------------------------------#
-  order.row<-seq_len(length(Vector.patient))
-  #---------------------------------------------------------------------------#
-  return(list(data.to.pca=data.f[order.row,],
-              nb.quali.var=length(final.list),
-              List.Factors=list(Vector.group=Vector.group[order.row],
-                                Vector.time=Vector.time[order.row],
-                                Vector.patient=Vector.patient[order.row])))
-}# PCApreprocessing()
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    res.Factors<-ColnamesToFactors(ExprData=ExprData,
+                                   Column.gene=Column.gene,
+                                   Group.position=Group.position,
+                                   Time.position=Time.position,
+                                   Individual.position=Individual.position)
+
+    Vector.group<-res.Factors$Group.Info
+    Vector.time.ini<-res.Factors$Time.Info
+    Vector.patient<-res.Factors$Individual.info
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(!is.null(Vector.time.ini)){
+        Tt.Del<-gsub("t", "", gsub("T", "", as.character(Vector.time.ini)))
+        Vector.time<-paste0("t", Tt.Del)
+    }else{
+        Vector.time<-Vector.time.ini
+    }## if(!is.null(Vector.time.ini))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    null.index.vector<-which(c(is.null(Vector.group), is.null(Vector.time)))
+
+    if(length(null.index.vector)==2){
+        stop("You need a qualitative variable")
+    }# if(length(null.index.vector)==2)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(length(null.index.vector)==0){
+        final.list<-list(Quali.Sup.Group=as.factor(Vector.group),
+                         Quali.Sup.Time=as.factor(Vector.time))
+        paste.quali.var<-do.call("paste", c(final.list, sep="_"))
+    }else{
+        final.list<-list(Quali.Sup.Group=as.factor(Vector.group),
+                         Quali.Sup.Time=as.factor(Vector.time))[-null.index.vector]
+        paste.quali.var<-as.character(unlist(final.list))
+    }# if(length(null.index.vector)==0)
+
+    if(is.null(Column.gene)){
+        data.f<-cbind.data.frame(final.list,
+                                 as.data.frame(t(ExprData)))
+    }else{
+        data.f<-cbind.data.frame(final.list,
+                                 as.data.frame(t(ExprData[,-Column.gene])))
+    }# if(is.null(Column.gene)==TRUE)
+
+    row.names(data.f)<-paste0(Vector.patient, "_", paste.quali.var)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    Id.colname.gene<--seq_len(ncol(data.f)-nrow(ExprData))
+    Nb.unique.gene<-length(unique(ExprData[,Column.gene]))
+
+    if(!is.null(Column.gene) & Nb.unique.gene == nrow(ExprData)){
+        colnames(data.f)[Id.colname.gene]<-as.character(ExprData[,Column.gene])
+    }else{
+        colnames(data.f)[Id.colname.gene]<-paste0("Gene.",
+                                                  seq_len(nrow(ExprData)))
+    }## if(!is.null(Column.gene) & Nb.unique.gene == nrow(ExprData))
+
+    order.row<-seq_len(length(Vector.patient))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(list(data.to.pca=data.f[order.row,],
+                nb.quali.var=length(final.list),
+                List.Factors=list(Vector.group=Vector.group[order.row],
+                                  Vector.time=Vector.time[order.row],
+                                  Vector.patient=Vector.patient[order.row])))
+}## PCApreprocessing()

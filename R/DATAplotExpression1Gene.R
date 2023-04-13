@@ -22,7 +22,8 @@
 #' and is not used in our analysis.
 #'
 #' In the string of characters 'CLL_P_t0_r1',
-#' 'r1' is localized after the third underscore, so \code{Individual.position=4},
+#' 'r1' is localized after the third underscore,
+#' so \code{Individual.position=4},
 #' 'P' is localized after the first underscore, so \code{Group.position=2} and
 #' 't0' is localized after the second underscore, so \code{Time.position=3}.
 #'
@@ -55,8 +56,8 @@
 #' the individual (e.g patient, replicate, mouse, yeasts culture ...)
 #' in the string of characters in each sample names (see \code{Details}).
 #' The names of different individuals must be all different.
-#' Furthermore, if individual names are just numbers, they will be transform in
-#' a vector of class "character" by [CharacterNumbers()] and
+#' Furthermore, if individual names are just numbers, they will be transform
+#' in a vector of class "character" by [CharacterNumbers()] and
 #' a "r" will be added to each individual name ("r" for replicate).
 #' @param Color.Group NULL or a data.frame with \eqn{N_{bc}} rows and
 #' two columns where \eqn{N_{bc}} is the number of biological conditions.
@@ -70,6 +71,7 @@
 #'
 #' @importFrom reshape2 melt
 #' @importFrom stats var sd
+#' @importFrom scales hue_pal
 #' @importFrom ggplot2 ggplot xlab ylab aes geom_errorbar position_dodge
 #' geom_line geom_point position_nudge geom_jitter position_jitter
 #' geom_violin geom_boxplot geom_dotplot
@@ -93,10 +95,10 @@
 #' @export
 #'
 #' @examples
-#' # Simulation raw counts
+#' ## Simulation raw counts
 #' res.sim.count<-RawCountsSimulation(Nb.Group=2,Nb.Time=3,Nb.per.GT=4,
 #'                                    Nb.Gene=10)
-#' #
+#' ##
 #' Res.evo<-DATAplotExpression1Gene(ExprData=res.sim.count$Sim.dat,
 #'                                  row.gene=1,
 #'                                  Column.gene=1,
@@ -113,258 +115,309 @@ DATAplotExpression1Gene<-function(ExprData,
                                   Time.position,
                                   Individual.position,
                                   Color.Group=NULL){
-  #---------------------------------------------------------------------------#
-  res.colname<-ColnamesToFactors(ExprData=ExprData,
-                                 Column.gene=Column.gene,
-                                 Group.position=Group.position,
-                                 Time.position=Time.position,
-                                 Individual.position=Individual.position)
-  Vector.group<-res.colname$Group.Info
-  Vector.time<-res.colname$Time.Info
-  Vector.patient<-res.colname$Individual.info
-  #---------------------------------------------------------------------------#
-  Nb.per.cond<-as.numeric(table(Vector.patient))
-  Var.per.cond<-stats::var(as.numeric(table(Vector.patient)))
-  if(Var.per.cond==0 & Nb.per.cond[1]>1 & is.null(Time.position)==FALSE){
-    Lign.draw<-TRUE
-  }else{
-    Lign.draw<-FALSE
-  }# if(Var.per.cond==0 & Nb.per.cond[1]>1 & is.null(Time.position)==FALSE)
-  #---------------------------------------------------------------------------#
-  if(is.null(Vector.time)==TRUE & is.null(Vector.group)==TRUE){
-    stop("Time and/or biological condition must be selected")
-  }# if(is.null(Vector.time)==TRUE & is.null(Vector.group)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Data with only expression
-  if(is.null(Column.gene)==TRUE){
-    ind.col.expr<-seq_len(ncol(ExprData))#c(1:ncol(ExprData))
-  }else{
-    ind.col.expr<-seq_len(ncol(ExprData))[-Column.gene]
-  }# if(is.null(Column.gene)==TRUE)
-  Expr.1G<-as.matrix(ExprData[row.gene,ind.col.expr])
-  #---------------------------------------------------------------------------#
-  # Gene names
-  if(is.null(Column.gene)==TRUE){
-    if(is.null(row.names(ExprData))==TRUE){
-      Name.G<-paste("Expression of gene ", row.gene, sep="")
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    res.colname<-ColnamesToFactors(ExprData=ExprData,
+                                   Column.gene=Column.gene,
+                                   Group.position=Group.position,
+                                   Time.position=Time.position,
+                                   Individual.position=Individual.position)
+    Vector.group<-res.colname$Group.Info
+    Vector.time<-res.colname$Time.Info
+    Vector.patient<-res.colname$Individual.info
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    Nb.per.cond<-as.numeric(table(Vector.patient))
+    Var.per.cond<-stats::var(as.numeric(table(Vector.patient)))
+
+    if(Var.per.cond == 0 & Nb.per.cond[1] > 1 & !is.null(Time.position)){
+        Lign.draw<-TRUE
     }else{
-      Name.G<-paste("Expression of gene ",row.names(ExprData)[row.gene],sep="")
-    }# if(is.null(row.names(ExprData))==TRUE)
-  }else{
-    Name.G<-paste("Expression of gene ", ExprData[row.gene,Column.gene],sep="")
-  }# if(is.null(Column.gene)==TRUE)
-  #---------------------------------------------------------------------------#
-  # When samples belong to several biological conditions and time points
-  if(is.null(Vector.time)==FALSE & is.null(Vector.group)==FALSE){
-    Vector.groupF<-as.factor(Vector.group)
-    Vector.timeF<-as.factor(Vector.time)
-    # To avoid "no visible binding for global variable" with devtools::check()
-    Time<-Group<-Mean<-Sd<-value<-Patient<-NULL
-    #
-    Dat.1G.to.melt<-data.frame(GeneExpr=as.numeric(Expr.1G),
-                               Time=Vector.timeF,
-                               Group=Vector.groupF,
-                               Patient=Vector.patient)
-    #
-    Dat.1G.melted<-reshape2::melt(Dat.1G.to.melt,id=c("Time","Group","Patient"))
-    #
-    by.Dat.1G<-data.frame(Time=rep(levels(Vector.timeF),
-                                   times=length(levels(Vector.groupF))),
-                          Group=rep(levels(Vector.groupF),
-                                    each=length(levels(Vector.timeF))),
-                          Mean=as.numeric(by(Dat.1G.melted[,5],
-                                             Dat.1G.melted[,c(1,2)],
-                                             mean)),
-                          Sd=as.numeric(by(Dat.1G.melted[,5],
-                                           Dat.1G.melted[,c(1,2)],
-                                           stats::sd)))
-    #-------------------------------------------------------------------------#
-    Glevels<-levels(factor(Vector.groupF))
-    NbGroup<-length(Glevels)
-    #
-    if(is.null(Color.Group)==TRUE){
-      MypaletteG<-c(RColorBrewer::brewer.pal(8,"Dark2"),
-                    RColorBrewer::brewer.pal(8,"Set2"))
-      #
-      if(length(Glevels)>16){
-        MypaletteG<-c(MypaletteG,hue_pal(l = 90)(seq_len(length(Glevels)-1)))
-      }# if(length(Glevels)>16)
-      #
-      Color.Group<-data.frame(Name=Glevels,
-                              Col=MypaletteG[seq_len(length(Glevels))])
+        Lign.draw<-FALSE
+    }## if(Var.per.cond == 0 & Nb.per.cond[1] > 1 & !is.null(Time.position))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check
+    if(is.null(Vector.time) & is.null(Vector.group)){
+        stop("Time and/or biological condition must be selected")
+    }## if(is.null(Vector.time) & is.null(Vector.group))
+
+    ## Data with only expression
+    if(is.null(Column.gene)){
+        ind.col.expr<-seq_len(ncol(ExprData))
     }else{
-      Id.LevelCol.G<-order(Color.Group[,1])
-      Color.Group<-data.frame(Name=Glevels,
-                              Col=Color.Group[Id.LevelCol.G,2])
-    }# if(is.null(Color.Group)==TRUE)
-    #-------------------------------------------------------------------------#
-    # Graph profile expression
-    Expr.plot <- ggplot2::ggplot(data = by.Dat.1G,ymin=0,
-                                 ggplot2::aes(x=factor(Time),y=as.numeric(Mean),
-                                              group=Group, color=Group,
-                                              linetype=Group)) +
-      ggplot2::theme(legend.position="bottom")+
-      ggplot2::xlab("Time")+ ggplot2::ylab("Expression")+
-      ggplot2::ggtitle(Name.G)+
-      ggplot2::geom_errorbar(data=by.Dat.1G, width=.2,size=0.7,
-                             ggplot2::aes(x=factor(Time),
-                                          ymin=Mean-Sd, ymax=Mean+Sd,
-                                          group=Group,color=Group,
-                                          linetype = Group),
-                             position = ggplot2::position_dodge(0.2))+
-      ggplot2::geom_line(data = by.Dat.1G,size=1.1,
-                         ggplot2::aes(x = factor(Time), y = as.numeric(Mean),
-                                      group=Group, color=Group,linetype=Group),
-                         position = ggplot2::position_dodge(0.2)) +
-      ggplot2::geom_point(data = by.Dat.1G, size=2.2,
-                          ggplot2::aes(x = factor(Time), y = Mean,
-                                       group=Group,color=Group,shape=Group),
-                          position = ggplot2::position_dodge(0.2))+
-      scale_color_manual(values=as.character(Color.Group$Col))
-    #
-    if(Lign.draw==TRUE){
-      Expr.plot<-Expr.plot+
-        ggplot2::geom_line(data=Dat.1G.melted, alpha=0.5,
-                           ggplot2::aes(x = factor(Time),
-                                        y = as.numeric(value),
-                                        group = Patient,color=Group,
-                                        linetype=Group),
-                           position = ggplot2::position_dodge(0.01))+
-        ggplot2::geom_point(data=Dat.1G.melted, size=1.1,
-                            ggplot2::aes(x = factor(Time), y = value,
-                                         group = Group, color=Group,
-                                         shape=Group),
-                            position = ggplot2::position_dodge(0.01))
+        ind.col.expr<-seq_len(ncol(ExprData))[-Column.gene]
+    }## if(is.null(Column.gene))
+    Expr.1G<-as.matrix(ExprData[row.gene, ind.col.expr])
+
+    # Gene names
+    if(is.null(Column.gene)){
+        if(is.null(row.names(ExprData))){
+            Name.G<-paste0("Expression of gene ", row.gene)
+        }else{
+            Name.G<-paste0("Expression of gene ",
+                           row.names(ExprData)[row.gene])
+        }## if(is.null(row.names(ExprData)))
     }else{
-      Expr.plot<-Expr.plot+
-        ggplot2::geom_point(data=Dat.1G.melted, size=1.1,
-                            ggplot2::aes(x = factor(Time),
-                                         y = value,
-                                         group = Group, color=Group,
-                                         shape=Group),
-                            position = ggplot2::position_dodge(0.01))
-    }# if(Lign.draw==TRUE)
-  }# if(is.null(Vector.time)==FALSE & is.null(Vector.group)==FALSE)
-  #---------------------------------------------------------------------------#
-  # When samples belong to several time points but one biological condition
-  if(is.null(Vector.time)==FALSE & is.null(Vector.group)==TRUE){
-    Vector.groupF<-as.factor(rep("G1",times=length(as.numeric(Expr.1G))))
-    Vector.timeF<-as.factor(Vector.time)
-    # To avoid "no visible binding for global variable" with devtools::check()
-    Time<-Mean<-Sd<-value<-Patient<-NULL
-    #
-    Dat.1G.to.melt<-data.frame(GeneExpr=as.numeric(Expr.1G),
-                               Time=Vector.timeF,
-                               Patient=Vector.patient)
-    Dat.1G.melted <- reshape2::melt(Dat.1G.to.melt, id=c("Time","Patient"))
-    by.Dat.1G<-data.frame(Time=levels(Vector.timeF),
-                          Mean=as.numeric(by(Dat.1G.melted[,4],
-                                             Dat.1G.melted[,1],
-                                             mean)),
-                          Sd=as.numeric(by(Dat.1G.melted[,4],
-                                           Dat.1G.melted[,1],
-                                           stats::sd)))
-    #
-    Col.grougF<-Vector.groupF
-    levels(Col.grougF)<-"#E76BF3"
-    #
-    Expr.plot<-ggplot2::ggplot(ymin=0) +
-      ggplot2::theme(legend.position="bottom")+
-      ggplot2::xlab("Time")+ ggplot2::ylab("Expression")+
-      ggplot2::ggtitle(Name.G)+
-      ggplot2::geom_errorbar(data=by.Dat.1G,
-                             linetype = "dashed", width=.2,size=0.7,
-                             ggplot2::aes(x=factor(Time),
-                                          ymin=Mean-Sd, ymax=Mean+Sd),
-                             position = ggplot2::position_nudge(x=0.1, y=0))+
-      ggplot2::geom_line(data = by.Dat.1G, color = "black",size=1.1,
-                         ggplot2::aes(x = factor(Time),
-                                      y = as.numeric(Mean), group = 1),
-                         position = ggplot2::position_nudge(x = 0.1, y = 0)) +
-      ggplot2::geom_point(data = by.Dat.1G, size=2.2, color = "black",
-                          ggplot2::aes(x = factor(Time), y = Mean),
-                          position = ggplot2::position_nudge(x = 0.1, y = 0))
-    #
-    if(Lign.draw==TRUE){
-      Expr.plot<-Expr.plot+
-        ggplot2::geom_line(data=Dat.1G.melted,colour=Col.grougF,alpha=0.4,
-                           ggplot2::aes(x = factor(Time),
-                                        y = value, group = Patient),
-                           position = ggplot2::position_nudge(x = 0, y = 0))+
-        ggplot2::geom_point(data=Dat.1G.melted, colour=Col.grougF,
-                            size=1.1, alpha=0.4,
-                            ggplot2::aes(x = factor(Time),
-                                         y = value, group = Patient),
-                            position = ggplot2::position_nudge(x = 0, y = 0))
-    }else{
-      Expr.plot<-Expr.plot+
-        ggplot2::geom_point(data=Dat.1G.melted, colour=Col.grougF,
-                            size=1.1,alpha=0.4,
-                            ggplot2::aes(x = factor(Time),
-                                         y = value, group = Patient),
-                            position = ggplot2::position_nudge(x = 0, y = 0))
-    }# if(Lign.draw==TRUE)
-  }# if(is.null(Vector.time)==FALSE & is.null(Vector.group)==TRUE)
-  #---------------------------------------------------------------------------#
-  # When samples belong to several biological conditions but one time point
-  if(is.null(Vector.time)==TRUE & is.null(Vector.group)==FALSE){
-    Vector.groupF<-as.factor(Vector.group)
-    Glevels<-levels(factor(Vector.groupF))
-    NbGroup<-length(Glevels)
-    #
-    if(is.null(Color.Group)==TRUE){
-      MypaletteG<-c(RColorBrewer::brewer.pal(8,"Dark2"),
-                    RColorBrewer::brewer.pal(8,"Set2"))
-      #
-      if(length(Glevels)>16){
-        MypaletteG<-c(MypaletteG,hue_pal(l = 90)(seq_len(length(Glevels)-1)))
-      }# if(length(Glevels)>16)
-      #
-      Color.Group<-data.frame(Name=Glevels,
-                              Col=MypaletteG[seq_len(length(Glevels))])
-    }else{
-      Id.LevelCol.G<-order(Color.Group[,1])
-      Color.Group<-data.frame(Name=Glevels,
-                              Col=Color.Group[Id.LevelCol.G,2])
-    }# if(is.null(Color.Group)==TRUE)
-    #-------------------------------------------------------------------------#
-    # To avoid "no visible binding for global variable" with devtools::check()
-    Mean<-Sd<-value<-Patient<-NULL
-    #
-    Dat.1G.to.melt<-data.frame(GeneExpr=as.numeric(Expr.1G),
-                               Group=Vector.groupF,
-                               Patient=Vector.patient)
-    Dat.1G.melted<-reshape2::melt(Dat.1G.to.melt, id=c("Group", "Patient"))
-    by.Dat.1G<-data.frame(Group=levels(Vector.groupF),
-                          Mean=as.numeric(by(Dat.1G.melted[,4],
-                                             Dat.1G.melted[,1],
-                                             mean)),
-                          Sd=as.numeric(by(Dat.1G.melted[,4],
-                                           Dat.1G.melted[,1],
-                                           stats::sd)))
-    #
-    size.pt<-(max(Dat.1G.melted$value)-min(Dat.1G.melted$value))/50
-    #
-    Expr.plot<-ggplot2::ggplot(ymin=0) +
-      ggplot2::xlab("Biological condition")+ ggplot2::ylab("Expression")+
-      ggplot2::ggtitle(Name.G)+
-      ggplot2::geom_violin(data=Dat.1G.melted,trim=TRUE,
-                           ggplot2::aes(x=Group, y=value, fill=Group))+
-      ggplot2::geom_boxplot(data=Dat.1G.melted,
-                            ggplot2::aes(x=Group, y=value),width=0.1)+
-      ggplot2::geom_dotplot(data=Dat.1G.melted,colour="black",
-                            ggplot2::aes(x=factor(Group), y=value, fill=Group),
-                            binaxis='y', stackdir='center', binwidth=size.pt)+
-      ggplot2::geom_errorbar(data=by.Dat.1G, width=.2,size=0.9,
-                             ggplot2::aes(x=factor(Group),
-                                          ymin=Mean-Sd, ymax=Mean+Sd),
-                             position = ggplot2::position_nudge(x = 0, y = 0))+
-      ggplot2::geom_point(data = by.Dat.1G,
-                          size=2.2, shape=15, colour="blue", fill="blue",
-                          ggplot2::aes(x = factor(Group), y = Mean),
-                          position = ggplot2::position_nudge(x = 0, y = 0))+
-      ggplot2::scale_fill_manual(values=as.character(Color.Group$Col))
-  }# if(is.null(Vector.time)==TRUE & is.null(Vector.group)==FALSE)
-  #---------------------------------------------------------------------------#
-  return(Expr.plot=Expr.plot)
-}# DATAplotExpression1Gene
+        Name.G<-paste0("Expression of gene ", ExprData[row.gene, Column.gene])
+    }## if(is.null(Column.gene))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## When samples belong to several biological conditions and time points
+    if(!is.null(Vector.time) & !is.null(Vector.group)){
+        ##--------------------------------------------------------------------#
+        Vector.groupF<-as.factor(Vector.group)
+        Vector.timeF<-as.factor(Vector.time)
+        ## To avoid "no visible binding for global variable" with
+        ## devtools::check()
+        Time<-Group<-Mean<-Sd<-value<-Patient<-NULL
+
+        ##--------------------------------------------------------------------#
+        Dat.1G.to.melt<-data.frame(GeneExpr=as.numeric(Expr.1G),
+                                   Time=Vector.timeF,
+                                   Group=Vector.groupF,
+                                   Patient=Vector.patient)
+        #
+        Dat.1G.melted<-reshape2::melt(Dat.1G.to.melt,
+                                      id=c("Time", "Group", "Patient"))
+        #
+        by.Dat.1G<-data.frame(Time=rep(levels(Vector.timeF),
+                                       times=length(levels(Vector.groupF))),
+                              Group=rep(levels(Vector.groupF),
+                                        each=length(levels(Vector.timeF))),
+                              Mean=as.numeric(by(Dat.1G.melted[, 5],
+                                                 Dat.1G.melted[, c(1, 2)],
+                                                 mean)),
+                              Sd=as.numeric(by(Dat.1G.melted[, 5],
+                                               Dat.1G.melted[, c(1, 2)],
+                                               stats::sd)))
+
+        ##--------------------------------------------------------------------#
+        Glevels<-levels(factor(Vector.groupF))
+        NbGroup<-length(Glevels)
+
+        if(is.null(Color.Group)){
+            MypaletteG<-c(RColorBrewer::brewer.pal(8, "Dark2"),
+                          RColorBrewer::brewer.pal(8, "Set2"))
+
+            if(length(Glevels)>16){
+                MypaletteG<-c(MypaletteG,
+                              scales::hue_pal(l=90)(seq_len(length(Glevels)-1)))
+            }## if(length(Glevels)>16)
+
+            Color.Group<-data.frame(Name=Glevels,
+                                    Col=MypaletteG[seq_len(length(Glevels))])
+        }else{
+            Id.LevelCol.G<-order(Color.Group[, 1])
+            Color.Group<-data.frame(Name=Glevels,
+                                    Col=Color.Group[Id.LevelCol.G, 2])
+        }## if(is.null(Color.Group))
+
+        ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        ## Graph profile expression
+        Expr.plot<-ggplot2::ggplot(data=by.Dat.1G, ymin=0,
+                                   ggplot2::aes(x=factor(Time),
+                                                y=as.numeric(Mean),
+                                                group=Group,
+                                                color=Group,
+                                                linetype=Group)) +
+            ggplot2::theme(legend.position="bottom") +
+            ggplot2::xlab("Time") + ggplot2::ylab("Expression") +
+            ggplot2::ggtitle(Name.G) +
+            ggplot2::geom_errorbar(data=by.Dat.1G, width=.2, size=0.7,
+                                   ggplot2::aes(x=factor(Time),
+                                                ymin=Mean-Sd, ymax=Mean+Sd,
+                                                group=Group, color=Group,
+                                                linetype=Group),
+                                   position=ggplot2::position_dodge(0.2)) +
+            ggplot2::geom_line(data=by.Dat.1G, size=1.1,
+                               ggplot2::aes(x=factor(Time),
+                                            y=as.numeric(Mean),
+                                            group=Group,
+                                            color=Group,linetype=Group),
+                               position=ggplot2::position_dodge(0.2)) +
+            ggplot2::geom_point(data=by.Dat.1G, size=2.2,
+                                ggplot2::aes(x=factor(Time), y=Mean,
+                                             group=Group,
+                                             color=Group,
+                                             shape=Group),
+                                position=ggplot2::position_dodge(0.2)) +
+            ggplot2::scale_color_manual(values=as.character(Color.Group$Col))
+
+        if(isTRUE(Lign.draw)){
+            Expr.plot<-Expr.plot+
+                ggplot2::geom_line(data=Dat.1G.melted, alpha=0.5,
+                                   ggplot2::aes(x=factor(Time),
+                                                y=as.numeric(value),
+                                                group=Patient,
+                                                color=Group,
+                                                linetype=Group),
+                                   position=ggplot2::position_dodge(0.01))+
+                ggplot2::geom_point(data=Dat.1G.melted, size=1.1,
+                                    ggplot2::aes(x=factor(Time), y=value,
+                                                 group=Group, color=Group,
+                                                 shape=Group),
+                                    position=ggplot2::position_dodge(0.01))
+        }else{
+            Expr.plot<-Expr.plot+
+                ggplot2::geom_point(data=Dat.1G.melted, size=1.1,
+                                    ggplot2::aes(x=factor(Time),
+                                                 y=value,
+                                                 group=Group, color=Group,
+                                                 shape=Group),
+                                    position=ggplot2::position_dodge(0.01))
+        }## if(isTRUE(Lign.draw))
+    }## if(is.null(Vector.time)==FALSE & is.null(Vector.group)==FALSE)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## When samples belong to several time points but one biological condition
+    if(!is.null(Vector.time) & is.null(Vector.group)){
+        ##--------------------------------------------------------------------#
+        Vector.groupF<-as.factor(rep("G1",times=length(as.numeric(Expr.1G))))
+        Vector.timeF<-as.factor(Vector.time)
+        ## To avoid "no visible binding for global variable" with
+        ## devtools::check()
+        Time<-Mean<-Sd<-value<-Patient<-NULL
+
+        ##--------------------------------------------------------------------#
+        Dat.1G.to.melt<-data.frame(GeneExpr=as.numeric(Expr.1G),
+                                   Time=Vector.timeF,
+                                   Patient=Vector.patient)
+        Dat.1G.melted <- reshape2::melt(Dat.1G.to.melt, id=c("Time","Patient"))
+        by.Dat.1G<-data.frame(Time=levels(Vector.timeF),
+                              Mean=as.numeric(by(Dat.1G.melted[,4],
+                                                 Dat.1G.melted[,1],
+                                                 mean)),
+                              Sd=as.numeric(by(Dat.1G.melted[,4],
+                                               Dat.1G.melted[,1],
+                                               stats::sd)))
+
+        Col.grougF<-Vector.groupF
+        levels(Col.grougF)<-"#E76BF3"
+
+        ##--------------------------------------------------------------------#
+        Expr.plot<-ggplot2::ggplot(ymin=0) +
+            ggplot2::theme(legend.position="bottom") +
+            ggplot2::xlab("Time")+ ggplot2::ylab("Expression") +
+            ggplot2::ggtitle(Name.G) +
+            ggplot2::geom_errorbar(data=by.Dat.1G,
+                                   linetype="dashed", width=.2, size=0.7,
+                                   ggplot2::aes(x=factor(Time),
+                                                ymin=Mean-Sd,
+                                                ymax=Mean+Sd),
+                                   position=ggplot2::position_nudge(x=0.1,
+                                                                    y=0)) +
+            ggplot2::geom_line(data=by.Dat.1G, color="black", size=1.1,
+                               ggplot2::aes(x=factor(Time),
+                                            y=as.numeric(Mean), group=1),
+                               position=ggplot2::position_nudge(x=0.1, y=0)) +
+            ggplot2::geom_point(data=by.Dat.1G, size=2.2, color="black",
+                                ggplot2::aes(x=factor(Time), y=Mean),
+                                position=ggplot2::position_nudge(x=0.1, y=0))
+
+        if(isTRUE(Lign.draw)){
+            Expr.plot<-Expr.plot+
+                ggplot2::geom_line(data=Dat.1G.melted,
+                                   colour=Col.grougF, alpha=0.4,
+                                   ggplot2::aes(x=factor(Time),
+                                                y=value, group=Patient),
+                                   position=ggplot2::position_nudge(x=0, y=0))+
+                ggplot2::geom_point(data=Dat.1G.melted, colour=Col.grougF,
+                                    size=1.1, alpha=0.4,
+                                    ggplot2::aes(x=factor(Time),
+                                                 y=value, group=Patient),
+                                    position=ggplot2::position_nudge(x=0, y=0))
+        }else{
+            Expr.plot<-Expr.plot+
+                ggplot2::geom_point(data=Dat.1G.melted, colour=Col.grougF,
+                                    size=1.1, alpha=0.4,
+                                    ggplot2::aes(x=factor(Time),
+                                                 y=value, group=Patient),
+                                    position=ggplot2::position_nudge(x=0, y=0))
+        }## if(Lign.draw==TRUE)
+    }## if(!is.null(Vector.time) & is.null(Vector.group))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## When samples belong to several biological conditions but one time point
+    if(is.null(Vector.time) & !is.null(Vector.group)){
+        ##--------------------------------------------------------------------#
+        Vector.groupF<-as.factor(Vector.group)
+        Glevels<-levels(factor(Vector.groupF))
+        NbGroup<-length(Glevels)
+
+        ##--------------------------------------------------------------------#
+        if(is.null(Color.Group)){
+            MypaletteG<-c(RColorBrewer::brewer.pal(8,"Dark2"),
+                          RColorBrewer::brewer.pal(8,"Set2"))
+            #
+            if(length(Glevels)>16){
+                MypaletteG<-c(MypaletteG,
+                              scales::hue_pal(l=90)(seq_len(length(Glevels)-1)))
+            }## if(length(Glevels)>16)
+
+            Color.Group<-data.frame(Name=Glevels,
+                                    Col=MypaletteG[seq_len(length(Glevels))])
+        }else{
+            Id.LevelCol.G<-order(Color.Group[, 1])
+            Color.Group<-data.frame(Name=Glevels,
+                                    Col=Color.Group[Id.LevelCol.G, 2])
+        }## if(is.null(Color.Group))
+
+        ##--------------------------------------------------------------------#
+        ## To avoid "no visible binding for global variable" with
+        ## devtools::check()
+        Mean<-Sd<-value<-Patient<-NULL
+        #
+        Dat.1G.to.melt<-data.frame(GeneExpr=as.numeric(Expr.1G),
+                                   Group=Vector.groupF,
+                                   Patient=Vector.patient)
+        Dat.1G.melted<-reshape2::melt(Dat.1G.to.melt,
+                                      id=c("Group", "Patient"))
+        by.Dat.1G<-data.frame(Group=levels(Vector.groupF),
+                              Mean=as.numeric(by(Dat.1G.melted[, 4],
+                                                 Dat.1G.melted[, 1],
+                                                 mean)),
+                              Sd=as.numeric(by(Dat.1G.melted[, 4],
+                                               Dat.1G.melted[, 1],
+                                               stats::sd)))
+        #
+        size.pt<-(max(Dat.1G.melted$value)-min(Dat.1G.melted$value))/50
+
+        ##--------------------------------------------------------------------#
+        Expr.plot<-ggplot2::ggplot(ymin=0) +
+            ggplot2::xlab("Biological condition") +
+            ggplot2::ylab("Expression") +
+            ggplot2::ggtitle(Name.G) +
+            ggplot2::geom_violin(data=Dat.1G.melted, trim=TRUE,
+                                 ggplot2::aes(x=Group, y=value, fill=Group))+
+            ggplot2::geom_boxplot(data=Dat.1G.melted,
+                                  ggplot2::aes(x=Group, y=value),width=0.1)+
+            ggplot2::geom_dotplot(data=Dat.1G.melted, colour="black",
+                                  ggplot2::aes(x=factor(Group),
+                                               y=value,
+                                               fill=Group),
+                                  binaxis='y', stackdir='center',
+                                  binwidth=size.pt)+
+            ggplot2::geom_errorbar(data=by.Dat.1G, width=.2, size=0.9,
+                                   ggplot2::aes(x=factor(Group),
+                                                ymin=Mean-Sd, ymax=Mean+Sd),
+                                   position = ggplot2::position_nudge(x=0,
+                                                                      y=0)) +
+            ggplot2::geom_point(data=by.Dat.1G,
+                                size=2.2, shape=15, colour="blue", fill="blue",
+                                ggplot2::aes(x=factor(Group), y=Mean),
+                                position = ggplot2::position_nudge(x=0, y=0))+
+            ggplot2::scale_fill_manual(values=as.character(Color.Group$Col))
+    }## if(is.null(Vector.time) & !is.null(Vector.group))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(Expr.plot=Expr.plot)
+}## DATAplotExpression1Gene()

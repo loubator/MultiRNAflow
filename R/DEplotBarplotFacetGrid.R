@@ -46,29 +46,29 @@
 #' @export
 #'
 #' @examples
-#' Group.ex=c('G1', 'G2','G3')
-#' Time.ex=c('t1', 't2','t3', 't4')
-#' Spe.sign.ex=c("Pos","Neg")
-#' Nb.Spe=sample(3:60, length(Group.ex)*length(Time.ex), replace=FALSE)
-#' Nb.Spe.sign=sample(3:60, length(Group.ex)*length(Time.ex)*2, replace=FALSE)
-#' #--------------------------------------------------------------------------#
-#' Melt.Dat.1=data.frame(Group=rep(Group.ex,times=length(Time.ex)),
-#'                       Time=rep(Time.ex,each=length(Group.ex)),
-#'                       Nb.Spe.DE=Nb.Spe)
-#' #
+#' Group.ex<-c('G1', 'G2',' G3')
+#' Time.ex<-c('t1', 't2', 't3', 't4')
+#' Spe.sign.ex<-c("Pos","Neg")
+#' Nb.Spe<-sample(3:60, length(Group.ex)*length(Time.ex), replace=FALSE)
+#' Nb.Spe.sign<-sample(3:60, length(Group.ex)*length(Time.ex)*2, replace=FALSE)
+#' ##-------------------------------------------------------------------------#
+#' Melt.Dat.1<-data.frame(Group=rep(Group.ex,times=length(Time.ex)),
+#'                        Time=rep(Time.ex,each=length(Group.ex)),
+#'                        Nb.Spe.DE=Nb.Spe)
+#'
 #' DEplotBarplotFacetGrid(Data=Melt.Dat.1,Abs.col=2,Legend.col=2,
 #'                        Facet.col=1,Value.col=3,
 #'                        Color.Legend=NULL)
 #' DEplotBarplotFacetGrid(Data=Melt.Dat.1,Abs.col=1,Legend.col=1,
 #'                        Facet.col=2,Value.col=3,
 #'                        Color.Legend=NULL)
-#' #--------------------------------------------------------------------------#
+#' ##-------------------------------------------------------------------------#
 #' Melt.Dat.2=data.frame(Group=rep(Group.ex,times=length(Time.ex)*2),
 #'                       Time=rep(Time.ex,each=length(Group.ex)*2),
 #'                       Spe.sign=rep(Spe.sign.ex,
 #'                                    times=length(Time.ex)*length(Group.ex)*2),
 #'                       Nb.Spe.DE=Nb.Spe.sign)
-#'                       #
+#'
 #' DEplotBarplotFacetGrid(Data=Melt.Dat.2,
 #'                        Abs.col=1,
 #'                        Legend.col=3,
@@ -82,44 +82,50 @@ DEplotBarplotFacetGrid<-function(Data,
                                  Facet.col,
                                  Value.col,
                                  Color.Legend=NULL){
-  #---------------------------------------------------------------------------#
-  # Data preprocessing for graph if 'Abs.col!=Legend.col'
-  if(Abs.col!=Legend.col){
-    if(is.null(Color.Legend)==FALSE){
-      Data[,Legend.col]<-factor(Data[,Legend.col], levels=Color.Legend[,1])
+    ##------------------------------------------------------------------------#
+    ## Data preprocessing for graph if 'Abs.col!=Legend.col'
+    if(Abs.col!=Legend.col){
+        if(!is.null(Color.Legend)){
+            Data[,Legend.col]<-factor(Data[,Legend.col],
+                                      levels=Color.Legend[,1])
+        }else{
+            Data[,Legend.col]<-factor(Data[,Legend.col])
+        }## if(!is.null(Color.Legend))
+    }## if(Abs.col!=Legend.col)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Graph
+    q.dodged<-ggplot2::ggplot(Data, fill=Data[,Legend.col],
+                              ggplot2::aes_string(colnames(Data)[Abs.col],
+                                                  colnames(Data)[Value.col]))+
+        ggplot2::facet_grid(stats::as.formula(paste(". ~",
+                                                    colnames(Data)[Facet.col])))+
+        ggplot2::xlab("") + ggplot2::ylab("Number of genes") +
+        ggplot2::theme(panel.background=ggplot2::element_rect(colour="dark grey"))+
+        ggplot2::theme(strip.text.x=ggplot2::element_text(size=22, face="bold"),
+                       strip.background=ggplot2::element_rect(colour="dark grey"))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(Abs.col!=Legend.col){
+        q.dodged<-q.dodged+
+            ggplot2::geom_bar(ggplot2::aes_string(fill=colnames(Data)[Legend.col]),
+                              stat="identity", color="black")+
+            ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45))
+        #
+        if(!is.null(Color.Legend)){
+            q.dodged<-q.dodged+
+                ggplot2::scale_fill_manual(values=as.character(Color.Legend[,2]))
+        }# if(!is.null(Color.Legend))
     }else{
-      Data[,Legend.col]<-factor(Data[,Legend.col])
-    }# if(is.null(Color.Legend)==FALSE)
-  }# if(Abs.col!=Legend.col)
-  #---------------------------------------------------------------------------#
-  # Graph
-  q.dodged<-ggplot2::ggplot(Data, fill=Data[,Legend.col],
-                            ggplot2::aes_string(colnames(Data)[Abs.col],
-                                                colnames(Data)[Value.col]))+
-    ggplot2::facet_grid(stats::as.formula(paste(". ~",
-                                                colnames(Data)[Facet.col])))+
-    ggplot2::xlab("") + ggplot2::ylab("Number of genes") +
-    ggplot2::theme(panel.background=ggplot2::element_rect(colour="dark grey"))+
-    ggplot2::theme(strip.text.x=ggplot2::element_text(size=22, face="bold"),
-                   strip.background=ggplot2::element_rect(colour="dark grey"))
-  # ggplot2::theme(axis.ticks.x = ggplot2::element_blank(),
-  #                axis.text.x = ggplot2::element_text(size=5)) +
-  if(Abs.col!=Legend.col){
-    q.dodged<-q.dodged+
-      ggplot2::geom_bar(ggplot2::aes_string(fill=colnames(Data)[Legend.col]),
-                        stat="identity", color="black")+ #position = "dodge",
-      ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45))
-    #
-    if(is.null(Color.Legend)==FALSE){
-      q.dodged<-q.dodged+
-        ggplot2::scale_fill_manual(values=as.character(Color.Legend[,2]))
-    }# if(is.null(Color.Legend)==FALSE)
-  }else{
-    q.dodged<-q.dodged+
-      ggplot2::geom_bar(fill="#E69F00", color="black", stat="identity")+
-      ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))
-  }# if(Abs.col!=Legend.col)
-  #---------------------------------------------------------------------------#
-  # Output
-  return(Barplot.dodged.G.T=q.dodged)
-}# DEplotBarplotFacetGrid()
+        q.dodged<-q.dodged+
+            ggplot2::geom_bar(fill="#E69F00", color="black", stat="identity")+
+            ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))
+    }# if(Abs.col!=Legend.col)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(Barplot.dodged.G.T=q.dodged)
+}## DEplotBarplotFacetGrid()

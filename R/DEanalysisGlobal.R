@@ -26,7 +26,8 @@
 #' (here chronic lymphocytic leukemia) and is not used in our analysis.
 #'
 #' In the string of characters 'CLL_P_t0_r1',
-#' 'r1' is localized after the third underscore, so \code{Individual.position=4},
+#' 'r1' is localized after the third underscore,
+#' so \code{Individual.position=4},
 #' 'P' is localized after the first underscore, so \code{Group.position=2} and
 #' 't0' is localized after the second underscore, so \code{Time.position=3}.
 #'
@@ -64,7 +65,8 @@
 #' its Benjamini-Hochberg adjusted p-value (see [stats::p.adjust()]) is below
 #' the threshold \code{pval.min}. Default value is 0.05.
 #' @param pval.vect.t \code{NULL} or vector of dimension \eqn{T-1} filled with
-#' numeric values between 0 and 1, with \eqn{T} the number of time measurements.
+#' numeric values between 0 and 1, with \eqn{T} the number of
+#' time measurements.
 #' A gene will be considered as differentially expressed (DE) between
 #' the time ti and the reference time t0 if its Benjamini-Hochberg adjusted
 #' p-value (see [stats::p.adjust()]) is below the i-th threshold
@@ -95,8 +97,8 @@
 #' If \code{NULL}, the results will not be saved in a folder.
 #' \code{NULL} as default.
 #' @param Name.folder.DE Character or \code{NULL}.
-#' If \code{Name.folder.DE} is a character, the folder names which will contain
-#' all results will be "DEanalysis_\code{Name.folder.DE}".
+#' If \code{Name.folder.DE} is a character, the folder names which will
+#' contain all results will be "DEanalysis_\code{Name.folder.DE}".
 #' Otherwise, the folder name will be "DEanalysis".
 #'
 #' @return The function [DEanalysisGlobal()] returns first the raw counts and
@@ -182,8 +184,8 @@
 #'   * a list (output \code{Summary.Inputs}) containing a summary of sample
 #'   information and inputs of [DEanalysisGlobal()].
 #'
-#' * If data belong to different time points and different biological conditions,
-#' the function returns
+#' * If data belong to different time points and different biological
+#' conditions, the function returns
 #'   * a data.frame (output \code{Results}) which contains
 #'     * gene names
 #'     * Results from the temporal statistical analysis
@@ -317,361 +319,358 @@ DEanalysisGlobal<-function(RawCounts,
                            Plot.DE.graph=TRUE,
                            path.result=NULL,
                            Name.folder.DE=NULL){
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Creation folder if no existence
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  if(is.null(Name.folder.DE)==TRUE){
-    Name.folder.DE.ini<-NULL
-    Name.folder.DE<-""
-    SubFolder.name<-"2_SupervisedAnalysis"
-  }else{
-    Name.folder.DE.ini<-Name.folder.DE
-    Name.folder.DE<-paste("_",Name.folder.DE.ini,sep="")
-    SubFolder.name<-paste("2_SupervisedAnalysis", Name.folder.DE,sep="")
-  }# if(is.null(Name.folder.DE)==TRUE)
-  #
-  if(is.null(path.result)==FALSE){
-    if(SubFolder.name%in%dir(path=path.result)==FALSE){
-      print("Folder creation")
-      dir.create(path=paste(path.result,"/",SubFolder.name,sep=""))
-      path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Creation folder if no existence
+    if(is.null(Name.folder.DE)==TRUE){
+        Name.folder.DE.ini<-NULL
+        Name.folder.DE<-""
+        SubFolder.name<-"2_SupervisedAnalysis"
     }else{
-      path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
-    }# if(SubFolder.name%in%dir(path=path.result)==FALSE)
-  }else{
-    path.result.f<-NULL
-  }# if(is.null(path.result)==FALSE)
-  # Folder for RLE normalized count data
-  if(is.null(path.result)==FALSE){
-    name.folder.result1<-paste("2-1_RLEnormalizedDATA",Name.folder.DE,sep="")
-    if(name.folder.result1%in%dir(path = path.result.f)==FALSE){
-      dir.create(path=paste(path.result.f,"/",name.folder.result1,sep=""))
-      path.result.new1<-paste(path.result.f,"/",name.folder.result1,sep="")
-    }else{
-      path.result.new1<-paste(path.result.f,"/",name.folder.result1,sep="")
-    }# if(name.folder.result1%in%dir(path = path.result.f)==FALSE)
-  }else{
-    path.result.new1<-NULL
-  }# if(is.null(path.result)==FALSE)
-  # Folder for DE results csv
-  if(is.null(path.result)==FALSE){
-    name.folder.result3<-paste("2-3_CSV_file_DEanalysis",Name.folder.DE,sep="")
-    if(name.folder.result3%in%dir(path = path.result.f)==FALSE){
-      dir.create(path=paste(path.result.f,"/",name.folder.result3,sep=""))
-      path.result.new3<-paste(path.result.f,"/",name.folder.result3,sep="")
-    }else{
-      path.result.new3<-paste(path.result.f,"/",name.folder.result3,sep="")
-    }# if(name.folder.result2%in%dir(path = path.result.f)==FALSE)
-  }else{
-    path.result.new3<-NULL
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Pre-processing
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  print("Preprocessing")
-  resPreProcessing<-DEanalysisPreprocessing(RawCounts=RawCounts,
-                                            Column.gene=Column.gene,
-                                            Group.position=Group.position,
-                                            Time.position=Time.position,
-                                            Individual.position=Individual.position)
-  DESeq2.obj<-resPreProcessing$DESeq2.obj
-  #---------------------------------------------------------------------------#
-  # columns with only expression
-  if(is.null(Column.gene)==TRUE){
-    ind.col.expr<-seq_len(ncol(RawCounts))#c(1:ncol(RawCounts))
-    Data.f<-cbind(Gene=paste("Gene",seq_len(nrow(RawCounts)),sep=""),RawCounts)
-  }else{
-    ind.col.expr<-seq_len(ncol(RawCounts))[-Column.gene]
-    Data.f<-cbind(Gene=RawCounts[,Column.gene], RawCounts[,-Column.gene])
-  }# if(is.null(Column.gene)==TRUE)
-  row.names(Data.f)<-Data.f[,1]
-  #---------------------------------------------------------------------------#
-  All.Datas<-vector("list", length = 2)
-  names(All.Datas)<-c("RawCounts", "RLEdata")
-  All.Datas[[1]]<-Data.f
-  #---------------------------------------------------------------------------#
-  # if(is.null(path.result)==FALSE){
-  #   utils::write.table(Data.f,
-  #                      file=paste(path.result,"/",SubFolder.name,"/",
-  #                                 "DATA_RawCounts",Name.folder.DE,".csv",sep=""),
-  #                      sep=";",row.names = FALSE)
-  # }
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Differential expression
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  print("Differential expression step with DESeq2::DESeq()")
-  if(LRT.supp.info==TRUE){
-    dds.norm.diff<-DESeq2::DESeq(DESeq2.obj,
-                                 betaPrior=FALSE, test="LRT", reduced=~1)
-  }else{
-    dds.norm.diff<-DESeq2::DESeq(DESeq2.obj, betaPrior=FALSE, test="Wald")
-  }# if(LRT.supp.info==TRUE)
-  #---------------------------------------------------------------------------#
-  ScaledData<-round(DESeq2::counts(dds.norm.diff, normalized=TRUE), digits=3)
-  ScaledData.f<-data.frame(Gene=Data.f[,1], ScaledData)
-  All.Datas[[2]]<-ScaledData.f
-  colnames(ScaledData.f)<-c("Gene", colnames(RawCounts)[ind.col.expr])
-  #---------------------------------------------------------------------------#
-  res.bxplt<-DATAplotBoxplotSamples(ExprData=ScaledData.f,
-                                    Column.gene=1,
-                                    Group.position=Group.position,
-                                    Time.position=Time.position,
-                                    Individual.position=Individual.position,
-                                    Log2.transformation=TRUE,
-                                    Colored.By.Factors=FALSE,
-                                    Color.Group=NULL,
-                                    Plot.genes=FALSE,
-                                    y.label="log2(rle normalized counts+1)")
-  #
-  if(is.null(path.result)==FALSE){
-    utils::write.table(ScaledData.f,
-                       file=paste(path.result.new1,"/",
-                                  "DATA_RLE",Name.folder.DE,".csv",sep=""),
-                       sep=";", row.names = FALSE)
-    #
-    grDevices::pdf(file=paste(path.result.new1,"/BoxplotSamples_RLE",
-                              Name.folder.DE,".pdf",sep=""),
-                   width=11, height=8)#width = 8, height = 11
-    print(res.bxplt)
-    grDevices::dev.off()
-  }# if(is.null(path.result)==FALSE)
-  if(Plot.DE.graph==TRUE){
-    print(res.bxplt)
-  }# if(Plot.DE.graph==TRUE)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  if(is.null(Time.position)==FALSE){
-    Levels.time<-levels(as.factor(dds.norm.diff@colData$Time))
-    Nb.time<-length(Levels.time)
-    #
-    if(is.null(pval.vect.t)==FALSE){
-      if(length(pval.vect.t)>Nb.time-1){
-        pval.vect.t<-pval.vect.t[seq_len(Nb.time-1)]
-      }# if(length(pval.vect.t)>Nb.time-1)
-      if(length(pval.vect.t)<Nb.time-1){
-        pval.vect.t<-c(pval.vect.t,
-                       rep(pval.min,times=Nb.time-length(pval.vect.t)-1))
-      }# if(length(pval.vect.t)<Nb.time-1)
-    }else{
-      pval.vect.t<-rep(pval.min, times=Nb.time-1)
-    }# if(is.null(pval.vect.t)==FALSE)
-  }# if(is.null(Time.position)==FALSE)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Results from Differential expression step with DESeq2::DESeq()
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  if(is.null(Time.position)==TRUE & is.null(Group.position)==TRUE){
-    stop("'Time.position' and 'Group.position' can not be both NULL")
-  }# if(is.null(Time.position)==TRUE & is.null(Group.position)==TRUE)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Case 1 analysis DE : Biological conditions only
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  if(is.null(Time.position)==TRUE & is.null(Group.position)==FALSE){
-    print("Case 2 analysis : Biological conditions only")
-    # Folder for DE graphs
+        Name.folder.DE.ini<-Name.folder.DE
+        Name.folder.DE<-paste0("_",Name.folder.DE.ini)
+        SubFolder.name<-paste0("2_SupervisedAnalysis", Name.folder.DE)
+    }# if(is.null(Name.folder.DE)==TRUE)
+
     if(is.null(path.result)==FALSE){
-      name.folder.result2<-paste("2-2_Group_DEanalysis", Name.folder.DE,sep="")
-      if(name.folder.result2%in%dir(path = path.result.f)==FALSE){
-        dir.create(path=paste(path.result.f,"/",name.folder.result2,sep=""))
-        path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
-      }else{
-        path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
-      }# if(name.folder.result2%in%dir(path = path.result.f)==FALSE)
+        if(SubFolder.name%in%dir(path=path.result)==FALSE){
+            print("Folder creation")
+            dir.create(path=paste(path.result,"/",SubFolder.name,sep=""))
+            path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
+        }else{
+            path.result.f<-paste(path.result,"/",SubFolder.name,sep="")
+        }# if(SubFolder.name%in%dir(path=path.result)==FALSE)
     }else{
-      path.result.new2<-NULL
+        path.result.f<-NULL
     }# if(is.null(path.result)==FALSE)
-    #
-    Res.DE.BC<-DEanalysisGroup(DESeq.result=dds.norm.diff,
-                               LRT.supp.info=LRT.supp.info,
-                               log.FC.min=log.FC.min,
-                               pval.min=pval.min,
-                               Plot.DE.graph=Plot.DE.graph,
-                               path.result=path.result.new2,
-                               SubFile.name=SubFolder.name)
-    #-------------------------------------------------------------------------#
-    # Table which contains all results.
-    #-------------------------------------------------------------------------#
+
+    # Folder for RLE normalized count data
     if(is.null(path.result)==FALSE){
-      utils::write.table(data.frame(Res.DE.BC$Results),
-                         file=paste(path.result.new3,"/",
-                                    "ALLresults_DEanalysis", Name.folder.DE,
-                                    ".csv", sep=""),
-                         sep=";", row.names=FALSE)
-    }# if(is.null(path.result)==FALSE)
-    #
-    SumInfo<-list(ExprCond=c("Group"),
-                  FactorsInfo=resPreProcessing$Factors.Info,
-                  GroupLevels=levels(resPreProcessing$DESeq2.obj@colData$Group),
-                  logFCmin=log.FC.min,
-                  pvalGroup=pval.min)
-    #
-    resGlossary<-Glossary(path.result.new3, Case=1)
-    #
-    # List.Plots.DE.Analysis=Res.DE.BC$List.Plots.DE.Group,
-    return(list(List.Datas=All.Datas,
-                Summary.Inputs=SumInfo,
-                DE.results=Res.DE.BC$Results,
-                Path.result=path.result.f,
-                Folder.result=Name.folder.DE.ini,
-                List.Glossary=resGlossary,
-                DESeq.dds=dds.norm.diff))#SubFolder.name
-  }# if(is.null(Time.position)==TRUE & is.null(Group.position)==FALSE)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Case 2 analysis DE : Time only
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  if(is.null(Time.position)==FALSE & is.null(Group.position)==TRUE){
-    print("Case 1 analysis : Time only")
-    # Folder for DE graphs
-    if(is.null(path.result)==FALSE){
-      name.folder.result2<-paste("2-2_Temporal_DEanalysis", Name.folder.DE,
-                                 sep="")
-      if(name.folder.result2%in%dir(path = path.result.f)==FALSE){
-        dir.create(path=paste(path.result.f,"/",name.folder.result2,sep=""))
-        path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
-      }else{
-        path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
-      }# if(name.folder.result2%in%dir(path = path.result.f)==FALSE)
+        name.folder.result1<-paste("2-1_RLEnormalizedDATA",Name.folder.DE,sep="")
+        if(name.folder.result1%in%dir(path = path.result.f)==FALSE){
+            dir.create(path=paste(path.result.f,"/",name.folder.result1,sep=""))
+            path.result.new1<-paste(path.result.f,"/",name.folder.result1,sep="")
+        }else{
+            path.result.new1<-paste(path.result.f,"/",name.folder.result1,sep="")
+        }# if(name.folder.result1%in%dir(path = path.result.f)==FALSE)
     }else{
-      path.result.new2<-NULL
+        path.result.new1<-NULL
     }# if(is.null(path.result)==FALSE)
-    #
-    Res.DE.Time<-DEanalysisTime(DESeq.result=dds.norm.diff,
-                                LRT.supp.info=LRT.supp.info,
-                                log.FC.min=log.FC.min,
-                                pval.min=pval.min,
-                                pval.vect.t=pval.vect.t,
-                                Plot.DE.graph=Plot.DE.graph,
-                                path.result=path.result.new2,
-                                SubFile.name=SubFolder.name)
-    #-------------------------------------------------------------------------#
-    # Table which contains all results
-    #-------------------------------------------------------------------------#
+
+    # Folder for DE results csv
     if(is.null(path.result)==FALSE){
-      utils::write.table(data.frame(Res.DE.Time$Results),
-                         file=paste(path.result.new3,"/",
-                                    "ALLresults_DEanalysis", Name.folder.DE,
-                                    ".csv", sep=""),
-                         sep=";", row.names=FALSE)
-    }# if(is.null(path.result)==FALSE)
-    #
-    FactorInfo.f<-resPreProcessing$Factors.Info
-    Tnumeric<-gsub("t","",gsub("T","",FactorInfo.f$Time,fixed=TRUE),fixed=TRUE)
-    TlevNumeric<-gsub("t","",
-                      gsub("T","",
-                           levels(resPreProcessing$DESeq2.obj@colData$Time),
-                           fixed=TRUE), fixed=TRUE)
-    FactorInfo.f$Time<-paste("t",Tnumeric,sep="")
-    TlevNumeric<-paste("t",Tnumeric,sep="")
-    #
-    SumInfo<-list(ExprCond=c("Time"),
-                  FactorsInfo=FactorInfo.f,
-                  TimeLevels=levels(factor(TlevNumeric)),
-                  logFCmin=log.FC.min,
-                  pvalsTime=pval.vect.t)
-    #
-    resGlossary<-Glossary(path.result.new3, Case=2)
-    #
-    # List.Plots.DE.Analysis=Res.DE.Time$List.Plots.DE.Time,
-    return(list(List.Datas=All.Datas,
-                Summary.Inputs=SumInfo,
-                DE.results=Res.DE.Time$Results,
-                Path.result=path.result.f,
-                Folder.result=Name.folder.DE.ini,
-                List.Glossary=resGlossary,
-                DESeq.dds=dds.norm.diff))#SubFolder.name
-  }# if(is.null(Time.position)==FALSE & is.null(Group.position)==TRUE)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Case 3 analysis DE : Time and Biological conditions
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  if(is.null(Time.position)==FALSE | is.null(Group.position)==FALSE){
-    print("Case 3 analysis : Biological conditions and Times.")
-    # Folder for DE graphs
-    if(is.null(path.result)==FALSE){
-      name.folder.result2<-paste("2-2_DEanalysis",Name.folder.DE,sep="")
-      if(name.folder.result2%in%dir(path = path.result.f)==FALSE){
-        dir.create(path=paste(path.result.f,"/",name.folder.result2,sep=""))
-        path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
-      }else{
-        path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
-      }# if(name.folder.result2%in%dir(path = path.result.f)==FALSE)
+        name.folder.result3<-paste("2-3_CSV_file_DEanalysis",Name.folder.DE,sep="")
+        if(name.folder.result3%in%dir(path = path.result.f)==FALSE){
+            dir.create(path=paste(path.result.f,"/",name.folder.result3,sep=""))
+            path.result.new3<-paste(path.result.f,"/",name.folder.result3,sep="")
+        }else{
+            path.result.new3<-paste(path.result.f,"/",name.folder.result3,sep="")
+        }# if(name.folder.result2%in%dir(path = path.result.f)==FALSE)
     }else{
-      path.result.new2<-NULL
+        path.result.new3<-NULL
     }# if(is.null(path.result)==FALSE)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Pre-processing
+    print("Preprocessing")
+    resPreProcessing<-DEanalysisPreprocessing(RawCounts=RawCounts,
+                                              Column.gene=Column.gene,
+                                              Group.position=Group.position,
+                                              Time.position=Time.position,
+                                              Individual.position=Individual.position)
+    DESeq2.obj<-resPreProcessing$DESeq2.obj
+    #---------------------------------------------------------------------------#
+    # columns with only expression
+    if(is.null(Column.gene)==TRUE){
+        ind.col.expr<-seq_len(ncol(RawCounts))#c(1:ncol(RawCounts))
+        Data.f<-cbind(Gene=paste("Gene",seq_len(nrow(RawCounts)),sep=""),RawCounts)
+    }else{
+        ind.col.expr<-seq_len(ncol(RawCounts))[-Column.gene]
+        Data.f<-cbind(Gene=RawCounts[,Column.gene], RawCounts[,-Column.gene])
+    }# if(is.null(Column.gene)==TRUE)
+    row.names(Data.f)<-Data.f[,1]
+    #---------------------------------------------------------------------------#
+    All.Datas<-vector("list", length = 2)
+    names(All.Datas)<-c("RawCounts", "RLEdata")
+    All.Datas[[1]]<-Data.f
+    #---------------------------------------------------------------------------#
+    # if(is.null(path.result)==FALSE){
+    #   utils::write.table(Data.f,
+    #                      file=paste(path.result,"/",SubFolder.name,"/",
+    #                                 "DATA_RawCounts",Name.folder.DE,".csv",sep=""),
+    #                      sep=";",row.names = FALSE)
+    # }
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    # Differential expression
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    print("Differential expression step with DESeq2::DESeq()")
+    if(LRT.supp.info==TRUE){
+        dds.norm.diff<-DESeq2::DESeq(DESeq2.obj,
+                                     betaPrior=FALSE, test="LRT", reduced=~1)
+    }else{
+        dds.norm.diff<-DESeq2::DESeq(DESeq2.obj, betaPrior=FALSE, test="Wald")
+    }# if(LRT.supp.info==TRUE)
+    #---------------------------------------------------------------------------#
+    ScaledData<-round(DESeq2::counts(dds.norm.diff, normalized=TRUE), digits=3)
+    ScaledData.f<-data.frame(Gene=Data.f[,1], ScaledData)
+    All.Datas[[2]]<-ScaledData.f
+    colnames(ScaledData.f)<-c("Gene", colnames(RawCounts)[ind.col.expr])
+    #---------------------------------------------------------------------------#
+    res.bxplt<-DATAplotBoxplotSamples(ExprData=ScaledData.f,
+                                      Column.gene=1,
+                                      Group.position=Group.position,
+                                      Time.position=Time.position,
+                                      Individual.position=Individual.position,
+                                      Log2.transformation=TRUE,
+                                      Colored.By.Factors=FALSE,
+                                      Color.Group=NULL,
+                                      Plot.genes=FALSE,
+                                      y.label="log2(rle normalized counts+1)")
     #
-    Res.DE.T.G<-DEanalysisTimeAndGroup(DESeq.result=dds.norm.diff,
-                                       LRT.supp.info=LRT.supp.info,
-                                       log.FC.min=log.FC.min,
-                                       pval.min=pval.min,
-                                       pval.vect.t=pval.vect.t,
-                                       Plot.DE.graph=Plot.DE.graph,
-                                       path.result=path.result.new2,
-                                       SubFile.name=SubFolder.name)
-    #-------------------------------------------------------------------------#
-    # Tables which contain all results
-    #-------------------------------------------------------------------------#
     if(is.null(path.result)==FALSE){
-      utils::write.table(data.frame(Res.DE.T.G$Results),
-                         file=paste(path.result.new3,"/",
-                                    "ALLresults_DEanalysis", Name.folder.DE,
-                                    ".csv", sep=""),
-                         sep=";", row.names=FALSE)
+        utils::write.table(ScaledData.f,
+                           file=paste(path.result.new1,"/",
+                                      "DATA_RLE",Name.folder.DE,".csv",sep=""),
+                           sep=";", row.names = FALSE)
+        #
+        grDevices::pdf(file=paste(path.result.new1,"/BoxplotSamples_RLE",
+                                  Name.folder.DE,".pdf",sep=""),
+                       width=11, height=8)#width = 8, height = 11
+        print(res.bxplt)
+        grDevices::dev.off()
     }# if(is.null(path.result)==FALSE)
-    #
-    FactorInfo.f<-resPreProcessing$Factors.Info
-    Tnumeric<-gsub("t","",gsub("T","",FactorInfo.f$Time,fixed=TRUE),fixed=TRUE)
-    TlevNumeric<-gsub("t","",
-                      gsub("T","",
-                           levels(resPreProcessing$DESeq2.obj@colData$Time),
-                                  fixed=TRUE), fixed=TRUE)
-    FactorInfo.f$Time<-paste("t",Tnumeric,sep="")
-    TlevNumeric<-paste("t",Tnumeric,sep="")
-    #
-    SumInfo<-list(ExprCond=c("Time","Group"),
-                  FactorsInfo=FactorInfo.f,
-                  TimeLevels=levels(factor(TlevNumeric)),
-                  GroupLevels=levels(resPreProcessing$DESeq2.obj@colData$Group),
-                  logFCmin=log.FC.min,
-                  pvalsTime=pval.vect.t,
-                  pvalGroup=pval.min)
-    #
-    resGlossary<-Glossary(path.result.new3, Case=3)
-    #-------------------------------------------------------------------------#
-    # List.Plots.DE.Analysis=Res.DE.T.G$List.Plots.DE.Time.Group,
-    return(list(List.Datas=All.Datas,
-                Summary.Inputs=SumInfo,
-                DE.results=data.frame(Res.DE.T.G$Results),
-                Path.result=path.result.f,
-                Folder.result=Name.folder.DE.ini,
-                List.Glossary=resGlossary,
-                DESeq.dds=dds.norm.diff))
-  }# if(is.null(Time.position)==FALSE | is.null(Group.position)==FALSE)
+    if(Plot.DE.graph==TRUE){
+        print(res.bxplt)
+    }# if(Plot.DE.graph==TRUE)
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    if(is.null(Time.position)==FALSE){
+        Levels.time<-levels(as.factor(dds.norm.diff@colData$Time))
+        Nb.time<-length(Levels.time)
+        #
+        if(is.null(pval.vect.t)==FALSE){
+            if(length(pval.vect.t)>Nb.time-1){
+                pval.vect.t<-pval.vect.t[seq_len(Nb.time-1)]
+            }# if(length(pval.vect.t)>Nb.time-1)
+            if(length(pval.vect.t)<Nb.time-1){
+                pval.vect.t<-c(pval.vect.t,
+                               rep(pval.min,times=Nb.time-length(pval.vect.t)-1))
+            }# if(length(pval.vect.t)<Nb.time-1)
+        }else{
+            pval.vect.t<-rep(pval.min, times=Nb.time-1)
+        }# if(is.null(pval.vect.t)==FALSE)
+    }# if(is.null(Time.position)==FALSE)
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    # Results from Differential expression step with DESeq2::DESeq()
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    if(is.null(Time.position)==TRUE & is.null(Group.position)==TRUE){
+        stop("'Time.position' and 'Group.position' can not be both NULL")
+    }# if(is.null(Time.position)==TRUE & is.null(Group.position)==TRUE)
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    # Case 1 analysis DE : Biological conditions only
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    if(is.null(Time.position)==TRUE & is.null(Group.position)==FALSE){
+        print("Case 2 analysis : Biological conditions only")
+        # Folder for DE graphs
+        if(is.null(path.result)==FALSE){
+            name.folder.result2<-paste("2-2_Group_DEanalysis", Name.folder.DE,sep="")
+            if(name.folder.result2%in%dir(path = path.result.f)==FALSE){
+                dir.create(path=paste(path.result.f,"/",name.folder.result2,sep=""))
+                path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
+            }else{
+                path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
+            }# if(name.folder.result2%in%dir(path = path.result.f)==FALSE)
+        }else{
+            path.result.new2<-NULL
+        }# if(is.null(path.result)==FALSE)
+        #
+        Res.DE.BC<-DEanalysisGroup(DESeq.result=dds.norm.diff,
+                                   LRT.supp.info=LRT.supp.info,
+                                   log.FC.min=log.FC.min,
+                                   pval.min=pval.min,
+                                   Plot.DE.graph=Plot.DE.graph,
+                                   path.result=path.result.new2,
+                                   SubFile.name=SubFolder.name)
+        #-------------------------------------------------------------------------#
+        # Table which contains all results.
+        #-------------------------------------------------------------------------#
+        if(is.null(path.result)==FALSE){
+            utils::write.table(data.frame(Res.DE.BC$Results),
+                               file=paste(path.result.new3,"/",
+                                          "ALLresults_DEanalysis", Name.folder.DE,
+                                          ".csv", sep=""),
+                               sep=";", row.names=FALSE)
+        }# if(is.null(path.result)==FALSE)
+        #
+        SumInfo<-list(ExprCond=c("Group"),
+                      FactorsInfo=resPreProcessing$Factors.Info,
+                      GroupLevels=levels(resPreProcessing$DESeq2.obj@colData$Group),
+                      logFCmin=log.FC.min,
+                      pvalGroup=pval.min)
+        #
+        resGlossary<-Glossary(path.result.new3, Case=1)
+        #
+        # List.Plots.DE.Analysis=Res.DE.BC$List.Plots.DE.Group,
+        return(list(List.Datas=All.Datas,
+                    Summary.Inputs=SumInfo,
+                    DE.results=Res.DE.BC$Results,
+                    Path.result=path.result.f,
+                    Folder.result=Name.folder.DE.ini,
+                    List.Glossary=resGlossary,
+                    DESeq.dds=dds.norm.diff))#SubFolder.name
+    }# if(is.null(Time.position)==TRUE & is.null(Group.position)==FALSE)
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    # Case 2 analysis DE : Time only
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    if(is.null(Time.position)==FALSE & is.null(Group.position)==TRUE){
+        print("Case 1 analysis : Time only")
+        # Folder for DE graphs
+        if(is.null(path.result)==FALSE){
+            name.folder.result2<-paste("2-2_Temporal_DEanalysis", Name.folder.DE,
+                                       sep="")
+            if(name.folder.result2%in%dir(path = path.result.f)==FALSE){
+                dir.create(path=paste(path.result.f,"/",name.folder.result2,sep=""))
+                path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
+            }else{
+                path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
+            }# if(name.folder.result2%in%dir(path = path.result.f)==FALSE)
+        }else{
+            path.result.new2<-NULL
+        }# if(is.null(path.result)==FALSE)
+        #
+        Res.DE.Time<-DEanalysisTime(DESeq.result=dds.norm.diff,
+                                    LRT.supp.info=LRT.supp.info,
+                                    log.FC.min=log.FC.min,
+                                    pval.min=pval.min,
+                                    pval.vect.t=pval.vect.t,
+                                    Plot.DE.graph=Plot.DE.graph,
+                                    path.result=path.result.new2,
+                                    SubFile.name=SubFolder.name)
+        #-------------------------------------------------------------------------#
+        # Table which contains all results
+        #-------------------------------------------------------------------------#
+        if(is.null(path.result)==FALSE){
+            utils::write.table(data.frame(Res.DE.Time$Results),
+                               file=paste(path.result.new3,"/",
+                                          "ALLresults_DEanalysis", Name.folder.DE,
+                                          ".csv", sep=""),
+                               sep=";", row.names=FALSE)
+        }# if(is.null(path.result)==FALSE)
+        #
+        FactorInfo.f<-resPreProcessing$Factors.Info
+        Tnumeric<-gsub("t","",gsub("T","",FactorInfo.f$Time,fixed=TRUE),fixed=TRUE)
+        TlevNumeric<-gsub("t","",
+                          gsub("T","",
+                               levels(resPreProcessing$DESeq2.obj@colData$Time),
+                               fixed=TRUE), fixed=TRUE)
+        FactorInfo.f$Time<-paste("t",Tnumeric,sep="")
+        TlevNumeric<-paste("t",Tnumeric,sep="")
+        #
+        SumInfo<-list(ExprCond=c("Time"),
+                      FactorsInfo=FactorInfo.f,
+                      TimeLevels=levels(factor(TlevNumeric)),
+                      logFCmin=log.FC.min,
+                      pvalsTime=pval.vect.t)
+        #
+        resGlossary<-Glossary(path.result.new3, Case=2)
+        #
+        # List.Plots.DE.Analysis=Res.DE.Time$List.Plots.DE.Time,
+        return(list(List.Datas=All.Datas,
+                    Summary.Inputs=SumInfo,
+                    DE.results=Res.DE.Time$Results,
+                    Path.result=path.result.f,
+                    Folder.result=Name.folder.DE.ini,
+                    List.Glossary=resGlossary,
+                    DESeq.dds=dds.norm.diff))#SubFolder.name
+    }# if(is.null(Time.position)==FALSE & is.null(Group.position)==TRUE)
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    # Case 3 analysis DE : Time and Biological conditions
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    if(is.null(Time.position)==FALSE | is.null(Group.position)==FALSE){
+        print("Case 3 analysis : Biological conditions and Times.")
+        # Folder for DE graphs
+        if(is.null(path.result)==FALSE){
+            name.folder.result2<-paste("2-2_DEanalysis",Name.folder.DE,sep="")
+            if(name.folder.result2%in%dir(path = path.result.f)==FALSE){
+                dir.create(path=paste(path.result.f,"/",name.folder.result2,sep=""))
+                path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
+            }else{
+                path.result.new2<-paste(path.result.f,"/",name.folder.result2,sep="")
+            }# if(name.folder.result2%in%dir(path = path.result.f)==FALSE)
+        }else{
+            path.result.new2<-NULL
+        }# if(is.null(path.result)==FALSE)
+        #
+        Res.DE.T.G<-DEanalysisTimeAndGroup(DESeq.result=dds.norm.diff,
+                                           LRT.supp.info=LRT.supp.info,
+                                           log.FC.min=log.FC.min,
+                                           pval.min=pval.min,
+                                           pval.vect.t=pval.vect.t,
+                                           Plot.DE.graph=Plot.DE.graph,
+                                           path.result=path.result.new2,
+                                           SubFile.name=SubFolder.name)
+        #-------------------------------------------------------------------------#
+        # Tables which contain all results
+        #-------------------------------------------------------------------------#
+        if(is.null(path.result)==FALSE){
+            utils::write.table(data.frame(Res.DE.T.G$Results),
+                               file=paste(path.result.new3,"/",
+                                          "ALLresults_DEanalysis", Name.folder.DE,
+                                          ".csv", sep=""),
+                               sep=";", row.names=FALSE)
+        }# if(is.null(path.result)==FALSE)
+        #
+        FactorInfo.f<-resPreProcessing$Factors.Info
+        Tnumeric<-gsub("t","",gsub("T","",FactorInfo.f$Time,fixed=TRUE),fixed=TRUE)
+        TlevNumeric<-gsub("t","",
+                          gsub("T","",
+                               levels(resPreProcessing$DESeq2.obj@colData$Time),
+                               fixed=TRUE), fixed=TRUE)
+        FactorInfo.f$Time<-paste("t",Tnumeric,sep="")
+        TlevNumeric<-paste("t",Tnumeric,sep="")
+        #
+        SumInfo<-list(ExprCond=c("Time","Group"),
+                      FactorsInfo=FactorInfo.f,
+                      TimeLevels=levels(factor(TlevNumeric)),
+                      GroupLevels=levels(resPreProcessing$DESeq2.obj@colData$Group),
+                      logFCmin=log.FC.min,
+                      pvalsTime=pval.vect.t,
+                      pvalGroup=pval.min)
+        #
+        resGlossary<-Glossary(path.result.new3, Case=3)
+        #-------------------------------------------------------------------------#
+        # List.Plots.DE.Analysis=Res.DE.T.G$List.Plots.DE.Time.Group,
+        return(list(List.Datas=All.Datas,
+                    Summary.Inputs=SumInfo,
+                    DE.results=data.frame(Res.DE.T.G$Results),
+                    Path.result=path.result.f,
+                    Folder.result=Name.folder.DE.ini,
+                    List.Glossary=resGlossary,
+                    DESeq.dds=dds.norm.diff))
+    }# if(is.null(Time.position)==FALSE | is.null(Group.position)==FALSE)
 }# DEanalysisGlobal()
 
 
@@ -680,239 +679,239 @@ DEanalysisGlobal<-function(RawCounts,
 #-----------------------------------------------------------------------------#
 
 Glossary<-function(path.result, Case){
-  #---------------------------------------------------------------------------#
-  if(is.null(path.result)==FALSE){
-    # path for glossary
-    fileRdme<-paste(path.result,"/", "Glossary.txt",sep="")
-    # Title of the text file
-    cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=FALSE)
-    cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("=", rep("-",times=15), "= GLOSSARY ",
-          "of column names in the cvs file 'ALLresults_DEanalysis' =",
-          rep("-",times=15),"=\n"),
-        sep="", file=fileRdme, append=TRUE)
-    cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
-    #
-    cat("\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("The cvs file 'ALLresults_DEanalysis' gathers all the results of ",
-          "MultiRNAflow analysis. The goal of this glossary is to clarify ",
-          "the meaning of the column names in the file. ",
-          "The first column gives the names of all genes. ",
-          "In the list below, we specify the meaning of each entry ",
-          "in the corresponding column.\n"),
-        sep="", file=fileRdme, append=TRUE)
-    cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Glossary when samples depends on biological condition only
-  if(Case==1){
-    ListGlossary<-vector(mode="list", length=6)
-    names(ListGlossary)<-c("Log2FoldChange.Group2.versus.Group1",
-                           "Pvalue.adjusted.Group2.versus.Group1",
-                           "DE.Group2.versus.Group1",
-                           "DE.1pair.of.Group.minimum",
-                           "Specific.genes_Group1",
-                           "OverUnder.regulated.genes_Group1")
-    #
-    ListGlossary[[1]]<-paste("Log2 fold change between ",
-                             "the biological condition Group2 and ",
-                             "the biological condition Group1.", sep="")
-    ListGlossary[[2]]<-paste("Adjusted p-value between ",
-                             "the biological condition Group2 and ",
-                             "the biological condition Group1.", sep="")
-    ListGlossary[[3]]<-paste("Binary number (0 or 1) where 1 means that ",
-                             "the gene is DE and 0 means that it is not DE ",
-                             "between the biological condition Group2 and ",
-                             "the biological condition Group1. ",
-                             "The value 1 is given if both ",
-                             "'abs(Log2FoldChange.Group2.versus.Group1)",
-                             ">log.FC.min' and ",
-                             "'Pvalue.adjusted.Group2.versus.Group1<pval.min',",
-                             " where 'log.FC.min' and 'pval.min' are inputs ",
-                             "of the function DEanalysisGlobal()", sep="")
-    ListGlossary[[4]]<-paste("Binary number (0 or 1) where 1 means that ",
-                             "the gene is DE between at least one pair of ",
-                             "biological conditions.", sep="")
-    ListGlossary[[5]]<-paste("Binary number (0 or 1) where 1 means that the ",
-                             "gene is specific for the biological condition ",
-                             "Group1. This means that the gene is DE between ",
-                             "Group1 and any other biological conditions ",
-                             "but not DE between any pairs of other ",
-                             "biological conditions.", sep="")
-    ListGlossary[[6]]<-paste("Number (-1, 0 or 1). 1 means the gene is ",
-                             "specific ('Specific.genes_Group1=1') and the ",
-                             "gene is up-regulated (or over expressed) in ",
-                             "Group1 versus the other biological conditions. ",
-                             "-1' means the gene is specific ",
-                             "('Specific.genes_Group1=1') and the gene is ",
-                             "down-regulated (or under expressed) in Group1 ",
-                             "versus the other biological conditions. ",
-                             "0 otherwise.", sep="")
-  }# if(Case==1)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Glossary when samples depends on time only
-  if(Case==2){
-    ListGlossary<-vector(mode="list", length=5)
-    names(ListGlossary)<-c("Log2FoldChange.ti.versus.t0",
-                           "Pvalue.adjusted.ti.versus.t0",
-                           "DE.ti.versus.t0",
-                           "DE.Temporal.Pattern",
-                           "DE.1time.minimum")
-    #
-    ListGlossary[[1]]<-paste("Log2 fold change between the time ti and ",
-                             "the reference time t0.", sep="")
-    ListGlossary[[2]]<-paste("Adjusted pvalue between the time ti and ",
-                             "the reference time t0.", sep="")
-    ListGlossary[[3]]<-paste("Binary number (0 or 1) where 1 means that the ",
-                             "gene is DE and 0 means it is not DE between ",
-                             "the time ti and the reference time t0. ",
-                             "The value 1 is given if both ",
-                             "'abs(Log2FoldChange.ti.versus.t0)>log.FC.min' ",
-                             "and ",
-                             "'Pvalue.adjusted.ti.versus.t0< pval.vect.t[i]'.",
-                             sep="")
-    ListGlossary[[4]]<-paste("Vector of 0 and 1 corresponding to times ",
-                             "t1 to tn. The values 1 correspond to the times ",
-                             "ti such that the gene is DE between ",
-                             "ti and the reference time t0.", sep="")
-    ListGlossary[[5]]<-paste("Binary number (0 or 1) where 1 means that the ",
-                             "gene is DE at least between one time ti ",
-                             "versus the reference time t0.", sep="")
-  }#if(Case==2)
-  #---------------------------------------------------------------------------#
-  #---------------------------------------------------------------------------#
-  # Glossary when samples depends on time and biological condition
-  if(Case==3){
-    ListGlossary<-vector(mode="list", length=14)
-    names(ListGlossary)<-c("Log2FoldChange.ti.versus.t0_Group1",
-                           "Pvalue.adjusted.ti.versus.t0_Group1",
-                           "DE.ti.versus.t0_Group1",
-                           "DE.Temporal.Pattern_Group1",
-                           "DE.1time.minimum_Group1",#
-                           "Log2FoldChange.Group2.versus.Group1_Time.ti",
-                           "Pvalue.adjusted.Group2.versus.Group1_Time.ti",
-                           "DE.Group2.versus.Group1_Time.ti",
-                           "DE.1pair.of.Group.minimum_Time.ti",
-                           "Specific.genes_Group1_Time.ti",
-                           "OverUnder.regulated.genes_Group1_Time.ti",
-                           "Specific.genes_Group1_1t.minimum",
-                           "Signature.genes_Group.Group1_Time.ti",
-                           "Signature.genes_Group.Group1_1time.minimum")
-    #
-    ListGlossary[[1]]<-paste("Log2 fold change between the time ti and the ",
-                             "reference time t0, for the biological condition",
-                             " Group1.", sep="")
-    ListGlossary[[2]]<-paste("Adjusted pvalue between the time ti and the ",
-                             "reference time t0, for the biological condition",
-                             " Group1.", sep="")
-    ListGlossary[[3]]<-paste("Binary number (0 or 1) where 1 means that the ",
-                             "gene is DE and 0 means it is not DE, for the ",
-                             "biological condition Group1. ",
-                             "The value 1 is given if both ",
-                             "'abs(Log2FoldChange.ti.versus.t0_Group1)>",
-                             "log.FC.min' and ",
-                             "'Pvalue.adjusted.ti.versus.t0_Group1<",
-                             "pval.vect.t[i]', for the group Group1.", sep="")
-    ListGlossary[[4]]<-paste("Vector of 0 and 1 corresponding to times ",
-                             "t1 to tn. The values 1 correspond to the times ",
-                             "ti such that the gene is DE between ",
-                             "ti and the reference time t0, ",
-                             "for the biological condition Group1.", sep="")
-    ListGlossary[[5]]<-paste("Binary number (0 or 1) where 1 means that the ",
-                             "gene is DE at least between one time ti ",
-                             "versus the reference time t0, ",
-                             "for the group Group1.", sep="")
-    #
-    ListGlossary[[6]]<-paste("Log2 fold change between ",
-                             "the biological condition Group2 and ",
-                             "the biological condition Group1, ",
-                             "at time ti.",sep="")
-    ListGlossary[[7]]<-paste("Adjusted p-value between ",
-                             "the biological condition Group2 and ",
-                             "the biological condition Group1, ",
-                             "at time ti.", sep="")
-    ListGlossary[[8]]<-paste("Binary number (0 or 1) where 1 means that ",
-                             "the gene is DE and 0 means that it is not DE ",
-                             "between the biological condition Group2 and ",
-                             "the biological condition Group1, at time ti. ",
-                             "The value 1 is given if both 'abs(",
-                             "Pvalue.adjusted.Group2.versus.Group1_Time.ti)",
-                             ">log.FC.min' and ",
-                             "'Pvalue.adjusted.Group2.versus.Group1_Time.ti",
-                             "<pval.min', where 'log.FC.min' and 'pval.min' ",
-                             "are inputs of the function DEanalysisGlobal()",
-                             sep="")
-    ListGlossary[[9]]<-paste("Binary number (0 or 1) where 1 means that ",
-                             "the gene is DE between at least one pair of ",
-                             "biological conditions, at time ti.",
-                             sep="")
-    ListGlossary[[10]]<-paste("Binary number (0 or 1) where 1 means that the ",
-                              "gene is specific for the biological condition ",
-                              "Group1, at time ti. This means that the ",
-                              "gene is DE between Group1 and any other ",
-                              "biological conditions but not DE between ",
-                              "any pairs of other biological conditions, ",
-                              "at time ti.",
-                              sep="")
-    ListGlossary[[11]]<-paste("Number (-1, 0 or 1). 1 means the gene is ",
-                              "specific ('Specific.genes_Group1_Time.ti=1') ",
-                              "at time ti and the gene is up-regulated ",
-                              "(or over expressed) in Group1 versus the ",
-                              "other biological conditions, for the time ti. ",
-                              "-1' means the gene is specific ",
-                              "('Specific.genes_Group1_Time.ti=1') ",
-                              "at time ti and the gene is down-regulated ",
-                              "(or under expressed) in Group1 versus the ",
-                              "other biological conditions, for the time ti. ",
-                              "0 otherwise.", sep="")
-    ListGlossary[[12]]<-paste("Binary number (0 or 1). 1 means that the gene ",
-                              "is specific for the biological condition ",
-                              "Group1, at at least one time ti.",
-                              "0 otherwise.", sep="")
-    #
-    ListGlossary[[13]]<-paste("Binary number (0 or 1). 1 means that the gene ",
-                              " is a signature gene for the biological ",
-                              "condition Group1 at time ti. This means that ",
-                              "the gene is specific for the biological ",
-                              "condition Group1 at time ti and the gene is ",
-                              "DE between the time ti and the reference time ",
-                              "t0 for the group Group1.", sep="")
-    ListGlossary[[14]]<-paste("Binary number (0 or 1). 1 means that the gene ",
-                              "is a signature gene for the biological ",
-                              "condition Group1 at at least one time ti. ",
-                              "0 otherwise.", sep="")
-  }# if(Case==3)
-  #---------------------------------------------------------------------------#
-  if(is.null(path.result)==FALSE){
-    for(i in seq_len(length(ListGlossary))){# 1:length(ListGlossary)
-      if(i%in%c(1,6,13) & Case==3){
-        if(i==1){
-          cat(c("==-----= ", "Temporal statistical analysis", "\n"),
-              sep="", file=fileRdme, append=TRUE)
-        }
-        if(i==6){
-          cat("\n", sep="", file=fileRdme, append=TRUE)
-          cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
-          cat(c("==-----= ", "Statistical analysis by biological condition",
-                "\n"), sep="", file=fileRdme, append=TRUE)
-        }
-        if(i==13){
-          cat("\n", sep="", file=fileRdme, append=TRUE)
-          cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
-          cat(c("==-----= ", "Combination of temporal and condition analysis",
-                "\n"), sep="", file=fileRdme, append=TRUE)
-        }
-        # cat("\n", sep="", file=fileRdme, append=TRUE)
-        # cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
-      }# if(i%in%c(6,12) & Case==3)
-      cat("\n", sep="", file=fileRdme, append=TRUE)
-      cat(c(" ** ",names(ListGlossary)[i], " : ", ListGlossary[[i]], "\n"),
-          sep="", file=fileRdme, append=TRUE)
-    }# for(i in 1:length(ListGlossary))
-  }# if(is.null(path.result)==FALSE)
-  #---------------------------------------------------------------------------#
-  return(ListGlossary)
+    #---------------------------------------------------------------------------#
+    if(is.null(path.result)==FALSE){
+        # path for glossary
+        fileRdme<-paste(path.result,"/", "Glossary.txt",sep="")
+        # Title of the text file
+        cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=FALSE)
+        cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
+        cat(c("=", rep("-",times=15), "= GLOSSARY ",
+              "of column names in the cvs file 'ALLresults_DEanalysis' =",
+              rep("-",times=15),"=\n"),
+            sep="", file=fileRdme, append=TRUE)
+        cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
+        cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
+        #
+        cat("\n", sep="", file=fileRdme, append=TRUE)
+        cat(c("The cvs file 'ALLresults_DEanalysis' gathers all the results of ",
+              "MultiRNAflow analysis. The goal of this glossary is to clarify ",
+              "the meaning of the column names in the file. ",
+              "The first column gives the names of all genes. ",
+              "In the list below, we specify the meaning of each entry ",
+              "in the corresponding column.\n"),
+            sep="", file=fileRdme, append=TRUE)
+        cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
+    }# if(is.null(path.result)==FALSE)
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    # Glossary when samples depends on biological condition only
+    if(Case==1){
+        ListGlossary<-vector(mode="list", length=6)
+        names(ListGlossary)<-c("Log2FoldChange.Group2.versus.Group1",
+                               "Pvalue.adjusted.Group2.versus.Group1",
+                               "DE.Group2.versus.Group1",
+                               "DE.1pair.of.Group.minimum",
+                               "Specific.genes_Group1",
+                               "OverUnder.regulated.genes_Group1")
+        #
+        ListGlossary[[1]]<-paste("Log2 fold change between ",
+                                 "the biological condition Group2 and ",
+                                 "the biological condition Group1.", sep="")
+        ListGlossary[[2]]<-paste("Adjusted p-value between ",
+                                 "the biological condition Group2 and ",
+                                 "the biological condition Group1.", sep="")
+        ListGlossary[[3]]<-paste("Binary number (0 or 1) where 1 means that ",
+                                 "the gene is DE and 0 means that it is not DE ",
+                                 "between the biological condition Group2 and ",
+                                 "the biological condition Group1. ",
+                                 "The value 1 is given if both ",
+                                 "'abs(Log2FoldChange.Group2.versus.Group1)",
+                                 ">log.FC.min' and ",
+                                 "'Pvalue.adjusted.Group2.versus.Group1<pval.min',",
+                                 " where 'log.FC.min' and 'pval.min' are inputs ",
+                                 "of the function DEanalysisGlobal()", sep="")
+        ListGlossary[[4]]<-paste("Binary number (0 or 1) where 1 means that ",
+                                 "the gene is DE between at least one pair of ",
+                                 "biological conditions.", sep="")
+        ListGlossary[[5]]<-paste("Binary number (0 or 1) where 1 means that the ",
+                                 "gene is specific for the biological condition ",
+                                 "Group1. This means that the gene is DE between ",
+                                 "Group1 and any other biological conditions ",
+                                 "but not DE between any pairs of other ",
+                                 "biological conditions.", sep="")
+        ListGlossary[[6]]<-paste("Number (-1, 0 or 1). 1 means the gene is ",
+                                 "specific ('Specific.genes_Group1=1') and the ",
+                                 "gene is up-regulated (or over expressed) in ",
+                                 "Group1 versus the other biological conditions. ",
+                                 "-1' means the gene is specific ",
+                                 "('Specific.genes_Group1=1') and the gene is ",
+                                 "down-regulated (or under expressed) in Group1 ",
+                                 "versus the other biological conditions. ",
+                                 "0 otherwise.", sep="")
+    }# if(Case==1)
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    # Glossary when samples depends on time only
+    if(Case==2){
+        ListGlossary<-vector(mode="list", length=5)
+        names(ListGlossary)<-c("Log2FoldChange.ti.versus.t0",
+                               "Pvalue.adjusted.ti.versus.t0",
+                               "DE.ti.versus.t0",
+                               "DE.Temporal.Pattern",
+                               "DE.1time.minimum")
+        #
+        ListGlossary[[1]]<-paste("Log2 fold change between the time ti and ",
+                                 "the reference time t0.", sep="")
+        ListGlossary[[2]]<-paste("Adjusted pvalue between the time ti and ",
+                                 "the reference time t0.", sep="")
+        ListGlossary[[3]]<-paste("Binary number (0 or 1) where 1 means that the ",
+                                 "gene is DE and 0 means it is not DE between ",
+                                 "the time ti and the reference time t0. ",
+                                 "The value 1 is given if both ",
+                                 "'abs(Log2FoldChange.ti.versus.t0)>log.FC.min' ",
+                                 "and ",
+                                 "'Pvalue.adjusted.ti.versus.t0< pval.vect.t[i]'.",
+                                 sep="")
+        ListGlossary[[4]]<-paste("Vector of 0 and 1 corresponding to times ",
+                                 "t1 to tn. The values 1 correspond to the times ",
+                                 "ti such that the gene is DE between ",
+                                 "ti and the reference time t0.", sep="")
+        ListGlossary[[5]]<-paste("Binary number (0 or 1) where 1 means that the ",
+                                 "gene is DE at least between one time ti ",
+                                 "versus the reference time t0.", sep="")
+    }#if(Case==2)
+    #---------------------------------------------------------------------------#
+    #---------------------------------------------------------------------------#
+    # Glossary when samples depends on time and biological condition
+    if(Case==3){
+        ListGlossary<-vector(mode="list", length=14)
+        names(ListGlossary)<-c("Log2FoldChange.ti.versus.t0_Group1",
+                               "Pvalue.adjusted.ti.versus.t0_Group1",
+                               "DE.ti.versus.t0_Group1",
+                               "DE.Temporal.Pattern_Group1",
+                               "DE.1time.minimum_Group1",#
+                               "Log2FoldChange.Group2.versus.Group1_Time.ti",
+                               "Pvalue.adjusted.Group2.versus.Group1_Time.ti",
+                               "DE.Group2.versus.Group1_Time.ti",
+                               "DE.1pair.of.Group.minimum_Time.ti",
+                               "Specific.genes_Group1_Time.ti",
+                               "OverUnder.regulated.genes_Group1_Time.ti",
+                               "Specific.genes_Group1_1t.minimum",
+                               "Signature.genes_Group.Group1_Time.ti",
+                               "Signature.genes_Group.Group1_1time.minimum")
+        #
+        ListGlossary[[1]]<-paste("Log2 fold change between the time ti and the ",
+                                 "reference time t0, for the biological condition",
+                                 " Group1.", sep="")
+        ListGlossary[[2]]<-paste("Adjusted pvalue between the time ti and the ",
+                                 "reference time t0, for the biological condition",
+                                 " Group1.", sep="")
+        ListGlossary[[3]]<-paste("Binary number (0 or 1) where 1 means that the ",
+                                 "gene is DE and 0 means it is not DE, for the ",
+                                 "biological condition Group1. ",
+                                 "The value 1 is given if both ",
+                                 "'abs(Log2FoldChange.ti.versus.t0_Group1)>",
+                                 "log.FC.min' and ",
+                                 "'Pvalue.adjusted.ti.versus.t0_Group1<",
+                                 "pval.vect.t[i]', for the group Group1.", sep="")
+        ListGlossary[[4]]<-paste("Vector of 0 and 1 corresponding to times ",
+                                 "t1 to tn. The values 1 correspond to the times ",
+                                 "ti such that the gene is DE between ",
+                                 "ti and the reference time t0, ",
+                                 "for the biological condition Group1.", sep="")
+        ListGlossary[[5]]<-paste("Binary number (0 or 1) where 1 means that the ",
+                                 "gene is DE at least between one time ti ",
+                                 "versus the reference time t0, ",
+                                 "for the group Group1.", sep="")
+        #
+        ListGlossary[[6]]<-paste("Log2 fold change between ",
+                                 "the biological condition Group2 and ",
+                                 "the biological condition Group1, ",
+                                 "at time ti.",sep="")
+        ListGlossary[[7]]<-paste("Adjusted p-value between ",
+                                 "the biological condition Group2 and ",
+                                 "the biological condition Group1, ",
+                                 "at time ti.", sep="")
+        ListGlossary[[8]]<-paste("Binary number (0 or 1) where 1 means that ",
+                                 "the gene is DE and 0 means that it is not DE ",
+                                 "between the biological condition Group2 and ",
+                                 "the biological condition Group1, at time ti. ",
+                                 "The value 1 is given if both 'abs(",
+                                 "Pvalue.adjusted.Group2.versus.Group1_Time.ti)",
+                                 ">log.FC.min' and ",
+                                 "'Pvalue.adjusted.Group2.versus.Group1_Time.ti",
+                                 "<pval.min', where 'log.FC.min' and 'pval.min' ",
+                                 "are inputs of the function DEanalysisGlobal()",
+                                 sep="")
+        ListGlossary[[9]]<-paste("Binary number (0 or 1) where 1 means that ",
+                                 "the gene is DE between at least one pair of ",
+                                 "biological conditions, at time ti.",
+                                 sep="")
+        ListGlossary[[10]]<-paste("Binary number (0 or 1) where 1 means that the ",
+                                  "gene is specific for the biological condition ",
+                                  "Group1, at time ti. This means that the ",
+                                  "gene is DE between Group1 and any other ",
+                                  "biological conditions but not DE between ",
+                                  "any pairs of other biological conditions, ",
+                                  "at time ti.",
+                                  sep="")
+        ListGlossary[[11]]<-paste("Number (-1, 0 or 1). 1 means the gene is ",
+                                  "specific ('Specific.genes_Group1_Time.ti=1') ",
+                                  "at time ti and the gene is up-regulated ",
+                                  "(or over expressed) in Group1 versus the ",
+                                  "other biological conditions, for the time ti. ",
+                                  "-1' means the gene is specific ",
+                                  "('Specific.genes_Group1_Time.ti=1') ",
+                                  "at time ti and the gene is down-regulated ",
+                                  "(or under expressed) in Group1 versus the ",
+                                  "other biological conditions, for the time ti. ",
+                                  "0 otherwise.", sep="")
+        ListGlossary[[12]]<-paste("Binary number (0 or 1). 1 means that the gene ",
+                                  "is specific for the biological condition ",
+                                  "Group1, at at least one time ti.",
+                                  "0 otherwise.", sep="")
+        #
+        ListGlossary[[13]]<-paste("Binary number (0 or 1). 1 means that the gene ",
+                                  " is a signature gene for the biological ",
+                                  "condition Group1 at time ti. This means that ",
+                                  "the gene is specific for the biological ",
+                                  "condition Group1 at time ti and the gene is ",
+                                  "DE between the time ti and the reference time ",
+                                  "t0 for the group Group1.", sep="")
+        ListGlossary[[14]]<-paste("Binary number (0 or 1). 1 means that the gene ",
+                                  "is a signature gene for the biological ",
+                                  "condition Group1 at at least one time ti. ",
+                                  "0 otherwise.", sep="")
+    }# if(Case==3)
+    #---------------------------------------------------------------------------#
+    if(is.null(path.result)==FALSE){
+        for(i in seq_len(length(ListGlossary))){# 1:length(ListGlossary)
+            if(i%in%c(1,6,13) & Case==3){
+                if(i==1){
+                    cat(c("==-----= ", "Temporal statistical analysis", "\n"),
+                        sep="", file=fileRdme, append=TRUE)
+                }
+                if(i==6){
+                    cat("\n", sep="", file=fileRdme, append=TRUE)
+                    cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
+                    cat(c("==-----= ", "Statistical analysis by biological condition",
+                          "\n"), sep="", file=fileRdme, append=TRUE)
+                }
+                if(i==13){
+                    cat("\n", sep="", file=fileRdme, append=TRUE)
+                    cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
+                    cat(c("==-----= ", "Combination of temporal and condition analysis",
+                          "\n"), sep="", file=fileRdme, append=TRUE)
+                }
+                # cat("\n", sep="", file=fileRdme, append=TRUE)
+                # cat(rep("=",times=100), "\n", sep="", file=fileRdme, append=TRUE)
+            }# if(i%in%c(6,12) & Case==3)
+            cat("\n", sep="", file=fileRdme, append=TRUE)
+            cat(c(" ** ",names(ListGlossary)[i], " : ", ListGlossary[[i]], "\n"),
+                sep="", file=fileRdme, append=TRUE)
+        }# for(i in 1:length(ListGlossary))
+    }# if(is.null(path.result)==FALSE)
+    #---------------------------------------------------------------------------#
+    return(ListGlossary)
 }# Glossary()

@@ -69,14 +69,14 @@
 #'
 #' @examples
 #' Data.EX<-data.frame(matrix(sample(x=1:150, size=20), nrow=5))
-#' colnames(Data.EX)<-paste("Gene",1:4,sep="")
-#' #--------------------------------------------------------------------------#
-#' # Exemple of output from the function DEanalysisGlobal()
+#' colnames(Data.EX)<-paste0("Gene", 1:4)
+#' ##-------------------------------------------------------------------------#
+#' ## Exemple of output from the function DEanalysisGlobal()
 #' res.DEanalysisGlobal.Ex<-list(data.frame(Gene=paste("Gene",1:5,sep="."),
 #'                                          DE1=c(0,1,0,0,1),
 #'                                          DE2=c(0,1,0,1,0)))
 #' names(res.DEanalysisGlobal.Ex)<-c("DE.results")
-#' #--------------------------------------------------------------------------#
+#' ##-------------------------------------------------------------------------#
 #' res.SubDE<-DEanalysisSubData(Data=Data.EX,
 #'                              Res.DE.analysis=res.DEanalysisGlobal.Ex,
 #'                              ColumnsCriteria=c(2,3),
@@ -88,115 +88,136 @@ DEanalysisSubData<-function(Data,
                             ColumnsCriteria=1,
                             Set.Operation="union",
                             Save.SubData=FALSE){
-  #---------------------------------------------------------------------------#
-  if(Set.Operation%in%c("union", "intersect", "setdiff")==FALSE){
-    stop("Set.Operation mut be 'union', 'intersect' or 'setdiff'")
-  }# if(Set.Operation%in%c("union", "intersect", "setdiff")==FALSE)
-  #---------------------------------------------------------------------------#
-  if(is.list(Res.DE.analysis)==TRUE){
-    DatRowSel<-data.frame(Res.DE.analysis$DE.results)
-  }else{
-    DatRowSel<-data.frame(Res.DE.analysis)
-  }# if(is.list(Res.DE.analysis)==TRUE)
-  ncol.DatRowSel<-ncol(DatRowSel)
-  nrow.DatRowSel<-nrow(DatRowSel)
-  #---------------------------------------------------------------------------#
-  if(is.numeric(ColumnsCriteria)==TRUE){
-    if(sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0){
-      stop("'ColumnsCriteria' must be integers or characters")
-    }# if(sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0)
-  }else{
-    if(is.character(ColumnsCriteria)==TRUE){
-      ColumnsCriteria.2<-rep(NA, times=length(ColumnsCriteria))
-      for(i in seq_len(length(ColumnsCriteria))){# 1:length(ColumnsCriteria)
-        if(length(grep(pattern=ColumnsCriteria[i], x=colnames(DatRowSel)))==0){
-          Stop.WrongNames<-paste("The element ", i,
-                                 " of 'ColumnsCriteria' is not correct",sep="")
-          stop(Stop.WrongNames)
-        }
-        ColumnsCriteria.2[i]<-grep(pattern=ColumnsCriteria[i],
-                                   x=colnames(DatRowSel))
-      }# for(i in 1:length(ColumnsCriteria))
-      #
-      ColumnsCriteria<-sort(ColumnsCriteria.2)
+    ##------------------------------------------------------------------------#
+    ## Check
+    if(!Set.Operation%in%c("union", "intersect", "setdiff")){
+        stop("Set.Operation mut be 'union', 'intersect' or 'setdiff'")
+    }# if(Set.Operation%in%c("union", "intersect", "setdiff")==FALSE)
+
+    ##------------------------------------------------------------------------#
+    if(is.list(Res.DE.analysis)==TRUE){
+        DatRowSel<-data.frame(Res.DE.analysis$DE.results)
     }else{
-      stop("'ColumnsCriteria' must be integers or characters")
-    }# if(is.character(ColumnsCriteria)==TRUE)
-  }# if(is.numeric(ColumnsCriteria)==TRUE)
-  #---------------------------------------------------------------------------#
-  if(ncol.DatRowSel==1){
-    ColumnsCriteria<-c(1)
-  }# if(ncol.DatRowSel==1)
-  #
-  if(max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1){
-    Stop.WrongIntegers<-paste("Integers of 'ColumnsCriteria' must be",
-                              "between 1 and", ncol.DatRowSel, sep=" ")
-    stop(Stop.WrongIntegers)
-  }# if(max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1)
-  #---------------------------------------------------------------------------#
-  Nb.rows.Data<-nrow(Data)
-  if(Nb.rows.Data!=nrow.DatRowSel){
-    Stop.nrow<-paste("The number of rows of 'Data' and, ",
-                     "the length or the number of rows of 'Res.DE.analysis', ",
-                     "must be identical.", sep= "")
-    stop(Stop.nrow)
-  }# if(Nb.rows.Data!=nrow.DatRowSel)
-  #---------------------------------------------------------------------------#
-  if(length(ColumnsCriteria)==1){
-    DEsel<-which(as.numeric(DatRowSel[,ColumnsCriteria])>0)
-  }# if(length(ColumnsCriteria)==1)
-  #
-  if(Set.Operation=="union" & length(ColumnsCriteria)>1){
-    Sum.colsel<-apply(data.frame(DatRowSel[,ColumnsCriteria]), 1, sum)
-    DEsel<-which(as.numeric(Sum.colsel)>0)
-  }
-  #
-  if(Set.Operation=="intersect" & length(ColumnsCriteria)>1){
-    Prod.colsel<-apply(data.frame(DatRowSel[,ColumnsCriteria]), 1, prod)
-    DEsel<-which(as.numeric(Prod.colsel)>0)
-  }
-  #
-  if(Set.Operation=="setdiff" & length(ColumnsCriteria)>1){
-    Nb0.colsel<-apply(X=data.frame(DatRowSel[,ColumnsCriteria]), MARGIN=1,
-                      FUN=function(x) length(which(x==0)))
-    DEsel<-which(as.numeric(Nb0.colsel)==(length(ColumnsCriteria)-1))
-  }
-  #
-  L.DEsel<-length(DEsel)
-  #---------------------------------------------------------------------------#
-  if(L.DEsel==0){
-    print(paste("No selection because the column selected is full of 0.",
-                "The original 'Data' is returned."), sep="")
-    DataSub<-Data
-  }# if(L.DEsel==0)
-  if(L.DEsel==Nb.rows.Data){
-    print(paste("All rows are selected because there is no 0",
-                "in the column selected.", "The original 'Data' is returned.",
-                sep=" "))
-    DataSub<-Data
-  }# if(L.DEsel==Nb.rows.Data)
-  if(L.DEsel>0 & L.DEsel<Nb.rows.Data){
-    DataSub<-Data[DEsel,]
-  }# if(L.DEsel>0 & L.DEsel<Nb.rows.Data)
-  #---------------------------------------------------------------------------#
-  # Folder path and creation
-  if(isFALSE(Save.SubData)==FALSE){
-    if(Save.SubData==TRUE){
-      path.result<-Res.DE.analysis$Path.result
+        DatRowSel<-data.frame(Res.DE.analysis)
+    }# if(is.list(Res.DE.analysis)==TRUE)
+    ncol.DatRowSel<-ncol(DatRowSel)
+    nrow.DatRowSel<-nrow(DatRowSel)
+
+    ##------------------------------------------------------------------------#
+    if(is.numeric(ColumnsCriteria)==TRUE){
+
+        if(sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0){
+            stop("'ColumnsCriteria' must be integers or characters")
+        }# if(sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0)
+
     }else{
-      path.result<-Save.SubData
-    }# if(Save.SubData==TRUE)
-    utils::write.table(DataSub,
-                       file=paste(path.result,"/Sub_Data.csv",sep=""),
-                       sep=";", row.names=FALSE)
-    utils::write.table(DatRowSel,
-                       file=paste(path.result,"/Sub_DEresults.csv",sep=""),
-                       sep=";", row.names=FALSE)
-  }else{
-    path.result<-NULL
-  }# if(isFALSE(Save.SubData)==FALSE)
-  #---------------------------------------------------------------------------#
-  return(list(SubData=DataSub,
-              SubDataCriteria=DatRowSel,
-              RowsSelected=DEsel))
-}# DEanalysisSubData()
+
+        if(is.character(ColumnsCriteria)==TRUE){
+            ColumnsCriteria.2<-rep(NA, times=length(ColumnsCriteria))
+
+            for(i in seq_len(length(ColumnsCriteria))){
+                if(length(grep(pattern=ColumnsCriteria[i],
+                               x=colnames(DatRowSel)))==0){
+                    Stop.WrongNames<-paste("The element", i,
+                                           "of 'ColumnsCriteria' is not correct",
+                                           sep=" ")
+                    stop(Stop.WrongNames)
+                }
+                ColumnsCriteria.2[i]<-grep(pattern=ColumnsCriteria[i],
+                                           x=colnames(DatRowSel))
+            }# for(i in 1:length(ColumnsCriteria))
+
+            ColumnsCriteria<-sort(ColumnsCriteria.2)
+        }else{
+            stop("'ColumnsCriteria' must be integers or characters")
+        }# if(is.character(ColumnsCriteria)==TRUE)
+    }# if(is.numeric(ColumnsCriteria)==TRUE)
+
+    ##------------------------------------------------------------------------#
+    if(ncol.DatRowSel==1){
+        ColumnsCriteria<-c(1)
+    }# if(ncol.DatRowSel==1)
+
+    if(max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1){
+        Stop.WrongIntegers<-paste("Integers of 'ColumnsCriteria' must be",
+                                  "between 1 and", ncol.DatRowSel, sep=" ")
+        stop(Stop.WrongIntegers)
+    }# if(max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1)
+
+    ##------------------------------------------------------------------------#
+    Nb.rows.Data<-nrow(Data)
+    if(Nb.rows.Data!=nrow.DatRowSel){
+        Stop.nrow<-paste0("The number of rows of 'Data' and, ",
+                          "the length or the number of rows of 'Res.DE.analysis', ",
+                          "must be identical.")
+        stop(Stop.nrow)
+    }# if(Nb.rows.Data!=nrow.DatRowSel)
+
+    ##------------------------------------------------------------------------#
+    if(length(ColumnsCriteria)==1){
+        DEsel<-which(as.numeric(DatRowSel[,ColumnsCriteria])>0)
+    }# if(length(ColumnsCriteria)==1)
+
+    if(Set.Operation=="union" & length(ColumnsCriteria)>1){
+        Sum.colsel<-apply(data.frame(DatRowSel[,ColumnsCriteria]), 1, sum)
+        DEsel<-which(as.numeric(Sum.colsel)>0)
+    }
+
+    if(Set.Operation=="intersect" & length(ColumnsCriteria)>1){
+        Prod.colsel<-apply(data.frame(DatRowSel[,ColumnsCriteria]), 1, prod)
+        DEsel<-which(as.numeric(Prod.colsel)>0)
+    }
+
+    if(Set.Operation=="setdiff" & length(ColumnsCriteria)>1){
+        Nb0.colsel<-apply(X=data.frame(DatRowSel[,ColumnsCriteria]), MARGIN=1,
+                          FUN=function(x) length(which(x==0)))
+        DEsel<-which(as.numeric(Nb0.colsel)==(length(ColumnsCriteria)-1))
+    }
+
+    L.DEsel<-length(DEsel)
+
+    ##------------------------------------------------------------------------#
+    if(L.DEsel==0){
+        print(paste0("No selection because the column selected is full of 0.",
+                     "The original 'Data' is returned."))
+        DataSub<-Data
+    }# if(L.DEsel==0)
+
+    if(L.DEsel==Nb.rows.Data){
+        print(paste("All rows are selected because there is no 0",
+                    "in the column selected.", "The original 'Data' is returned.",
+                    sep=" "))
+        DataSub<-Data
+    }# if(L.DEsel==Nb.rows.Data)
+
+    if(L.DEsel>0 & L.DEsel<Nb.rows.Data){
+        DataSub<-Data[DEsel,]
+    }# if(L.DEsel>0 & L.DEsel<Nb.rows.Data)
+
+    ##------------------------------------------------------------------------#
+    # Folder path and creation
+    if(!isFALSE(Save.SubData)){
+        if(Save.SubData==TRUE){
+            path.result<-Res.DE.analysis$Path.result
+        }else{
+            path.result<-Save.SubData
+        }# if(Save.SubData==TRUE)
+
+        utils::write.table(DataSub,
+                           file=file.path(path.result, "Sub_Data.csv"),
+                           sep=";", row.names=FALSE)
+
+        utils::write.table(DatRowSel,
+                           file=file.path(path.result, "Sub_DEresults.csv"),
+                           sep=";", row.names=FALSE)
+    }else{
+        path.result<-NULL
+    }# if(isFALSE(Save.SubData)==FALSE)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(list(SubData=DataSub,
+                SubDataCriteria=DatRowSel,
+                RowsSelected=DEsel))
+}## DEanalysisSubData()

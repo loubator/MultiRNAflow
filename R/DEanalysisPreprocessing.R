@@ -69,17 +69,17 @@
 #' @export
 #'
 #' @examples
-#' Grp.test=rep(c("P","NP"),each=27)
-#' Tps.test=rep(paste("t",0:8,sep=""),times=6)
-#' Pat.test=rep(paste("pcl",1:6,sep=""),each=9)
-#' #
-#' Name.sel.test=paste(Grp.test,Pat.test,Tps.test,sep="_")
-#' Mat.test.1=data.frame(Gene.name=paste("Name",1:10,sep=""),
+#' Grp.test=rep(c("P", "NP"), each=27)
+#' Tps.test=rep(paste0("t", 0:8), times=6)
+#' Pat.test=rep(paste0("pcl", 1:6), each=9)
+#'
+#' Name.sel.test=paste(Grp.test, Pat.test, Tps.test, sep="_")
+#' Mat.test.1=data.frame(Gene.name=paste0("Name", 1:10),
 #'                       matrix(sample(1:100,length(Name.sel.test)*10,
 #'                                     replace=TRUE),
 #'                              ncol=length(Name.sel.test), nrow=10))
-#' colnames(Mat.test.1)=c("Gene.name",Name.sel.test)
-#' #--------------------------------------------------------------------------#
+#' colnames(Mat.test.1)=c("Gene.name", Name.sel.test)
+#' ##-------------------------------------------------------------------------#
 #' DESeq2.info.test=DEanalysisPreprocessing(RawCounts=Mat.test.1,
 #'                                          Column.gene=1,
 #'                                          Group.position=1,
@@ -88,73 +88,82 @@
 #' print(DESeq2.info.test)
 
 DEanalysisPreprocessing<-function(RawCounts,
-                                 Column.gene,
-                                 Group.position,
-                                 Time.position,
-                                 Individual.position){
-  #---------------------------------------------------------------------------#
-  if(is.null(Time.position)==TRUE & is.null(Group.position)==TRUE){
-    stop("'Time.position' and 'Group.position' can not be both NULL")
-  }# if(is.null(Time.position)==TRUE & is.null(Group.position)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Pre-processing
-  res.Factors<-ColnamesToFactors(ExprData=RawCounts,
-                                 Column.gene=Column.gene,
-                                 Group.position=Group.position,
-                                 Time.position=Time.position,
-                                 Individual.position=Individual.position)
-  Vect.group<-res.Factors$Group.Info
-  Vect.time<-res.Factors$Time.Info
-  #---------------------------------------------------------------------------#
-  # Biological conditions and time present
-  if(is.null(Vect.group)==FALSE & is.null(Vect.time)==FALSE){
-    Vect.time<-gsub("T","",gsub("t","",as.character(Vect.time)))
-    colData.DESeq2<-data.frame(Group=as.factor(Vect.group),
-                               Time=as.factor(Vect.time))
-    design.DESeq2<-stats::as.formula(~ Time + Group + Time:Group)
-  }# if(is.null(Vect.group)==FALSE & is.null(Vect.time)==FALSE)
-  #---------------------------------------------------------------------------#
-  # Biological condition present & Time absent
-  if(is.null(Vect.group)==FALSE & is.null(Vect.time)==TRUE){
-    colData.DESeq2<-data.frame(Group=as.factor(Vect.group))
-    design.DESeq2<-stats::as.formula(~ Group)
-  }# if(is.null(Vect.group)==FALSE & is.null(Vect.time)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Biological conditions absent & Time present
-  if(is.null(Vect.group)==TRUE & is.null(Vect.time)==FALSE){
-    Vect.time<-gsub("T","",gsub("t","",as.character(Vect.time)))
-    colData.DESeq2<-data.frame(Time=as.factor(Vect.time))
-    design.DESeq2<-stats::as.formula(~ Time)
-  }# if(is.null(Vect.group)==TRUE & is.null(Vect.time)==FALSE)
-  #---------------------------------------------------------------------------#
-  # Biological conditions and time absent
-  if(is.null(Vect.group)==TRUE & is.null(Vect.time)==TRUE){
-    colData.DESeq2<-NULL
-    design.DESeq2<-stats::as.formula(~ 1)
-  }# if(is.null(Vect.group)==TRUE & is.null(Vect.time)==TRUE)
-  #---------------------------------------------------------------------------#
-  # Data with only expression
-  if(is.null(Column.gene)==TRUE){
-    ind.col.expr<-seq_len(ncol(RawCounts))
-    RowNamesRawCounts<-paste("Gene", seq_len(nrow(RawCounts)), sep="")
-  }else{
-    ind.col.expr<-seq_len(ncol(RawCounts))[-Column.gene]
-    RowNamesRawCounts<-RawCounts[,Column.gene]
-  }
-  #
-  mat.Data<-as.matrix(RawCounts[,ind.col.expr])
-  row.names(mat.Data)<-RowNamesRawCounts
-  colnames(mat.Data)<-res.Factors$Final.Name
-  #---------------------------------------------------------------------------#
-  # Creation of Deseq2 object
-  dds<-DESeq2::DESeqDataSetFromMatrix(countData=mat.Data,
-                                      colData=colData.DESeq2,
-                                      design=design.DESeq2)
-  #---------------------------------------------------------------------------#
-  # End & Outputs
-  #---------------------------------------------------------------------------#
-  return(list(DESeq2.obj=dds,
-              Data.Expression=mat.Data,
-              Factors.Info=data.frame(colData.DESeq2,
-                                      Samples=res.Factors$Individual.info)))
+                                  Column.gene,
+                                  Group.position,
+                                  Time.position,
+                                  Individual.position){
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    if(is.null(Time.position) & is.null(Group.position)){
+        stop("'Time.position' and 'Group.position' can not be both NULL")
+    }# if(is.null(Time.position)==TRUE & is.null(Group.position)==TRUE)
+
+    ##------------------------------------------------------------------------#
+    # Pre-processing
+    res.Factors<-ColnamesToFactors(ExprData=RawCounts,
+                                   Column.gene=Column.gene,
+                                   Group.position=Group.position,
+                                   Time.position=Time.position,
+                                   Individual.position=Individual.position)
+    Vect.group<-res.Factors$Group.Info
+    Vect.time<-res.Factors$Time.Info
+
+    ##------------------------------------------------------------------------#
+    ## Biological conditions and time present
+    if(!is.null(Vect.group) & !is.null(Vect.time)){
+        Vect.time<-gsub("T","",gsub("t","",as.character(Vect.time)))
+        colData.DESeq2<-data.frame(Group=as.factor(Vect.group),
+                                   Time=as.factor(Vect.time))
+        design.DESeq2<-stats::as.formula(~ Time + Group + Time:Group)
+    }# if(is.null(Vect.group)==FALSE & is.null(Vect.time)==FALSE)
+
+    ##------------------------------------------------------------------------#
+    ## Biological condition present & Time absent
+    if(!is.null(Vect.group) & is.null(Vect.time)){
+        colData.DESeq2<-data.frame(Group=as.factor(Vect.group))
+        design.DESeq2<-stats::as.formula(~ Group)
+    }# if(is.null(Vect.group)==FALSE & is.null(Vect.time)==TRUE)
+
+    ##------------------------------------------------------------------------#
+    ## Biological conditions absent & Time present
+    if(is.null(Vect.group) & !is.null(Vect.time)){
+        Vect.time<-gsub("T", "", gsub("t", "", as.character(Vect.time)))
+        colData.DESeq2<-data.frame(Time=as.factor(Vect.time))
+        design.DESeq2<-stats::as.formula(~ Time)
+    }# if(is.null(Vect.group)==TRUE & is.null(Vect.time)==FALSE)
+
+    ##------------------------------------------------------------------------#
+    ## Biological conditions and time absent
+    if(is.null(Vect.group) & is.null(Vect.time)){
+        colData.DESeq2<-NULL
+        design.DESeq2<-stats::as.formula(~ 1)
+    }# if(is.null(Vect.group)==TRUE & is.null(Vect.time)==TRUE)
+
+    ##------------------------------------------------------------------------#
+    ## Data with only expression
+    if(is.null(Column.gene)){
+        ind.col.expr<-seq_len(ncol(RawCounts))
+        RowNamesRawCounts<-paste0("Gene", seq_len(nrow(RawCounts)))
+    }else{
+        ind.col.expr<-seq_len(ncol(RawCounts))[-Column.gene]
+        RowNamesRawCounts<-RawCounts[,Column.gene]
+    }
+
+    mat.Data<-as.matrix(RawCounts[,ind.col.expr])
+    row.names(mat.Data)<-RowNamesRawCounts
+    colnames(mat.Data)<-res.Factors$Final.Name
+
+    ##------------------------------------------------------------------------#
+    ## Creation of Deseq2 object
+    dds<-DESeq2::DESeqDataSetFromMatrix(countData=mat.Data,
+                                        colData=colData.DESeq2,
+                                        design=design.DESeq2)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Outputs
+    return(list(DESeq2.obj=dds,
+                Data.Expression=mat.Data,
+                Factors.Info=data.frame(colData.DESeq2,
+                                        Samples=res.Factors$Individual.info)))
 }# DEanalysisPreprocessing()
