@@ -33,7 +33,7 @@ BiocStyle::latex(use.unsrturl=FALSE)
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{MultiRNAflow: A R package for analysing RNA-seq raw counts with different time points and several biological conditions}
+\title{MultiRNAflow: An R package for analysing RNA-seq raw counts with different time points and several biological conditions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \author[1]{Loubaton Rodolphe}
 \author[1]{Champagnat Nicolas}
@@ -1293,7 +1293,7 @@ data.col.Mus2<-data.frame(Name=c("BmKo","BmWt","CrKo","CrWt"),
 
 and setting \texttt{Color.Group=data.col.Mus2}. The user can not change the color associated to each time point.
 
-If you want to delete, for instance, the genes 'ENSMUSG00000025921' and 'ENSMUSG00000026113' (respectively the second and sixth gene) and/or delete the samples 'CLL\_P\_r1\_t1' and 'CLL\_P\_r2\_t2', set
+If you want to delete, for instance, the genes 'ENSMUSG00000025921' and 'ENSMUSG00000026113' (respectively the second and sixth gene) and/or delete the samples 'BmKo\_t2\_r1' and 'BmKo\_t5\_r2', set
 
 \begin{itemize}
 \item \texttt{gene.deletion=c("ENSMUSG00000025921", "ENSMUSG00000026113")} and/or\newline \texttt{sample.deletion=c("BmKo\_t2\_r1", "BmKo\_t5\_r2")}
@@ -1329,7 +1329,7 @@ ResHCPCMus2.500<-HCPCanalysis(ExprData=res.Norm.Mus2.500$NormalizedData,
 The previous lines of code return \Rfunction{HCPC()}
 
 \begin{itemize}
-\item The results of the function
+\item The results of the function \Rfunction{HCPC()}
 \item A dendrogram (Figure~\ref{fig:Mouse2Dendrogram})
 \item A graph indicating by color for each sample, its cluster, the biological condition and the time point associated to the sample (Figure~\ref{fig:Mouse2HCPCsampleCluster}).
 \item One 2D PCA graph (Figure~\ref{fig:Mouse2HCPC2dPCA}), one 3D PCA graph (Figure~\ref{fig:Mouse2HCPC3dPCA}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \texttt{PCAanalysis()} with all samples but samples are colored with different colors for different clusters.
@@ -1405,9 +1405,9 @@ ResMfuzzYeast500<-MFUZZanalysis(ExprData=res.Norm.Yeast500$NormalizedData,
 The function returns
 
 \begin{itemize}
-\item the summary of the results of the function \Rfunction{Mfuzz()}
-\item the scaled height plot (Figure 32), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommand to select \texttt{Method="hcpc"} which is by default.
-\item the output graphs from the R package Mfuzz (Figure 33), showing the most common temporal behavior among all genes.
+\item the summary of the results of the function \Rfunction{mfuzz()}.
+\item the scaled height plot (Figure~\ref{fig:FissionMfuzzNumberCluster}), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
+\item the output graphs from the R package Mfuzz (Figure~\ref{fig:FissionMfuzzCluster}), showing the most common temporal behavior among all genes.
 \end{itemize}
 
 \begin{figure}
@@ -1461,9 +1461,9 @@ ResMfuzzLeuk500<-MFUZZanalysis(ExprData=res.Norm.Leuk500$NormalizedData,
 The function returns for each biological condition
 
 \begin{itemize}
-\item the summary of the results of the function \Rfunction{Mfuzz()}
-\item the scaled height plot (Figure 34), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommand to select \texttt{Method="hcpc"} which is by default.
-\item the output graphs from the R package Mfuzz (Figure 35) showing the most common temporal behavior among all genes for each biological condition. The plots below correspond to the biological condition 'P'.
+\item the summary of the results of the function \Rfunction{mfuzz()}
+\item the scaled height plot (Figure~\ref{fig:LeukMfuzzNumberCluster}), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
+\item the output graphs from the R package Mfuzz (Figure~\ref{fig:LeukPMfuzzCluster}) showing the most common temporal behavior among all genes for each biological condition. The plots below correspond to the biological condition 'P'.
 \end{itemize}
 
 \begin{figure}
@@ -1517,9 +1517,9 @@ ResMfuzzLeuk500<-MFUZZanalysis(ExprData=res.Norm.Mus2.500$NormalizedData,
 The function returns for each biological condition
 
 \begin{itemize}
-\item the summary of the results of the function \Rfunction{Mfuzz()}
-\item the scaled height (Figure 36), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommand to select \texttt{Method="hcpc"} which is by default.
-\item the output graph from the R package Mfuzz (Figure 37) which represents the most common temporal behavior among all genes for the biological condition `BmKo.'
+\item the summary of the results of the function \Rfunction{mfuzz()}
+\item the scaled height (Figure~\ref{fig:Mouse2MfuzzNumberCluster}), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
+\item the output graph from the R package Mfuzz (Figure~\ref{fig:Mouse2MfuzzCluster}) which represents the most common temporal behavior among all genes for the biological condition `BmKo.'
 \end{itemize}
 
 
@@ -3468,10 +3468,8 @@ Write \texttt{?GSEApreprocessing} in your console for more information about the
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Bioconductor recommends and checks (see \href{https://bioconductor.org/packages/devel/bioc/vignettes/BiocCheck/inst/doc/BiocCheck.html}{here}) that vignette code contains \Rfunction{sessionInfo()} for reproducibility.
-So here is the output of \Rfunction{sessionInfo()} on the system on which
-this document was compiled:
-
+Here is the output of \Rfunction{sessionInfo()} on the system on which
+this document was compiled.
 
 <<sessionInfo, echo=FALSE, results="asis">>=
 utils::toLatex(sessionInfo())
