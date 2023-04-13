@@ -1,7 +1,7 @@
 Package: MultiRNAflow
-Title: A R package for analysing RNA-seq raw counts with several biological conditions
+Title: An R package for analysing RNA-seq raw counts with several biological conditions
     and different time points
-Version: 0.99.6
+Version: 0.99.7
 Authors@R: c(
     person("Rodolphe", "Loubaton",
            email = "loubaton.rodolphe@gmail.com",
@@ -26,10 +26,11 @@ Description: Our R package MultiRNAflow provides an easy to use unified framewor
     In particular, our code makes a deep downstream analysis of DE information,
     e.g. identifying temporal patterns across biological conditions and DE genes
     which are specific to a biological condition for each time.
-License: GPL-3
+License: GPL-3 | file LICENSE
 Encoding: UTF-8
 LazyData: false
 URL: https://github.com/loubator/MultiRNAflow
+BugReports: https://github.com/loubator/MultiRNAflow/issues
 biocViews: Sequencing, RNASeq, GeneExpression, Transcription,
     TimeCourse, Preprocessing, Visualization,
     Normalization, PrincipalComponent, Clustering,
@@ -38,7 +39,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends: 
     Mfuzz (>= 2.58.0),
-    R (>= 4.2)
+    R (>= 4.3)
 Imports: 
     ComplexHeatmap (>= 2.14.0),
     DESeq2 (>= 1.38.1),
