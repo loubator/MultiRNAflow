@@ -90,9 +90,9 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Check
-    if(!is.list(Res.DE.analysis) & class(Res.DE.analysis)[1]!="DESeqDataSet"){
+    if(!is.list(Res.DE.analysis) & !is(Res.DE.analysis, 'DESeqDataSet')){
         stop("Res.DE.analysis must be a list or a 'DESeqDataSet' object")
-    }## if(!is.list(Res.DE.analysis)&class(Res.DE.analysis)[1]!="DESeqDataSet")
+    }## if(!is.list(Res.DE.analysis) & !is(classDeseq2, 'DESeqDataSet'))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#

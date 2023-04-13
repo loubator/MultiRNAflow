@@ -103,9 +103,9 @@ DEanalysisTime<-function(DESeq.result,
                          SubFile.name=NULL){
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    if(class(DESeq.result)[1]!="DESeqDataSet"){
-        stop("Res.DE.analysis must a 'DESeqDataSet' object")
-    }## if(class(DESeq.result)[1]!="DESeqDataSet")
+    if(!is(DESeq.result, 'DESeqDataSet')){
+        stop("Res.DE.analysis must be a 'DESeqDataSet' object")
+    }## if(!is(classDeseq2, 'DESeqDataSet'))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
