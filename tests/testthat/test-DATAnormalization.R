@@ -1,23 +1,26 @@
 test_that("Test DATAnormalization", {
-    #
+    ##
+    ##------------------------------------------------------------------------#
     data(RawCounts_Antoszewski2022_MOUSEsub500)
-    #
     datamus2<-RawCounts_Antoszewski2022_MOUSEsub500
-    #
-    expect_error(DATAnormalization(RawCounts=datamus2,
-                                   Column.gene=1, Individual.position=2,
-                                   Group.position=NULL, Time.position=NULL,
-                                   Normalization="rle", Plot.Boxplot=TRUE,
+
+    resDATAprepSEmus2 <- DATAprepSE(RawCounts=datamus2,
+                                    Column.gene=1,
+                                    Group.position=1,
+                                    Time.position=NULL,
+                                    Individual.position=2)
+
+    ##------------------------------------------------------------------------#
+    expect_error(DATAnormalization(SEres=datamus2,
+                                   Normalization="other", Plot.Boxplot=TRUE,
                                    Colored.By.Factors=FALSE, Color.Group=NULL,
                                    Plot.genes=FALSE, path.result=NULL,
                                    Name.folder.norm=NULL,
                                    Blind.rlog.vst=FALSE),
-                 "'Time.position' and 'Group.position' can not be both NULL",
+                 "'SEres' mut be the results of the function 'DATAprepSE()'",
                  fixed=TRUE)
-    #
-    expect_error(DATAnormalization(RawCounts=datamus2,
-                                   Column.gene=1, Individual.position=2,
-                                   Group.position=1, Time.position=NULL,
+
+    expect_error(DATAnormalization(SEres=resDATAprepSEmus2,
                                    Normalization="other", Plot.Boxplot=TRUE,
                                    Colored.By.Factors=FALSE, Color.Group=NULL,
                                    Plot.genes=FALSE, path.result=NULL,

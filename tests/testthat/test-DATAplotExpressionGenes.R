@@ -1,4 +1,4 @@
-test_that("Test PCArealization", {
+test_that("multiplication works", {
     ##
     ##------------------------------------------------------------------------#
     ## data importation
@@ -22,19 +22,23 @@ test_that("Test PCArealization", {
     Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
                      "'DATAnormalization().'")
 
-    expect_error(PCArealization(SEresNorm=datamus2,
-                                DATAnorm=TRUE,
-                                gene.deletion=c("Gene3","Gene5"),
-                                sample.deletion=c(3,8),
-                                Supp.del.sample=TRUE),
+    expect_error(DATAplotExpressionGenes(SEresNorm=datamus2,
+                                         Vector.row.gene=c(1,3),
+                                         DATAnorm=TRUE,
+                                         Color.Group=NULL,
+                                         Plot.Expression=TRUE,
+                                         path.result=NULL,
+                                         Name.folder.profile=NULL),
                  Err_SE,
                  fixed=TRUE)
 
-    expect_error(PCArealization(SEresNorm=resDATAprepSEmus2,
-                                DATAnorm=TRUE,
-                                gene.deletion=c("Gene3","Gene5"),
-                                sample.deletion=c(3,8),
-                                Supp.del.sample=TRUE),
+    expect_error(DATAplotExpressionGenes(SEresNorm=resDATAprepSEmus2,
+                                         Vector.row.gene=c(1,3),
+                                         DATAnorm=TRUE,
+                                         Color.Group=NULL,
+                                         Plot.Expression=TRUE,
+                                         path.result=NULL,
+                                         Name.folder.profile=NULL),
                  Err_SE,
                  fixed=TRUE)
 })

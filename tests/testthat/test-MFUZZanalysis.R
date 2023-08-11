@@ -1,4 +1,4 @@
-test_that("Test MFUZZclustersNumber", {
+test_that("Test MFUZZanalysis", {
     ##
     ##------------------------------------------------------------------------#
     ## data importation
@@ -37,39 +37,55 @@ test_that("Test MFUZZclustersNumber", {
                       "greater or equal to 2 and ",
                       "lesser than the number of genes.")
 
-    expect_error(MFUZZclustersNumber(SEresNorm=datafission,
-                                     DATAnorm=TRUE,
-                                     Method="hcpc",
-                                     Max.clust=4,
-                                     Plot.Cluster=TRUE,
-                                     path.result=NULL),
+    expect_error(MFUZZanalysis(SEresNorm=datafission,
+                               DATAnorm=TRUE,
+                               DataNumberCluster=NULL,
+                               Method="hcpc",
+                               Max.clust=6,
+                               Membership=0.5,
+                               Min.std=0.1,
+                               Plot.Mfuzz=TRUE,
+                               path.result=NULL,
+                               Name.folder.mfuzz=NULL),
                  Err_SE,
                  fixed=TRUE)
 
-    expect_error(MFUZZclustersNumber(SEresNorm=resDATAprepSEfission,
-                                     DATAnorm=TRUE,
-                                     Method="hcpc",
-                                     Max.clust=4,
-                                     Plot.Cluster=TRUE,
-                                     path.result=NULL),
+    expect_error(MFUZZanalysis(SEresNorm=resDATAprepSEfission,
+                               DATAnorm=TRUE,
+                               DataNumberCluster=NULL,
+                               Method="hcpc",
+                               Max.clust=6,
+                               Membership=0.5,
+                               Min.std=0.1,
+                               Plot.Mfuzz=TRUE,
+                               path.result=NULL,
+                               Name.folder.mfuzz=NULL),
                  Err_SE,
                  fixed=TRUE)
 
-    expect_error(MFUZZclustersNumber(SEresNorm=resDATAnormFission,
-                                     DATAnorm=FALSE,
-                                     Method="hcpc",
-                                     Max.clust=10000,
-                                     Plot.Cluster=TRUE,
-                                     path.result=NULL),
+    expect_error(MFUZZanalysis(SEresNorm=resDATAnormFission,
+                               DATAnorm=FALSE,
+                               DataNumberCluster=NULL,
+                               Method="hcpc",
+                               Max.clust=10000,
+                               Membership=0.5,
+                               Min.std=0.1,
+                               Plot.Mfuzz=TRUE,
+                               path.result=NULL,
+                               Name.folder.mfuzz=NULL),
                  Err_max,
                  fixed=TRUE)
 
-    expect_error(MFUZZclustersNumber(SEresNorm=resDATAnormMus2,
-                                     DATAnorm=FALSE,
-                                     Method="hcpc",
-                                     Max.clust=4,
-                                     Plot.Cluster=TRUE,
-                                     path.result=NULL),
+    expect_error(MFUZZanalysis(SEresNorm=resDATAnormMus2,
+                               DATAnorm=FALSE,
+                               DataNumberCluster=NULL,
+                               Method="hcpc",
+                               Max.clust=100,
+                               Membership=0.5,
+                               Min.std=0.1,
+                               Plot.Mfuzz=TRUE,
+                               path.result=NULL,
+                               Name.folder.mfuzz=NULL),
                  "Samples must belong to different times points.",
                  fixed=TRUE)
 })

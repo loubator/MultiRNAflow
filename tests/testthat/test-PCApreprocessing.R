@@ -1,13 +1,34 @@
 test_that("Test PCApreprocessing", {
-    #
-    res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
-                                       Nb.Gene=10)
-    #
-    expect_error(PCApreprocessing(ExprData=res.sim.count$Sim.dat,
-                                  Column.gene=1,
-                                  Group.position=NULL,
-                                  Time.position=NULL,
-                                  Individual.position=3),
-                 "Samples must belong to at least one time or one group",
+    ##
+    ##------------------------------------------------------------------------#
+    ## data importation
+    data(RawCounts_Antoszewski2022_MOUSEsub500)
+    datamus2<-RawCounts_Antoszewski2022_MOUSEsub500
+
+    ## preprocessing
+    resDATAprepSEmus2 <- DATAprepSE(RawCounts=datamus2,
+                                    Column.gene=1,
+                                    Group.position=1,
+                                    Time.position=NULL,
+                                    Individual.position=2)
+
+    ## normalization
+    # resDATAnormMus2 <- DATAnormalization(SEres=resDATAprepSEmus2,
+    #                                      Normalization="rle",
+    #                                      Plot.Boxplot=TRUE,
+    #                                      Colored.By.Factors=TRUE)
+
+    ##------------------------------------------------------------------------#
+    Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
+                     "'DATAnormalization().'")
+
+    expect_error(PCApreprocessing(SEresNorm=datamus2,
+                                  DATAnorm=TRUE),
+                 Err_SE,
+                 fixed=TRUE)
+
+    expect_error(PCApreprocessing(SEresNorm=resDATAprepSEmus2,
+                                  DATAnorm=TRUE),
+                 Err_SE,
                  fixed=TRUE)
 })
