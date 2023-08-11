@@ -12,20 +12,26 @@ data(Results_DEanalysis_sub500)
 }
 \value{
 \code{Results_DEanalysis_sub500} contains the outputs of
-\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} of: RawCounts_Weger2021_MOUSEsub500,
-RawCounts_Leong2014_FISSIONsub500wt and RawCounts_Schleiss2021_CLLsub500
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} of:
+RawCounts_Weger2021_MOUSEsub500,
+RawCounts_Leong2014_FISSIONsub500wt and
+RawCounts_Schleiss2021_CLLsub500
 }
 \description{
 The list Results_DEanalysis_sub500 contains the results of
-\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} for each of the following raw counts :
-RawCounts_Weger2021_MOUSEsub500, RawCounts_Leong2014_FISSIONsub500wt and
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
+for each of the following raw counts :
+RawCounts_Weger2021_MOUSEsub500,
+RawCounts_Leong2014_FISSIONsub500wt and
 RawCounts_Schleiss2021_CLLsub500
 }
 \details{
 Each list in Results_DEanalysis_sub500 contains the outputs
-"Summary.Inputs", "DE.results" and "List.Glossary" of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
+"Summary.Inputs", "DE.results" and "List.Glossary" of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
 for each of the following raw counts :
-RawCounts_Weger2021_MOUSEsub500, RawCounts_Leong2014_FISSIONsub500wt and
+RawCounts_Weger2021_MOUSEsub500,
+RawCounts_Leong2014_FISSIONsub500wt and
 RawCounts_Schleiss2021_CLLsub500
 }
 \examples{

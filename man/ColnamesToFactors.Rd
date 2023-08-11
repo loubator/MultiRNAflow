@@ -24,8 +24,8 @@ The data.frame contains numeric values giving gene expressions of each gene
 in each sample.
 Gene expressions can be raw counts or normalized raw counts.
 Column names of the data.frame must describe each sample's information
-(individual, biological condition and time) and have the structure described
-in the section \code{Details}.}
+(individual, biological condition and time) and
+have the structure described in the section \code{Details}.}
 
 \item{Column.gene}{Integer indicating the column where gene names are given.
 Set \code{Column.gene=NULL} if there is no such column.}
@@ -45,8 +45,9 @@ information in the string of character in each sample name.}
 the individual (e.g patient, replicate, mouse, yeasts culture ...)
 in the string of characters in each sample names (see \code{Details}).
 The names of different individuals must be all different.
-Furthermore, if individual names are just numbers, they will be transform in
-a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
+Furthermore, if individual names are just numbers, they will be transform
+in a vector of class "character" by
+\code{\link[=CharacterNumbers]{CharacterNumbers()}} and
 a "r" will be added to each individual name ("r" for replicate).}
 }
 \value{
@@ -90,18 +91,22 @@ so \code{Individual.position=4},
 }
 \examples{
 ## Data simulated with our function RawCountsSimulation()
-Data.sim<-RawCountsSimulation(Nb.Group=3, Nb.Time=2, Nb.per.GT=3,
-                              Nb.Gene=10)
+Data.sim <- RawCountsSimulation(Nb.Group=3, Nb.Time=2, Nb.per.GT=3,
+                                Nb.Gene=10)
 ##-------------------------------------------------------------------------#
-res.test.colnames=ColnamesToFactors(ExprData=Data.sim$Sim.dat,
-                                    Column.gene=1,
-                                    Group.position=1,
-                                    Time.position=2,
-                                    Individual.position=3)
+res.test.colnames <- ColnamesToFactors(ExprData=Data.sim$Sim.dat,
+                                       Column.gene=1,
+                                       Group.position=1,
+                                       Time.position=2,
+                                       Individual.position=3)
 print(res.test.colnames)
 }
 \seealso{
-The \code{\link[=ColnamesToFactors]{ColnamesToFactors()}} function is used by the following
-functions of our package : \code{\link[=DEanalysisPreprocessing]{DEanalysisPreprocessing()}},
-\code{\link[=PCApreprocessing]{PCApreprocessing()}}, \code{\link[=MFUZZclustersNumber]{MFUZZclustersNumber()}} and \code{\link[=MFUZZanalysis]{MFUZZanalysis()}}.
+The \code{\link[=ColnamesToFactors]{ColnamesToFactors()}} function
+is used by the following
+functions of our package :
+\code{\link[=DATAprepSE]{DATAprepSE()}},
+\code{\link[=PCApreprocessing]{PCApreprocessing()}},
+\code{\link[=MFUZZclustersNumber]{MFUZZclustersNumber()}} and
+\code{\link[=MFUZZanalysis]{MFUZZanalysis()}}.
 }

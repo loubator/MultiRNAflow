@@ -24,8 +24,8 @@ If \code{TRUE}, the function realizes an enrichment analysis.
 If \code{FALSE}, the function returns a message indicating that
 the user must have an internet connection.}
 
-\item{Res.DE.analysis}{A list corresponding to the output
-of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.}
+\item{Res.DE.analysis}{A list corresponding to the output of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.}
 
 \item{ColumnsCriteria}{A vector of integers where each integer indicates
 a column of \code{Res.DE.analysis$DE.results} to be selected for
@@ -36,9 +36,9 @@ from \code{Res.DE.analysis$DE.results} will be those with >0 values
 
 \item{ColumnsLog2ordered}{\code{NULL} or a vector of integers.
 If \code{ColumnsLog2ordered} is a vector of integers, it corresponds to
-the columns number of \code{Res.DE.analysis$DE.results},
-the output of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}, which must contains \eqn{log_2}
-fold change values (see \code{Details}).}
+the columns number of \code{Res.DE.analysis$DE.results}, the output of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}},
+which must contains \eqn{log_2} fold change values (see \code{Details}).}
 
 \item{Set.Operation}{A character. The user must choose between "union"
 (default), "intersect", "setdiff" (see \code{Details}).}
@@ -72,9 +72,11 @@ Otherwise no graph will be plotted.}
 \item{Save.plots}{\code{TRUE} or \code{FALSE} or a Character.
 If \code{Save.plots=TRUE} and the output \code{path.result} of
 \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} is not \code{NULL}, all files will be saved in
-"2_SupervisedAnalysis_\code{Name.folder.DE}/2-5_Enrichment_analysis_\code{Name.folder.DE}/
+"2_SupervisedAnalysis_\code{Name.folder.DE}/
+2-5_Enrichment_analysis_\code{Name.folder.DE}/
 2-5-1_gprofiler2_results_\code{Name.folder.DE}", with \code{Name.folder.DE}
-an input of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
+an input of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 If \code{Save.plots} is a character, it must be a path and all files
 will be saved in the sub-folder "gprofiler2_results_\code{Name.folder.DE}".
 Otherwise, the different files will not be saved.}
@@ -82,14 +84,15 @@ Otherwise, the different files will not be saved.}
 \value{
 The function returns
 \itemize{
-\item a data.frame which contains the outputs of \code{\link[gprofiler2:gost]{gprofiler2::gost()}}
+\item a data.frame which contains the outputs of
+\code{\link[gprofiler2:gost]{gprofiler2::gost()}}
 \item a Manhattan plot showing all GO names according to their pvalue.
 \item A lollipop graph showing the \code{MaxNumberGO} most important GO.
 }
 }
 \description{
-The function realizes,
-from the outputs of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}},
+The function realizes, from the outputs of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}},
 an enrichment analysis (GSEA) of a subset of genes with
 the R package \code{gprofiler2}.
 }
@@ -102,8 +105,9 @@ values) before the enrichment analysis.
 The enrichment analysis will take into account the genes order as
 the first genes will be considered to have the highest biological importance
 and the last genes the lowest.
-See the input \code{ordered_query} of \code{\link[gprofiler2:gost]{gprofiler2::gost()}} and the vignette
-of \code{gprofiler2} for more details.
+See the input \code{ordered_query} of
+\code{\link[gprofiler2:gost]{gprofiler2::gost()}}
+and the vignette of \code{gprofiler2} for more details.
 \itemize{
 \item If \code{Set.Operation="union"} then the rows (so genes) extracted from
 \code{Res.DE.analysis$DE.results} are those such that the sum of

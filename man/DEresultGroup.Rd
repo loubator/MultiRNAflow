@@ -13,17 +13,19 @@ DEresultGroup(
 )
 }
 \arguments{
-\item{DESeq.result}{Output from the function \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}.}
+\item{DESeq.result}{Output from the function
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}.}
 
 \item{LRT.supp.info}{\code{TRUE} or \code{FALSE}.
 If \code{TRUE}, the algorithm realizes another statistical test in order to
 detect if, among all biological conditions and/or times, at least one has
-a different behavior than the others (see the input \code{test}
-in \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}).}
+a different behavior than the others (see the input \code{test} in
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}).}
 
 \item{pval.min}{Numeric value between 0 and 1. A gene will be considered as
 differentially expressed (DE) between two biological conditions if
-its Benjamini-Hochberg adjusted p-value (see \code{\link[stats:p.adjust]{stats::p.adjust()}})
+its Benjamini-Hochberg adjusted p-value
+(see \code{\link[stats:p.adjust]{stats::p.adjust()}})
 is below the threshold \code{pval.min}. Default value is 0.05.}
 
 \item{log.FC.min}{Non negative numeric value.
@@ -82,25 +84,31 @@ A gene is categorized as 'Other', for a given biological condition BC1,
 if the gene is not specific to the biological condition BC1.
 The category 'Other' does not exist when there are only two
 biological conditions.
-The output \code{Contingence.per.group} will be the input of
-the function \code{\link[=DEplotBarplot]{DEplotBarplot()}}.
+The output \code{Contingence.per.group} will be the input of the function
+\code{\link[=DEplotBarplot]{DEplotBarplot()}}.
 }
 }
 \description{
 This function realizes the intermediary steps of the analysis
-of the function \code{\link[=DEanalysisGroup]{DEanalysisGroup()}}.
+of the function
+\code{\link[=DEanalysisGroup]{DEanalysisGroup()}}.
 }
 \examples{
+## Data
 data(RawCounts_Antoszewski2022_MOUSEsub500)
-# No time points. We take only two groups for the speed of the example
+## No time points. We take only two groups for the speed of the example
 RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
-DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_T1Wt,
-                                     Column.gene=1,
-                                     Group.position=1,
-                                     Time.position=NULL,
-                                     Individual.position=2)
-#
-dds.DE.G<-DESeq2::DESeq(DESeq2.info$DESeq2.obj)# ,test = "LRT",reduced=~1
+
+## Preprocessing step
+resDATAprepSEmus2<- DATAprepSE(RawCounts=RawCounts_T1Wt,
+                               Column.gene=1,
+                               Group.position=1,
+                               Time.position=NULL,
+                               Individual.position=2)
+
+##------------------------------------------------------------------------#
+dds.DE.G<-DESeq2::DESeq(resDATAprepSEmus2$DESeq2.obj)
+
 res.sum.G<-DEresultGroup(DESeq.result=dds.DE.G,
                          LRT.supp.info=FALSE,
                          log.FC.min=1,

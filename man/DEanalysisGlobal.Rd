@@ -5,11 +5,7 @@
 \title{Realization of the DE analysis (Main Function).}
 \usage{
 DEanalysisGlobal(
-  RawCounts,
-  Column.gene,
-  Group.position,
-  Time.position,
-  Individual.position,
+  SEres,
   pval.min = 0.05,
   pval.vect.t = NULL,
   log.FC.min = 1,
@@ -20,52 +16,22 @@ DEanalysisGlobal(
 )
 }
 \arguments{
-\item{RawCounts}{Data.frame with \eqn{N_g} rows and (\eqn{N_{s+k}}) columns,
-where \eqn{N_g} is the number of genes,
-\eqn{N_s} is the number of samples and
-\eqn{k=1} if a column is used to specify gene names, or \eqn{k=0} otherwise.
-If \eqn{k=1}, the position of the column containing gene names is given
-by \code{Column.gene}.
-The data.frame contains non negative integers giving gene expressions of
-each gene in each sample.
-Column names of the data.frame must describe each sample's information
-(individual, biological condition and time) and have the structure described
-in the section \code{Details}.}
-
-\item{Column.gene}{Integer indicating the column where gene names are given.
-Set \code{Column.gene=NULL} if there is no such column.}
-
-\item{Group.position}{Integer indicating the position of group information
-in the string of characters in each sample names (see \code{Details}).
-Set \code{Group.position=NULL} if there is only one or
-no biological information in the string of character in each sample name.}
-
-\item{Time.position}{Integer indicating the position of time measurement
-information in the string of characters in each sample names
-(see \code{Details}).
-Set \code{Time.position=NULL} if there is only one or no time measurement
-information in the string of character in each sample name.}
-
-\item{Individual.position}{Integer indicating the position of the name of
-the individual (e.g patient, replicate, mouse, yeasts culture ...)
-in the string of characters in each sample names (see \code{Details}).
-The names of different individuals must be all different.
-Furthermore, if individual names are just numbers, they will be transform in
-a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
-a "r" will be added to each individual name ("r" for replicate).}
+\item{SEres}{Results of the function
+\code{\link[=DATAprepSE]{DATAprepSE()}}.}
 
 \item{pval.min}{Numeric value between 0 and 1. A gene will be considered as
 differentially expressed (DE) between two biological conditions if
-its Benjamini-Hochberg adjusted p-value (see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below
-the threshold \code{pval.min}. Default value is 0.05.}
+its Benjamini-Hochberg adjusted p-value
+(see \code{\link[stats:p.adjust]{stats::p.adjust()}})
+is below the threshold \code{pval.min}. Default value is 0.05.}
 
 \item{pval.vect.t}{\code{NULL} or vector of dimension \eqn{T-1} filled with
 numeric values between 0 and 1, with \eqn{T} the number of
 time measurements.
 A gene will be considered as differentially expressed (DE) between
 the time ti and the reference time t0 if its Benjamini-Hochberg adjusted
-p-value (see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below the i-th threshold
-of \code{pval.vect.t}.
+p-value (see \code{\link[stats:p.adjust]{stats::p.adjust()}})
+is below the i-th threshold of \code{pval.vect.t}.
 If \code{NULL}, \code{pval.vect.t} will be vector of dimension \eqn{T-1}
 filled with \code{pval.min}.}
 
@@ -102,11 +68,14 @@ contain all results will be "DEanalysis_\code{Name.folder.DE}".
 Otherwise, the folder name will be "DEanalysis".}
 }
 \value{
-The function \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} returns first the raw counts and
-the rle normalized data automatically realized by \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}
-(output \code{List.Datas}). Then
+The function \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
+returns first the raw counts and
+the rle normalized data automatically realized by
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}
+(output \code{RLEdata}). Then
 \itemize{
-\item If samples belong to different biological conditions, the function returns
+\item If samples belong to different biological conditions,
+the function returns
 \itemize{
 \item a data.frame (output \code{DE.results}) which contains
 \itemize{
@@ -123,7 +92,8 @@ A gene is called specific to a given biological condition BC1,
 if the gene is DE between BC1 and any other biological conditions,
 but not DE between any pair of other biological conditions.
 \item \eqn{N_{bc}} columns filled with -1, 0 and 1, one per biological
-condition. A '1' in one of these columns means the gene is up-regulated
+condition.
+A '1' in one of these columns means the gene is up-regulated
 (or over-expressed) for the biological condition associated to the
 given column.
 A gene is called up-regulated for a given biological condition BC1 if
@@ -145,7 +115,8 @@ We consider that a set of pairs of biological conditions forms an
 intersection if there is at least one gene which is DE for each of these
 pairs of biological conditions, but not for the others.
 \item a barplot which gives the number of genes categorized as "Upregulated"
-and "DownRugulated", per biological condition (see \code{\link[=DEplotBarplot]{DEplotBarplot()}}).
+and "DownRugulated", per biological condition
+(see \code{\link[=DEplotBarplot]{DEplotBarplot()}}).
 \item a barplot which gives the number of genes categorized as "Upregulated",
 "DownRugulated" and "Other", per biological condition
 (see \code{\link[=DEplotBarplot]{DEplotBarplot()}}).
@@ -157,7 +128,8 @@ the category "Other".
 \item a list (output \code{List.Glossary}) containing the glossary of
 the column names of \code{DE.results}.
 \item a list (output \code{Summary.Inputs}) containing a summary of sample
-information and inputs of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
+information and inputs of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
 \item If data belong to different time points only, the function returns
 \itemize{
@@ -175,7 +147,8 @@ is DE between ti and the reference time t0.
 \item an alluvial graph of differentially expressed (DE) genes
 (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}})
 \item a graph showing the number of DE genes as a function of time for
-each temporal group (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}).
+each temporal group
+(see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}).
 By temporal group, we mean the sets of genes which are first DE at
 the same time.
 \item a barplot which gives the number of DE genes per time
@@ -190,7 +163,8 @@ expressed in a given temporal pattern.
 \item a list (output \code{List.Glossary}) containing the glossary of
 the column names of \code{DE.results}.
 \item a list (output \code{Summary.Inputs}) containing a summary of sample
-information and inputs of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
+information and inputs of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
 \item If data belong to different time points and different biological
 conditions, the function returns
@@ -269,8 +243,10 @@ biological condition associated to the given column. 0 otherwise.
 \itemize{
 \item a barplot which gives the number of DE genes between ti and the
 reference time t0, for each time ti (except the reference time t0) and
-biological condition (see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
-\item \eqn{N_{bc}} alluvial graphs of DE genes (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}),
+biological condition
+(see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
+\item \eqn{N_{bc}} alluvial graphs of DE genes
+(see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}),
 one per biological condition.
 \item \eqn{N_{bc}} graphs showing the number of DE genes as a function of
 time for each temporal group, one per biological condition.
@@ -279,7 +255,8 @@ same time.
 \item \eqn{2\times N_{bc}} UpSet plot showing the number of DE genes
 belonging to each DE temporal pattern, for each biological condition.
 By temporal pattern, we mean the set of times ti such that the gene is
-DE between ti and the reference time t0 (see \code{\link[=DEplotVennBarplotTime]{DEplotVennBarplotTime()}}).
+DE between ti and the reference time t0
+(see \code{\link[=DEplotVennBarplotTime]{DEplotVennBarplotTime()}}).
 \item an alluvial graph for DE genes which are DE at least one time for
 each group.
 }
@@ -287,10 +264,12 @@ each group.
 condition
 \itemize{
 \item a barplot which gives the number of specific DE genes for each
-biological condition and time (see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
+biological condition and time
+(see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
 \item \eqn{N_{bc}(N_{bc}-1)/2} UpSet plot which give the number of genes
 for each possible intersection (set of pairs of biological conditions),
-one per time (see \code{\link[=DEplotVennBarplotGroup]{DEplotVennBarplotGroup()}}).
+one per time
+(see \code{\link[=DEplotVennBarplotGroup]{DEplotVennBarplotGroup()}}).
 \item an alluvial graph of genes which are specific at least one time
 (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}).
 }
@@ -298,7 +277,8 @@ one per time (see \code{\link[=DEplotVennBarplotGroup]{DEplotVennBarplotGroup()}
 statistical analysis
 \itemize{
 \item a barplot which gives the number of signature genes for each
-biological condition and time (see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
+biological condition and time
+(see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
 \item a barplot showing the number of genes which are DE at at least one
 time, specific at at least one time and signature at at least one time,
 for each biological condition.
@@ -316,48 +296,28 @@ or samples belonging to different time measurements
 and different biological conditions.
 }
 \details{
-The column names of \code{ExprData} must be a vector of strings
-of characters containing
-\itemize{
-\item a string of characters (if \eqn{k=1}) which is the label of the column
-containing gene names.
-\item \eqn{N_s} sample names which must be strings of characters
-containing at least :
-the name of the individual (e.g patient, mouse, yeasts culture),
-its biological condition (if there is at least two) and
-the time where data have been collected if there is at least two;
-(must be either 't0', 'T0' or '0' for time 0,
-'t1', 'T1' or '1' for time 1, ...).
-}
-
-All these sample information must be separated by underscores
-in the sample name. For instance 'CLL_P_t0_r1',
-corresponds to the patient 'r1' belonging to the biological condition 'P'
-and where data were collected at time 't0'.
-I this example, 'CLL' describe the type of cells
-(here chronic lymphocytic leukemia) and is not used in our analysis.
-
-In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore,
-so \code{Individual.position=4},
-'P' is localized after the first underscore, so \code{Group.position=2} and
-'t0' is localized after the second underscore, so \code{Time.position=3}.
+All results are built from the results of the function
+\code{\link[=DATAprepSE]{DATAprepSE()}}.
 }
 \examples{
 data(RawCounts_Antoszewski2022_MOUSEsub500)
-# No time points. We take only two groups for the speed of the example
-RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
-#
-res.all=DEanalysisGlobal(RawCounts=RawCounts_T1Wt,
-                         Column.gene=1,
-                         Group.position=1,
-                         Time.position=NULL,
-                         Individual.position=2,
-                         pval.min=0.05,
-                         pval.vect.t=NULL,
-                         log.FC.min=1,
-                         LRT.supp.info=FALSE,
-                         Plot.DE.graph=TRUE,
-                         path.result=NULL,
-                         Name.folder.DE=NULL)
+## No time points. We take only two groups for the speed of the example
+RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
+##-------------------------------------------------------------------------#
+## Preprocessing
+resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
+                            Column.gene=1,
+                            Group.position=1,
+                            Time.position=NULL,
+                            Individual.position=2)
+##-------------------------------------------------------------------------#
+##
+resDE <- DEanalysisGlobal(SEres=resDATAprepSE,
+                          pval.min=0.05,
+                          pval.vect.t=NULL,
+                          log.FC.min=1,
+                          LRT.supp.info=FALSE,
+                          Plot.DE.graph=TRUE,
+                          path.result=NULL,
+                          Name.folder.DE=NULL)
 }

@@ -6,11 +6,8 @@
 the Mfuzz analysis}
 \usage{
 MFUZZclustersNumber(
-  ExprData,
-  Column.gene,
-  Group.position,
-  Time.position,
-  Individual.position,
+  SEresNorm,
+  DATAnorm = TRUE,
   Method = "hcpc",
   Max.clust,
   Min.std = 0.1,
@@ -19,40 +16,12 @@ MFUZZclustersNumber(
 )
 }
 \arguments{
-\item{ExprData}{Data.frame with \eqn{N_g} rows and (\eqn{N_{s+k}}) columns,
-where \eqn{N_g} is the number of genes,
-\eqn{N_s} is the number of samples and
-\eqn{k=1} if a column is used to specify gene names, or \eqn{k=0} otherwise.
-If \eqn{k=1}, the position of the column containing gene names is given
-by \code{Column.gene}.
-The data.frame contains numeric values giving gene expressions of each gene
-in each sample.
-Gene expressions can be raw counts or normalized raw counts.
-Column names of the data.frame must describe each sample's information
-(individual, biological condition and time) and have the structure described
-in the section \code{Details}.}
+\item{SEresNorm}{Results of the function
+\code{\link[=DATAnormalization]{DATAnormalization()}}.}
 
-\item{Column.gene}{Integer indicating the column where gene names are given.
-Set \code{Column.gene=NULL} if there is no such column.}
-
-\item{Group.position}{Integer indicating the position of group information
-in the string of characters in each sample names (see \code{Details}).
-Set \code{Group.position=NULL} if there is only one or no biological
-information in the string of character in each sample name.}
-
-\item{Time.position}{Integer indicating the position of time measurement
-information in the string of characters in each sample names
-(see \code{Details}).
-Set \code{Time.position=NULL} if there is only one or no time measurement
-information in the string of character in each sample name.}
-
-\item{Individual.position}{Integer indicating the position of the name
-of the individual (e.g patient, replicate, mouse, yeasts culture ...)
-in the string of characters in each sample names (see \code{Details}).
-The names of different individuals must be all different.
-Furthermore, if individual names are just numbers, they will be transform in
-a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
-a "r" will be added to each individual name ("r" for replicate).}
+\item{DATAnorm}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+\code{TRUE} means the function uses the normalized data.
+\code{FALSE} means the function uses the raw counts data.}
 
 \item{Method}{"kmeans" or "hcpc". The method used for selecting the number
 of cluster to be used for the temporal cluster analysis (see \code{Details}).
@@ -78,32 +47,37 @@ The function returns
 \itemize{
 \item the optimal number of clusters for each biological condition
 (between 2 and \code{Max.clust}).
-\item a data.frame with (\eqn{N_{bc}+1}) columns and \code{Max.clust} rows with
-\eqn{N_{bc}} the number of biological conditions.
+\item a data.frame with (\eqn{N_{bc}+1}) columns and \code{Max.clust} rows
+with \eqn{N_{bc}} the number of biological conditions.
 \itemize{
-\item If \code{Method="kmeans"}, the ith rows and the jth column correspond to
-the within-cluster intertia (see \code{tot.withinss} from
-\code{\link[stats:kmeans]{stats::kmeans()}}) dividing by the sum of the variance of each row of
-\code{ExprData} of the (j-1)th biological condition computed by
-\code{\link[stats:kmeans]{stats::kmeans()}} with i clusters.
-When there is only one cluster, the within-cluster intertia corresponds
-to the sum of the variance of each row of \code{ExprData}
-(see \code{Details}).
-The first column contains integers between 1 and \code{Max.clust} which
-corresponds to the number of clusters selected for the \code{\link[stats:kmeans]{stats::kmeans()}}
+\item If \code{Method="kmeans"}, the ith rows and the jth column correspond
+to the within-cluster intertia (see \code{tot.withinss} from
+\code{\link[stats:kmeans]{stats::kmeans()}})
+dividing by the sum of the variance of each row of \code{ExprData}
+of the (j-1)th biological condition computed by
+\code{\link[stats:kmeans]{stats::kmeans()}}
+with i clusters.
+When there is only one cluster, the within-cluster intertia
+corresponds to the sum of the variance of each row of
+\code{ExprData} (see \code{Details}).
+The first column contains integers between 1 and \code{Max.clust}
+which corresponds to the number of clusters selected for the
+\code{\link[stats:kmeans]{stats::kmeans()}}
 analysis.
 \item If \code{Method="hcpc"}, the jth column correspond to the clustering
-heights (see the output \code{height} from \code{\link[FactoMineR:HCPC]{FactoMineR::HCPC()}})
+heights (see the output \code{height} from
+\code{\link[FactoMineR:HCPC]{FactoMineR::HCPC()}})
 dividing by the maximum value of \code{height}.
-The first column contains integers between 1 and \code{Max.clust} which
-corresponds to the number of clusters selected for the \code{\link[stats:kmeans]{stats::kmeans()}}
+The first column contains integers between 1 and \code{Max.clust}
+which corresponds to the number of clusters selected for the
+\code{\link[stats:kmeans]{stats::kmeans()}}
 analysis.
 }
 \item a plot which gives
 \itemize{
-\item If \code{Method="kmeans"}, the evolution of the weighted within-cluster
-intertia per number of clusters (from 1 to \code{Max.clust})
-for each biological condition.
+\item If \code{Method="kmeans"}, the evolution of the weighted
+within-cluster intertia per number of clusters
+(from 1 to \code{Max.clust}) for each biological condition.
 The optimal number of cluster for each biological condition
 will be colored in blue.
 \item If \code{Method="hcpc"}, the evolution of the scaled height per
@@ -115,45 +89,31 @@ colored in blue.
 }
 }
 \description{
-The function uses \code{\link[stats:kmeans]{stats::kmeans()}} or \code{\link[FactoMineR:HCPC]{FactoMineR::HCPC()}}
-in order to compute the number of cluster for the \code{\link[Mfuzz:mfuzz]{Mfuzz::mfuzz()}} analysis.
+The function uses
+\code{\link[stats:kmeans]{stats::kmeans()}} or
+\code{\link[FactoMineR:HCPC]{FactoMineR::HCPC()}}
+in order to compute the number of cluster for the
+\code{\link[Mfuzz:mfuzz]{Mfuzz::mfuzz()}} analysis.
 }
 \details{
-The column names of \code{ExprData} must be a vector of strings
-of characters containing
-\itemize{
-\item a string of characters (if \eqn{k=1}) which is the label of the column
-containing gene names.
-\item \eqn{N_s} sample names which must be strings of characters containing
-at least : the name of the individual (e.g patient, mouse, yeasts culture),
-its biological condition (if there is at least two) and
-the time where data have been collected if there is at least two;
-(must be either 't0', 'T0' or '0' for time 0,
-'t1', 'T1' or '1' for time 1, ...).
-}
-
-All these sample information must be separated by underscores
-in the sample name. For instance 'CLL_P_t0_r1',
-corresponds to the patient 'r1' belonging to the biological condition 'P'
-and where data were collected at time 't0'.
-I this example, 'CLL' describe the type of cells
-(here chronic lymphocytic leukemia) and is not used in our analysis.
-
-In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore, so \code{Individual.position=4},
-'P' is localized after the first underscore, so \code{Group.position=2} and
-'t0' is localized after the second underscore, so \code{Time.position=3}.
+All results are built from the results of our function
+\code{\link[=DATAnormalization]{DATAnormalization()}}.
 
 The \code{Mfuzz} package works with datasets where rows correspond to genes
 and columns correspond to times.
-If \code{ExprData} contains several replicates per time,
-the algorithm computes the mean of replicates for each gene
-before using \code{\link[Mfuzz:mfuzz]{Mfuzz::mfuzz()}}.
+If \code{RawCounts} (input of our function
+\code{\link[=DATAprepSE]{DATAprepSE()}})
+contains several replicates per time,
+the algorithm computes the mean of replicates for each gene before using
+\code{\link[Mfuzz:mfuzz]{Mfuzz::mfuzz()}}.
 When there are several biological conditions, the algorithm realizes
-the \code{\link[Mfuzz:mfuzz]{Mfuzz::mfuzz()}} analysis for each biological condition.
+the \code{\link[Mfuzz:mfuzz]{Mfuzz::mfuzz()}}
+analysis for each biological condition.
 
 The kmeans method or the hierarchical clustering method,
-respectively included in \code{\link[stats:kmeans]{stats::kmeans()}} and \code{\link[FactoMineR:HCPC]{FactoMineR::HCPC()}},
+respectively included in
+\code{\link[stats:kmeans]{stats::kmeans()}} and
+\code{\link[FactoMineR:HCPC]{FactoMineR::HCPC()}},
 is used in order to compute the optimal number of clusters.
 If there are several biological conditions, the algorithm computes
 one optimal number of clusters per biological condition.
@@ -161,36 +121,48 @@ one optimal number of clusters per biological condition.
 \examples{
 ## Data simulation
 set.seed(33)
-data.clust.sim<-matrix(rnorm(12*10*3, sd=0.2,
-                             mean=rep(c(rep(c(1,6,9,4,3,1,6.5,0.7,10),
-                                            times=2),
-                                        rep(c(2,3.6,3.7,5,7.9,8,7.5,3.5,3.4),
-                                        times=2)),
-                             each=10)),
+DATAclustSIM <- matrix(rnorm(12*10*3, sd=0.2,
+                             mean=rep(c(rep(c(1, 6, 9, 4, 3, 1,
+                                              6.5, 0.7, 10), times=2),
+                                        rep(c(2, 3.6, 3.7, 5, 7.9, 8,
+                                              7.5, 3.5, 3.4), times=2)),
+                                      each=10)),
                        nrow=30, ncol=12)
+DATAclustSIM <- floor(DATAclustSIM*100)
 ##
-colnames(data.clust.sim)<-c("G1_t0_r1","G1_t1_r1","G1_t2_r1",
-                            "G1_t0_r2","G1_t1_r2","G1_t2_r2",
-                            "G2_t0_r3","G2_t1_r3","G2_t2_r3",
-                            "G2_t0_r4","G2_t1_r4","G2_t2_r4")
+colnames(DATAclustSIM) <- c("G1_t0_r1", "G1_t1_r1", "G1_t2_r1",
+                            "G1_t0_r2", "G1_t1_r2", "G1_t2_r2",
+                            "G2_t0_r3", "G2_t1_r3", "G2_t2_r3",
+                            "G2_t0_r4", "G2_t1_r4", "G2_t2_r4")
 ##-------------------------------------------------------------------------#
 ## Plot the temporal expression of each individual
-graphics::matplot(t(rbind(data.clust.sim[,1:3], data.clust.sim[,4:6],
-                          data.clust.sim[,7:9], data.clust.sim[,10:12])),
-                  type=c("b"), pch=19, col=rep(c("black","red"), each=6*10),
-                  xlab="Time", ylab="Gene expression")
+graphics::matplot(t(rbind(DATAclustSIM[, 1:3], DATAclustSIM[, 4:6],
+                          DATAclustSIM[, 7:9], DATAclustSIM[, 10:12])),
+                  col=rep(c("black", "red"), each=6*10),
+                  xlab="Time", ylab="Gene expression", type=c("b"), pch=19)
 
 ##-------------------------------------------------------------------------#
-MFUZZclustersNumber(ExprData=data.clust.sim,
-                    Column.gene=NULL,
-                    Group.position=1,
-                    Time.position=2,
-                    Individual.position=3,
-                    Method="hcpc",
-                    Max.clust=5,
-                    Plot.Cluster=TRUE,
-                    path.result=NULL)
+## Preprocessing step
+resDATAprepSE <- DATAprepSE(RawCounts=DATAclustSIM,
+                            Column.gene=NULL,
+                            Group.position=1,
+                            Time.position=2,
+                            Individual.position=3)
+## Normalization
+resNorm <- DATAnormalization(SEres=resDATAprepSE,
+                             Normalization="rle",
+                             Plot.Boxplot=FALSE,
+                             Colored.By.Factors=FALSE)
+
+##-------------------------------------------------------------------------#
+resMFUZZcluster <- MFUZZclustersNumber(SEresNorm=resNorm,
+                                       DATAnorm=FALSE,
+                                       Method="hcpc",
+                                       Max.clust=5,
+                                       Plot.Cluster=TRUE,
+                                       path.result=NULL)
 }
 \seealso{
-The function is called by \code{\link[=MFUZZanalysis]{MFUZZanalysis()}}.
+The function is called by
+\code{\link[=MFUZZanalysis]{MFUZZanalysis()}}.
 }

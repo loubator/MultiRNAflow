@@ -17,7 +17,8 @@ DEplotHeatmaps(
 )
 }
 \arguments{
-\item{Res.DE.analysis}{A list. Output from \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.}
+\item{Res.DE.analysis}{A list. Output from
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.}
 
 \item{ColumnsCriteria}{A vector of integers where each integer indicates
 column of the output \code{DE.results} from \code{Res.DE.analysis}.
@@ -58,7 +59,8 @@ Otherwise no graph will be plotted.}
 
 \item{Save.plots}{TRUE or FALSE or a Character.
 If \code{Save.plots=FALSE}, the different files will not be saved.
-If \code{Save.plots=TRUE} and the \code{path.result} of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
+If \code{Save.plots=TRUE} and the \code{path.result} of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
 is not NULL, all files will be saved in
 "2_SupervisedAnalysis_\code{Name.folder.DE}/
 2-4_Supplementary_Plots_\code{Name.folder.DE}/Plots_Heatmaps".
@@ -73,8 +75,8 @@ and a correlation heatmap between samples.
 \description{
 The function returns two heatmaps:
 one heatmap of gene expressions between samples and selected genes and
-a correlation heatmap between samples
-from the output of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
+a correlation heatmap between samples from the output of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
 \details{
 \itemize{
@@ -94,8 +96,9 @@ at all time ti (except the reference time t0).
 those such that only one element of the selected columns in
 \code{Res.DE.analysis} is >0.
 For example, if \code{Res.DE.analysis} is the outputs from
-\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}, the rows extracted from \code{Data} will be those DE
-at only one time ti (except the reference time t0).
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}},
+the rows extracted from \code{Data} will be those DE at only one time ti
+(except the reference time t0).
 }
 
 The time in the first column of \code{Color.Time} must be either
@@ -128,6 +131,7 @@ resHeatmap<-DEplotHeatmaps(Res.DE.analysis=res.all,
 ##                           path.result=NULL, Name.folder.DE=NULL)
 }
 \seealso{
-The function calls the function \code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}
+The function calls the function
+\code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}
 in order to plot the Heatmaps.
 }

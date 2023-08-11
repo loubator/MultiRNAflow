@@ -5,88 +5,63 @@
 \title{Multiple 2D and 3D PCA graphs.}
 \usage{
 PCAgraphics(
-  ExprData,
-  Column.gene,
-  Group.position,
-  Time.position,
-  Individual.position,
-  gene.deletion,
-  sample.deletion,
+  SEresNorm,
+  DATAnorm = TRUE,
+  gene.deletion = NULL,
+  sample.deletion = NULL,
   Supp.del.sample = FALSE,
   Plot.PCA = TRUE,
   Mean.Accross.Time = FALSE,
   Color.Group = NULL,
   D3.mouvement = FALSE,
-  Phi,
-  Theta,
-  Cex.point,
-  Cex.label,
-  epsilon,
+  Phi = 25,
+  Theta = 140,
+  epsilon = 0.2,
+  Cex.point = 0.7,
+  Cex.label = 0.7,
   path.result = NULL,
   Name.file.pca = NULL
 )
 }
 \arguments{
-\item{ExprData}{Data.frame with \eqn{N_g} rows and (\eqn{N_{s+k}}) columns,
-where \eqn{N_g} is the number of genes,
-\eqn{N_s} is the number of samples and
-\eqn{k=1} if a column is used to specify gene names, or \eqn{k=0} otherwise.
-If \eqn{k=1}, the position of the column containing gene names is given
-by \code{Column.gene}.
-The data.frame contains numeric values giving gene expressions of each gene
-in each sample. Gene expressions can be raw counts or normalized raw counts.
-Column names of the data.frame must describe each sample's information
-(individual, biological condition and time) and have the structure described
-in the section \code{Details}.}
+\item{SEresNorm}{Results of the function
+\code{\link[=DATAnormalization]{DATAnormalization()}}.}
 
-\item{Column.gene}{Integer indicating the column where gene names are given.
-Set \code{Column.gene=NULL} if there is no such column.}
+\item{DATAnorm}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+\code{TRUE} means the function uses the normalized data.
+\code{FALSE} means the function uses the raw counts data.}
 
-\item{Group.position}{Integer indicating the position of group information
-in the string of characters in each sample names (see \code{Details}).
-Set \code{Group.position=NULL} if there is only one or no biological
-information in the string of character in each sample name.}
-
-\item{Time.position}{Integer indicating the position of time measurement
-information in the string of characters in each sample names
-(see \code{Details}).
-Set \code{Time.position=NULL} if there is only one or no time measurement
-information in the string of character in each sample name.}
-
-\item{Individual.position}{Integer indicating the position of the name of
-the individual (e.g patient, replicate, mouse, yeasts culture ...)
-in the string of characters in each sample names (see \code{Details}).
-The names of different individuals must be all different.
-Furthermore, if individual names are just numbers, they will be transform in
-a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
-a "r" will be added to each individual name ("r" for replicate).}
-
-\item{gene.deletion}{\code{NULL} or a vector of characters or
-a vector of integers. \code{NULL} as default.
+\item{gene.deletion}{\code{NULL} or a vector of characters or a vector of
+integers. \code{NULL} as default.
 If \code{gene.deletion} is a vector of characters, all genes with names in
-\code{gene.deletion} will be deleted from \code{ExprData}.
+\code{gene.deletion} will be deleted from the data set as input
+\code{RawCounts} of our function
+\code{\link[=DATAprepSE]{DATAprepSE()}}.
 If \code{gene.deletion} is a vector of integers,
-all the corresponding row numbers of \code{ExprData} will be deleted.
-If \code{gene.deletion=NULL} all genes of \code{ExprData} will be used in
-the construction of the PCA.}
+all the corresponding row numbers will be deleted from the data set as input
+\code{RawCounts} of our function
+\code{\link[=DATAprepSE]{DATAprepSE()}}.
+If \code{gene.deletion=NULL} all genes will be used in the construction
+of the PCA.}
 
 \item{sample.deletion}{\code{NULL} or a vector of characters or
 a vector of integers. \code{NULL} as default.
 If \code{sample.deletion} is a vector of characters, all samples with names
 in \code{sample.deletion} will not be used in the construction of the PCA.
 If \code{sample.deletion} is a vector of integers,
-all the corresponding column numbers of \code{ExprData} will not be used
-in the construction of the PCA.
-If \code{sample.deletion=NULL} all samples will be used in the construction
-of the PCA.}
+all the corresponding column numbers will not be used in the construction
+of the PCA from the data set as input \code{RawCounts} of our function
+\code{\link[=DATAprepSE]{DATAprepSE()}}.
+If \code{sample.deletion=NULL} all samples will be used
+in the construction of the PCA.}
 
-\item{Supp.del.sample}{\code{TRUE} or \code{FALSE}. \code{FALSE} as default.
-If \code{FALSE}, the samples selected with \code{sample.deletion}
-will be deleted.
-If \code{TRUE}, the samples selected with \code{sample.deletion}
-will be plotted.
-These individuals are called supplementary individuals
-in \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
+\item{Supp.del.sample}{\code{TRUE} or \code{FALSE}.
+If \code{FALSE}, the samples selected with \code{sample.deletion} will
+be deleted.
+If \code{TRUE}, the samples selected with \code{sample.deletion} will
+be plotted.
+These individuals are called supplementary individuals in
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 
 \item{Plot.PCA}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
 If \code{TRUE}, PCA graphs will be plotted.
@@ -94,9 +69,10 @@ Otherwise no graph will be plotted.}
 
 \item{Mean.Accross.Time}{\code{TRUE} or \code{FALSE}.
 \code{FALSE} as default.
-If \code{FALSE} and if \code{Time.position} is not set as \code{NULL},
-consecutive time points within a sample are linked to help visualization of
-temporal patterns.
+If \code{FALSE} and if \code{Time.position}
+(input of \code{\link[=DATAprepSE]{DATAprepSE()}})
+is not set as \code{NULL}, consecutive time points within a sample
+are linked to help visualization of temporal patterns.
 If \code{TRUE} and if \code{Time.position} is not set as \code{NULL},
 the mean per time of all genes is computed for each biological condition and
 the means of consecutive time points within biological condition are
@@ -104,7 +80,9 @@ linked to help visualization of temporal patterns.}
 
 \item{Color.Group}{\code{NULL} or a data.frame with \eqn{N_{bc}} rows and
 two columns where \eqn{N_{bc}} is the number of biological conditions.
-If \code{Color.Group} is a data.frame, the first column must contain
+If \code{Color.Group}
+(input of \code{\link[=DATAprepSE]{DATAprepSE()}})
+is a data.frame, the first column must contain
 the name of each biological condition and the second column must contain
 the colors associated to each biological condition.
 If \code{Color.Group=NULL}, the function will automatically attribute
@@ -114,24 +92,29 @@ If samples belong to different time points only,
 
 \item{D3.mouvement}{\code{TRUE} or \code{FALSE}.
 If TRUE, the 3D PCA plots will also be plotted in a rgl window
-(see \code{\link[plot3Drgl:plotrgl]{plot3Drgl::plotrgl()}}) allowing to interactively rotate and zoom.}
+(see \code{\link[plot3Drgl:plotrgl]{plot3Drgl::plotrgl()}})
+allowing to interactively rotate and zoom.}
 
 \item{Phi}{Angle defining the colatitude direction for the 3D PCA plot
-(see \code{Details} in \code{\link[graphics:persp]{graphics::persp()}}).}
+(see \code{Details} in
+\code{\link[graphics:persp]{graphics::persp()}}).}
 
 \item{Theta}{Angle defining the azimuthal direction for the 3D PCA plot
-(see \code{Details} in \code{\link[graphics:persp]{graphics::persp()}}).}
-
-\item{Cex.point}{Non negative numeric value giving the size of points
-in all PCA plots which are not automatically plotted by \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
-
-\item{Cex.label}{Non negative numeric value giving the size of
-the labels associated to each point of the all PCA graphs
-which are not automatically plotted by \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
+(see \code{Details} in
+\code{\link[graphics:persp]{graphics::persp()}}).}
 
 \item{epsilon}{Non negative numeric value giving the length between points
 and their labels in all PCA plots which are not automatically plotted
 by \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
+
+\item{Cex.point}{Non negative numeric value giving the size of points
+in all PCA plots which are not automatically plotted by
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
+
+\item{Cex.label}{Non negative numeric value giving the size of
+the labels associated to each point of the all PCA graphs
+which are not automatically plotted by
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 
 \item{path.result}{Character or \code{NULL}.
 Path to save the different PCA graphs.
@@ -144,15 +127,17 @@ at the beginning of all names of the saved graphs.}
 }
 \value{
 The function returns the outputs from the function
-\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}} and several 2D and 3D PCA graphs depending
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}
+and several 2D and 3D PCA graphs depending
 on the experimental design (if \code{Plot.PCA=TRUE})
 \itemize{
 \item When samples belong only to different biological conditions,
 the function returns a 2D and two 3D PCA graphs.
 In each graph, samples are colored with different colors for different
 biological conditions. The two 3D PCA graphs are identical but
-one of them will be opened in a rgl window (see \code{\link[plot3Drgl:plotrgl]{plot3Drgl::plotrgl()}}) and
-it allows to interactively rotate and zoom.
+one of them will be opened in a rgl window
+(see \code{\link[plot3Drgl:plotrgl]{plot3Drgl::plotrgl()}})
+and it allows to interactively rotate and zoom.
 \item When samples belong only to different time points, the function returns
 \itemize{
 \item One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph
@@ -190,59 +175,49 @@ The interactive 3D graphs will be plotted only if \code{D3.mouvement=TRUE}.
 }
 \description{
 The function plots 2D and 3D PCA using the function
-\code{\link[=PCArealization]{PCArealization()}} which realizes a PCA analysis.
-This function is called repeatedly by the function \code{\link[=PCAanalysis]{PCAanalysis()}}
+\code{\link[=PCArealization]{PCArealization()}}
+which realizes a PCA analysis. This function is called repeatedly by the
+function \code{\link[=PCAanalysis]{PCAanalysis()}}
 if samples belong to different biological conditions and time points.
 }
 \details{
-The column names of \code{ExprData} must be a vector of strings
-of characters containing
-\itemize{
-\item a string of characters (if \eqn{k=1}) which is the label of the column
-containing gene names.
-\item \eqn{N_s} sample names which must be strings of characters containing
-at least : the name of the individual (e.g patient, mouse, yeasts culture),
-its biological condition (if there is at least two) and
-the time where data have been collected if there is at least two;
-(must be either 't0', 'T0' or '0' for time 0,
-'t1', 'T1' or '1' for time 1, ...).
-}
-
-All these sample information must be separated by underscores
-in the sample name. For instance 'CLL_P_t0_r1',
-corresponds to the patient 'r1' belonging to the biological condition 'P'
-and where data were collected at time 't0'.
-I this example, 'CLL' describe the type of cells
-(here chronic lymphocytic leukemia) and is not used in our analysis.
-
-In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore,
-so \code{Individual.position=4},
-'P' is localized after the first underscore, so \code{Group.position=2} and
-'t0' is localized after the second underscore, so \code{Time.position=3}.
+All results are built from the results of our function
+\code{\link[=DATAnormalization]{DATAnormalization()}}.
 }
 \examples{
-res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=2,
-                                   Nb.Gene=20)
-#
-data.color.group=data.frame(Name=c("G1", "G2"), Col=c("black", "red"))
+## Simulation raw counts
+resSIMcount <- RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
+                                   Nb.Gene=10)
+## Preprocessing step
+resDATAprepSE <- DATAprepSE(RawCounts=resSIMcount$Sim.dat,
+                            Column.gene=1,
+                            Group.position=1,
+                            Time.position=2,
+                            Individual.position=3)
+## Normalization
+resNorm <- DATAnormalization(SEres=resDATAprepSE,
+                             Normalization="rle",
+                             Plot.Boxplot=FALSE,
+                             Colored.By.Factors=FALSE)
+## Color for each group
+GROUPcolor <- data.frame(Name=c("G1", "G2"), Col=c("black", "red"))
 ##-------------------------------------------------------------------------#
-PCAgraphics(ExprData=res.sim.count$Sim.dat,
-            Column.gene=1,
-            Group.position=1,
-            Time.position=2,
-            Individual.position=3,
-            gene.deletion=c("Gene1", "Gene5"),
-            sample.deletion=c(2,6),
-            Supp.del.sample=FALSE,
-            Plot.PCA=TRUE,
-            Mean.Accross.Time=FALSE,
-            Color.Group=data.color.group,
-            D3.mouvement=FALSE,
-            Phi=25, Theta=140, Cex.label=0.7, Cex.point=0.7, epsilon=0.2,
-            path.result=NULL,
-            Name.file.pca=NULL)
+resPCAgraph <- PCAgraphics(SEresNorm=resNorm,
+                           DATAnorm=TRUE,
+                           gene.deletion=c("Gene1", "Gene5"),
+                           sample.deletion=c(2,6),
+                           Supp.del.sample=FALSE,
+                           Plot.PCA=TRUE,
+                           Mean.Accross.Time=FALSE,
+                           Color.Group=GROUPcolor,
+                           D3.mouvement=FALSE,
+                           Phi=25, Theta=140, Cex.label=0.7,
+                           Cex.point=0.7, epsilon=0.2,
+                           path.result=NULL, Name.file.pca=NULL)
 }
 \seealso{
-This function is called by the function \code{\link[=PCAanalysis]{PCAanalysis()}}.
+This function is called by our function
+\code{\link[=PCAanalysis]{PCAanalysis()}}
+and calls our function
+\code{\link[=PCArealization]{PCArealization()}}.
 }

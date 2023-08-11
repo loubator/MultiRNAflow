@@ -13,18 +13,20 @@ DEresultGroupPerTime(
 )
 }
 \arguments{
-\item{DESeq.result}{Output from the function \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}.}
+\item{DESeq.result}{Output from the function
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}.}
 
 \item{LRT.supp.info}{\code{TRUE} or \code{FALSE}.
 If \code{TRUE}, the algorithm realizes another statistical test in order
 to detect if, among all biological conditions and/or times, at least one has
-a different behavior than the others
-(see the input \code{test} in \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}).}
+a different behavior than the others (see the input \code{test} in
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}).}
 
 \item{pval.min}{Numeric value between 0 and 1. A gene will be considered as
 differentially expressed (DE) between two biological conditions if its
-Benjamini-Hochberg adjusted p-value (see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below
-the threshold \code{pval.min}. Default value is 0.05.}
+Benjamini-Hochberg adjusted p-value
+(see \code{\link[stats:p.adjust]{stats::p.adjust()}})
+is below the threshold \code{pval.min}. Default value is 0.05.}
 
 \item{log.FC.min}{Non negative numeric value.
 If the log2 fold change between biological conditions or times has
@@ -44,9 +46,13 @@ of biological conditions for a fixed time ti
 \item DE specific genes per biological condition for a fixed time ti
 (except the reference time t0).
 }
-\item inputs for the functions : \code{\link[=DEplotBarplot]{DEplotBarplot()}}, \code{\link[=DEplotBarplotTime]{DEplotBarplotTime()}},
-\code{\link[=DEplotVennBarplotGroup]{DEplotVennBarplotGroup()}}, \code{\link[=DEplotVennBarplotTime]{DEplotVennBarplotTime()}},
-\code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}, \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}.
+\item inputs for the functions :
+\code{\link[=DEplotBarplot]{DEplotBarplot()}},
+\code{\link[=DEplotBarplotTime]{DEplotBarplotTime()}},
+\code{\link[=DEplotVennBarplotGroup]{DEplotVennBarplotGroup()}},
+\code{\link[=DEplotVennBarplotTime]{DEplotVennBarplotTime()}},
+\code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}},
+\code{\link[=DEplotAlluvial]{DEplotAlluvial()}}.
 }
 }
 \description{
@@ -55,17 +61,20 @@ of the function \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
 }
 \examples{
 data(RawCounts_Schleiss2021_CLLsub500)
-## We take only the first three time (both group)
-## for the speed of the example
+## We take only the first three times (both group) for the speed of
+## the example
 Index3t<-c(2:4,11:13,20:22, 29:31,38:40,47:49)
 RawCounts_P_NP_3t<-RawCounts_Schleiss2021_CLLsub500[,c(1,Index3t)]
-DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_P_NP_3t,
-                                     Column.gene=1,
-                                     Group.position=2,
-                                     Time.position=4,
-                                     Individual.position=3)
-##
-dds.DE <- DESeq2::DESeq(DESeq2.info$DESeq2.obj)
+
+## Preprocessing step
+resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_P_NP_3t,
+                                Column.gene=1,
+                                Group.position=2,
+                                Time.position=4,
+                                Individual.position=3)
+
+##------------------------------------------------------------------------#
+dds.DE <- DESeq2::DESeq(resDATAprepSEleuk$DESeq2.obj)
 ##
 res.G.T.2<-DEresultGroupPerTime(DESeq.result=dds.DE,
                                 LRT.supp.info=FALSE,

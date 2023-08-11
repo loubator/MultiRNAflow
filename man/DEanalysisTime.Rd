@@ -16,19 +16,22 @@ DEanalysisTime(
 )
 }
 \arguments{
-\item{DESeq.result}{Output from the function \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}.}
+\item{DESeq.result}{Output from the function
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}.}
 
 \item{pval.min}{Numeric value between 0 and 1. A gene will be considered as
 differentially expressed (DE) between two biological conditions if
-its Benjamini-Hochberg adjusted p-value (see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below
-the threshold pval.min. Default value is 0.05}
+its Benjamini-Hochberg adjusted p-value
+(see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below the threshold pval.min.
+Default value is 0.05}
 
 \item{pval.vect.t}{\code{NULL} or vector of dimension \eqn{T-1} filled with
 numeric values between 0 and 1, with \eqn{T} the number of time
 measurements.
 A gene will be considered as differentially expressed (DE) between the time
 ti and the reference time t0 if its Benjamini-Hochberg adjusted p-value
-(see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below the i-th threshold of \code{pval.vect.t}.
+(see \code{\link[stats:p.adjust]{stats::p.adjust()}})
+is below the i-th threshold of \code{pval.vect.t}.
 If NULL, \code{pval.vect.t} will be vector of dimension \eqn{T-1} filled
 with \code{pval.min}.}
 
@@ -75,13 +78,15 @@ DE between ti and the reference time t0.
 \item an alluvial graph of differentially expressed (DE) genes
 (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}})
 \item a graph showing the number of DE genes as a function of time for each
-temporal group (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}).
+temporal group
+(see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}).
 By temporal group, we mean the sets of genes which are first DE at
 the same time.
 \item a barplot which gives the number of DE genes per time
 (see \code{\link[=DEplotBarplotTime]{DEplotBarplotTime()}})
 \item an UpSet plot (Venn diagram displayed as a barplot) which gives the number
-of genes per temporal pattern (see \code{\link[=DEplotVennBarplotTime]{DEplotVennBarplotTime()}}).
+of genes per temporal pattern
+(see \code{\link[=DEplotVennBarplotTime]{DEplotVennBarplotTime()}}).
 By temporal pattern, we mean the set of times ti such that the gene is
 DE between ti and the reference time t0.
 \item a similar UpSet plot where each bar is split in different colors
@@ -90,20 +95,26 @@ expressed in a given temporal pattern.
 }
 }
 \description{
-The function realizes from the \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}} output
-the analysis of DE genes between each time versus the reference time t0.
+The function realizes from the
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}
+output the analysis of DE genes between each time versus
+the reference time t0.
 }
 \examples{
 data(RawCounts_Leong2014_FISSIONsub500wt)
 ## We take only the first three time for the speed of the example
 RawCounts_Fission_3t<-RawCounts_Leong2014_FISSIONsub500wt[,1:10]
-DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_Fission_3t,
-                                     Column.gene=1,
-                                     Group.position=NULL,
-                                     Time.position=2,
-                                     Individual.position=3)
-##
-dds.DE.T<-DESeq2::DESeq(DESeq2.info$DESeq2.obj,quiet=TRUE,betaPrior=FALSE)
+
+## Preprocessing step
+resDATAprepSEfission <- DATAprepSE(RawCounts=RawCounts_Fission_3t,
+                                   Column.gene=1,
+                                   Group.position=NULL,
+                                   Time.position=2,
+                                   Individual.position=3)
+
+##-------------------------------------------------------------------------#
+dds.DE.T<-DESeq2::DESeq(resDATAprepSEfission$DESeq2.obj,
+                        quiet=TRUE, betaPrior=FALSE)
 ##
 res.T<-DEanalysisTime(DESeq.result=dds.DE.T,
                       pval.min=0.05,

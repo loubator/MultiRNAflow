@@ -4,54 +4,16 @@
 \alias{DATAplotExpression1Gene}
 \title{Plot expression of one gene.}
 \usage{
-DATAplotExpression1Gene(
-  ExprData,
-  row.gene,
-  Column.gene,
-  Group.position,
-  Time.position,
-  Individual.position,
-  Color.Group = NULL
-)
+DATAplotExpression1Gene(SEres, row.gene = 1, Color.Group = NULL)
 }
 \arguments{
-\item{ExprData}{Data.frame with \eqn{N_g} rows and (\eqn{N_{s+k}}) columns,
-where \eqn{N_g} is the number of genes,
-\eqn{N_s} is the number of samples and
-\eqn{k=1} if a column is used to specify gene names, or \eqn{k=0} otherwise.
-If \eqn{k=1}, the position of the column containing gene names is given
-by \code{Column.gene}.
-The data.frame contains numeric values giving gene expressions of each gene
-in each sample.
-Gene expressions can be raw counts or normalized raw counts.
-Column names of the data.frame must describe each sample's information
-(individual, biological condition and time) and have the structure described
-in the section \code{Details}.}
+\item{SEres}{Results of either our R function
+\code{\link[=DATAprepSE]{DATAprepSE()}},
+either our R function
+\code{\link[=DATAnormalization]{DATAnormalization()}}.}
 
 \item{row.gene}{Non negative integer indicating the row of the gene
 to be plotted.}
-
-\item{Column.gene}{Integer indicating the column where gene names are given.
-Set \code{Column.gene=NULL} if there is no such column.}
-
-\item{Group.position}{Integer indicating the position of group information
-in the string of characters in each sample names (see \code{Details}).
-Set \code{Group.position=NULL} if there is only one or no biological
-information in the string of character in each sample name.}
-
-\item{Time.position}{Integer indicating the position of time measurement
-information in the string of characters in each sample names
-(see \code{Details}).
-Set \code{Time.position=NULL} if there is only one or no time measurement
-information in the string of character in each sample name.}
-
-\item{Individual.position}{Integer indicating the position of the name of
-the individual (e.g patient, replicate, mouse, yeasts culture ...)
-in the string of characters in each sample names (see \code{Details}).
-The names of different individuals must be all different.
-Furthermore, if individual names are just numbers, they will be transform
-in a vector of class "character" by \code{\link[=CharacterNumbers]{CharacterNumbers()}} and
-a "r" will be added to each individual name ("r" for replicate).}
 
 \item{Color.Group}{NULL or a data.frame with \eqn{N_{bc}} rows and
 two columns where \eqn{N_{bc}} is the number of biological conditions.
@@ -64,16 +26,18 @@ If samples belong to different time points only,
 \code{Color.Group} will not be used.}
 }
 \value{
-The function plots for each gene selected with
-the input \code{Vector.row.gene}
+The function plots for the gene selected with
+the input \code{row.gene}
 \itemize{
 \item In the case where samples belong to different time points only :
 the evolution of the expression of each replicate across time and
 the evolution of the mean and the standard deviation of
 the expression across time.
-\item In the case where samples belong to different biological conditions only :
-a violin plot (see \code{\link[ggplot2:geom_violin]{ggplot2::geom_violin()}}),
-and error bars (standard deviation) (see \code{\link[ggplot2:geom_linerange]{ggplot2::geom_errorbar()}})
+\item In the case where samples belong to different biological conditions only:
+a violin plot
+(see \code{\link[ggplot2:geom_violin]{ggplot2::geom_violin()}}),
+and error bars (standard deviation)
+(see \code{\link[ggplot2:geom_linerange]{ggplot2::geom_errorbar()}})
 for each biological condition.
 \item In the case where samples belong to different time points and
 different biological conditions : the evolution of the expression of
@@ -87,43 +51,29 @@ The function allows to plot the gene expression profile of
 one gene only according to time and/or biological conditions.
 }
 \details{
-The column names of \code{ExprData} must be a vector of strings
-of characters containing
-\itemize{
-\item a string of characters (if \eqn{k=1}) which is the label of the column
-containing gene names.
-\item \eqn{N_s} sample names which must be strings of characters containing
-at least : the name of the individual (e.g patient, mouse, yeasts culture),
-its biological condition (if there is at least two) and
-the time where data have been collected if there is at least two;
-(must be either 't0', 'T0' or '0' for time 0,
-'t1', 'T1' or '1' for time 1, ...).
-}
-
-All these sample information must be separated by underscores in
-the sample name. For instance 'CLL_P_t0_r1',
-corresponds to the patient 'r1' belonging to the biological condition 'P'
-and where data were collected at time 't0'. I this example, 'CLL' describe
-the type of cells (here chronic lymphocytic leukemia)
-and is not used in our analysis.
-
-In the string of characters 'CLL_P_t0_r1',
-'r1' is localized after the third underscore,
-so \code{Individual.position=4},
-'P' is localized after the first underscore, so \code{Group.position=2} and
-'t0' is localized after the second underscore, so \code{Time.position=3}.
+All results are built from either the results of our R function
+\code{\link[=DATAprepSE]{DATAprepSE()}}
+or the results of our R function
+\code{\link[=DATAnormalization]{DATAnormalization()}}.
 }
 \examples{
 ## Simulation raw counts
-res.sim.count<-RawCountsSimulation(Nb.Group=2,Nb.Time=3,Nb.per.GT=4,
+resSIMcount <- RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
                                    Nb.Gene=10)
-##
-Res.evo<-DATAplotExpression1Gene(ExprData=res.sim.count$Sim.dat,
-                                 row.gene=1,
-                                 Column.gene=1,
-                                 Group.position=1,
-                                 Time.position=2,
-                                 Individual.position=3,
-                                 Color.Group=NULL)
-print(Res.evo)
+## Preprocessing step
+resDATAprepSE <- DATAprepSE(RawCounts=resSIMcount$Sim.dat,
+                            Column.gene=1,
+                            Group.position=1,
+                            Time.position=2,
+                            Individual.position=3)
+##-------------------------------------------------------------------------#
+resEVO1gene <- DATAplotExpression1Gene(SEres=resDATAprepSE,
+                                       row.gene=1,
+                                       Color.Group=NULL)
+print(resEVO1gene)
+}
+\seealso{
+The \code{\link[=DATAplotExpression1Gene]{DATAplotExpression1Gene()}}
+function is used by the following function of our package:
+\code{\link[=DATAplotExpressionGenes]{DATAplotExpressionGenes()}}.
 }

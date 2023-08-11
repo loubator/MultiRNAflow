@@ -26,7 +26,7 @@ inspired from the model used in the \code{DESeq2} package.
 It is used in some examples of other functions.
 }
 \examples{
-RawCountsSimulation(Nb.Group=3,Nb.Time=5,Nb.per.GT=7,Nb.Gene=50)
-# RawCountsSimulation(Nb.Group=1,Nb.Time=5,Nb.per.GT=7,Nb.Gene=50)
-# RawCountsSimulation(Nb.Group=3,Nb.Time=1,Nb.per.GT=7,Nb.Gene=50)
+RawCountsSimulation(Nb.Group=3, Nb.Time=5, Nb.per.GT=7, Nb.Gene=50)
+## RawCountsSimulation(Nb.Group=1, Nb.Time=5, Nb.per.GT=7, Nb.Gene=50)
+## RawCountsSimulation(Nb.Group=3, Nb.Time=1, Nb.per.GT=7, Nb.Gene=50)
 }

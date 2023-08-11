@@ -30,5 +30,6 @@ CharacterNumbers(Vect.number=0:11)
 CharacterNumbers(Vect.number=1:8)
 }
 \seealso{
-The function is called by \code{\link[=ColnamesToFactors]{ColnamesToFactors()}}.
+The function is called by
+\code{\link[=ColnamesToFactors]{ColnamesToFactors()}}.
 }

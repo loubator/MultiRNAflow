@@ -13,7 +13,8 @@ DEplotVolcanoMA(
 )
 }
 \arguments{
-\item{Res.DE.analysis}{A list. Output from \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
+\item{Res.DE.analysis}{A list. Output from
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
 (see \code{Examples}).}
 
 \item{NbGene.plotted}{Non negative integer. The algorithm computes the sum
@@ -48,11 +49,13 @@ the sub folder created.}
 }
 \value{
 The function returns Volcano plots and MA plots
-from the results of our function \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
+from the results of our function
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
 \description{
 The function returns Volcano plots and MA plots from
-the results of our function \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
+the results of our function
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
 \details{
 \itemize{
@@ -98,5 +101,6 @@ resVolcanoMA<-DEplotVolcanoMA(res.all,
 ##                           path.result=NULL, Name.folder.DE=NULL)
 }
 \seealso{
-The function calls the output of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
+The function calls the output of
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
