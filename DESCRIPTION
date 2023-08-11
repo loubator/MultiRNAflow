@@ -1,46 +1,34 @@
 Package: MultiRNAflow
-Title: An R package for analysing RNA-seq raw counts with several biological conditions
-    and different time points
-Version: 0.99.7
+Title: An R package for analysing RNA-seq raw counts with several
+    biological conditions and different time points
+Version: 0.99.8
 Authors@R: c(
-    person("Rodolphe", "Loubaton",
-           email = "loubaton.rodolphe@gmail.com",
-           role = c("aut", "cre"),
+    person("Rodolphe", "Loubaton", , "loubaton.rodolphe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-1442-7270")),
-    person("Nicolas", "Champagnat",
-           email = "nicolas.champagnat@inria.fr",
-           role = c("aut", "ths"),
+    person("Nicolas", "Champagnat", , "nicolas.champagnat@inria.fr", role = c("aut", "ths"),
            comment = c(ORCID = "0000-0002-5128-2357")),
-    person("Laurent", "Vallat",
-           email = "laurent.vallat@inserm.fr",
-           role = c("aut", "ths"),
+    person("Laurent", "Vallat", , "laurent.vallat@inserm.fr", role = c("aut", "ths"),
            comment = c(ORCID = "0000-0002-5226-7706")),
-    person("Pierre", "Vallois",
-           email = "pierre.vallois@univ-lorraine.fr",
-           role = c("aut")),
-    person("Région Grand Est", role=c("fnd")),
-    person("Cancéropôle Est", role=c("fnd")))
-Description: Our R package MultiRNAflow provides an easy to use unified framework
-    allowing to automatically make both unsupervised and supervised (DE) analysis
-    for datasets with an arbitrary number of biological conditions and time points.
-    In particular, our code makes a deep downstream analysis of DE information,
-    e.g. identifying temporal patterns across biological conditions and DE genes
-    which are specific to a biological condition for each time.
+    person("Pierre", "Vallois", , "pierre.vallois@univ-lorraine.fr", role = "aut",
+           comment = c(ORCID = "0000-0002-2123-0142")),
+    person("Région Grand Est", role = "fnd"),
+    person("Cancéropôle Est", role = "fnd")
+  )
+Description: Our R package MultiRNAflow provides an easy to use unified
+    framework allowing to automatically make both unsupervised and
+    supervised (DE) analysis for datasets with an arbitrary number of
+    biological conditions and time points.  In particular, our code makes
+    a deep downstream analysis of DE information, e.g. identifying
+    temporal patterns across biological conditions and DE genes which are
+    specific to a biological condition for each time.
 License: GPL-3 | file LICENSE
-Encoding: UTF-8
-LazyData: false
 URL: https://github.com/loubator/MultiRNAflow
 BugReports: https://github.com/loubator/MultiRNAflow/issues
-biocViews: Sequencing, RNASeq, GeneExpression, Transcription,
-    TimeCourse, Preprocessing, Visualization,
-    Normalization, PrincipalComponent, Clustering,
-    DifferentialExpression, GeneSetEnrichment, Pathways
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
 Depends: 
     Mfuzz (>= 2.58.0),
     R (>= 4.3)
 Imports: 
+    Biobase (>= 2.54.0),
     ComplexHeatmap (>= 2.14.0),
     DESeq2 (>= 1.38.1),
     factoextra (>= 1.0.7),
@@ -59,18 +47,26 @@ Imports:
     plyr (>= 1.8.8),
     RColorBrewer (>= 1.1.3),
     reshape2 (>= 1.4.4),
+    S4Vectors (>= 0.36.2),
     scales (>= 1.2.1),
     stats (>= 4.2.2),
     SummarizedExperiment (>= 1.28.0),
     UpSetR (>= 1.4.0),
     utils (>= 4.2.2)
 Suggests: 
-    Biobase (>= 2.54.0),
     BiocGenerics (>= 0.40.0),
     BiocStyle,
     e1071 (>= 1.7.12),
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
-VignetteBuilder: knitr
+VignetteBuilder: 
+    knitr
+biocViews: Sequencing, RNASeq, GeneExpression, Transcription, TimeCourse,
+    Preprocessing, Visualization, Normalization, PrincipalComponent,
+    Clustering, DifferentialExpression, GeneSetEnrichment, Pathways
 Config/testthat/edition: 3
+Encoding: UTF-8
+LazyData: false
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
