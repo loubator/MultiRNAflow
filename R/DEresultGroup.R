@@ -2,12 +2,15 @@
 #' biological conditions
 #'
 #' @description This function realizes the intermediary steps of the analysis
-#' of the function [DEanalysisGroup()].
+#' of the function
+#' [DEanalysisGroup()].
 #'
-#' @param DESeq.result Output from the function [DESeq2::DESeq()].
+#' @param DESeq.result Output from the function
+#' [DESeq2::DESeq()].
 #' @param pval.min Numeric value between 0 and 1. A gene will be considered as
 #' differentially expressed (DE) between two biological conditions if
-#' its Benjamini-Hochberg adjusted p-value (see [stats::p.adjust()])
+#' its Benjamini-Hochberg adjusted p-value
+#' (see [stats::p.adjust()])
 #' is below the threshold \code{pval.min}. Default value is 0.05.
 #' @param log.FC.min Non negative numeric value.
 #' If the log2 fold change between biological conditions or times has
@@ -17,8 +20,8 @@
 #' @param LRT.supp.info \code{TRUE} or \code{FALSE}.
 #' If \code{TRUE}, the algorithm realizes another statistical test in order to
 #' detect if, among all biological conditions and/or times, at least one has
-#' a different behavior than the others (see the input \code{test}
-#' in [DESeq2::DESeq()]).
+#' a different behavior than the others (see the input \code{test} in
+#' [DESeq2::DESeq()]).
 #'
 #' @return The function returns
 #' * a data.frame (output \code{Results}) which contains
@@ -66,10 +69,11 @@
 #' if the gene is not specific to the biological condition BC1.
 #' The category 'Other' does not exist when there are only two
 #' biological conditions.
-#' The output \code{Contingence.per.group} will be the input of
-#' the function [DEplotBarplot()].
+#' The output \code{Contingence.per.group} will be the input of the function
+#' [DEplotBarplot()].
 #'
 #' @importFrom DESeq2 results
+#' @importFrom SummarizedExperiment colData
 #'
 #' @seealso The outputs of the function are used by the main function
 #' [DEanalysisGroup()].
@@ -77,16 +81,21 @@
 #' @export
 #'
 #' @examples
+#' ## Data
 #' data(RawCounts_Antoszewski2022_MOUSEsub500)
-#' # No time points. We take only two groups for the speed of the example
+#' ## No time points. We take only two groups for the speed of the example
 #' RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
-#' DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_T1Wt,
-#'                                      Column.gene=1,
-#'                                      Group.position=1,
-#'                                      Time.position=NULL,
-#'                                      Individual.position=2)
-#' #
-#' dds.DE.G<-DESeq2::DESeq(DESeq2.info$DESeq2.obj)# ,test = "LRT",reduced=~1
+#'
+#' ## Preprocessing step
+#' resDATAprepSEmus2<- DATAprepSE(RawCounts=RawCounts_T1Wt,
+#'                                Column.gene=1,
+#'                                Group.position=1,
+#'                                Time.position=NULL,
+#'                                Individual.position=2)
+#'
+#' ##------------------------------------------------------------------------#
+#' dds.DE.G<-DESeq2::DESeq(resDATAprepSEmus2$DESeq2.obj)
+#'
 #' res.sum.G<-DEresultGroup(DESeq.result=dds.DE.G,
 #'                          LRT.supp.info=FALSE,
 #'                          log.FC.min=1,
@@ -106,22 +115,19 @@ DEresultGroup<-function(DESeq.result,
     ##------------------------------------------------------------------------#
     ## 0)  Parameters
     ## Gene names and number of genes
-    ## DESeq2::results(DESeq.result)
-    ## Gene.Names<-row.names(SummarizedExperiment::assay(DESeq.result))
-    ## DESeq.result@rowRanges@partitioning@NAMES
-    res.dds<-dimnames(DESeq.result)[[1]]
+    geneNames<-dimnames(DESeq.result)[[1]] ## DESeq2::results(DESeq.result)
 
-    if(is.null(res.dds)){# is.null(row.names(res.dds))==TRUE)
-        Row.name.res<-paste0("Gene", seq_len(length(res.dds)))
-    }else{## 1:length(res.dds), nrow(res.dds)
-        Row.name.res<-res.dds#row.names(res.dds)
+    if(is.null(geneNames)){
+        Row.name.res<-paste0("Gene", seq_len(length(geneNames)))
+    }else{
+        Row.name.res<-geneNames
     }# if(is.null(row.names(res.dds.group))==TRUE)
 
-    Nb.gene<-length(Row.name.res)#nrow(DESeq2::results(DESeq.result))
+    Nb.gene<-length(Row.name.res)
 
     # Biological conditions
-    # Vector.group<-as.factor(DESeq.result@colData@listData[[1]])
-    Vector.group<-as.factor(SummarizedExperiment::colData(DESeq.result)[[1]])
+    Vector.group <- data.frame(SummarizedExperiment::colData(DESeq.result))[,1]
+    Vector.group<-as.factor(as.character(Vector.group))
 
     nb.group<-length(levels(Vector.group))
     nb.pair.of.group<-(nb.group*(nb.group-1))/2
@@ -145,7 +151,6 @@ DEresultGroup<-function(DESeq.result,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    # NameColDat<-names(DESeq.result@colData@listData)[1]
     NameColDat<-names(SummarizedExperiment::colData(DESeq.result))[1]
 
     cpt<-0

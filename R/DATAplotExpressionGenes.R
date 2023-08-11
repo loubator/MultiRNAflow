@@ -3,62 +3,17 @@
 #' @description The function allows to plot gene expression profiles
 #' according to time and/or biological conditions.
 #'
-#' @details The column names of \code{ExprData} must be a vector of strings
-#' of characters containing
-#' * a string of characters (if \eqn{k=1}) which is the label of the column
-#' containing gene names.
-#' * \eqn{N_s} sample names which must be strings of characters containing
-#' at least : the name of the individual (e.g patient, mouse, yeasts culture),
-#' its biological condition (if there is at least two) and
-#' the time where data have been collected if there is at least two;
-#' (must be either 't0', 'T0' or '0' for time 0,
-#' 't1', 'T1' or '1' for time 1, ...).
+#' @details All results are built from the results of our function
+#' [DATAnormalization()].
 #'
-#' All these sample information must be separated by underscores in
-#' the sample name. For instance 'CLL_P_t0_r1',
-#' corresponds to the patient 'r1' belonging to the biological condition 'P'
-#' and where data were collected at time 't0'.
-#' I this example, 'CLL' describe the type of cells
-#' (here chronic lymphocytic leukemia) and is not used in our analysis.
-#'
-#' In the string of characters 'CLL_P_t0_r1',
-#' 'r1' is localized after the third underscore, so \code{Individual.position=4},
-#' 'P' is localized after the first underscore, so \code{Group.position=2} and
-#' 't0' is localized after the second underscore, so \code{Time.position=3}.
-#'
-#' @param ExprData Data.frame with \eqn{N_g} rows and (\eqn{N_{s+k}}) columns,
-#' where \eqn{N_g} is the number of genes,
-#' \eqn{N_s} is the number of samples and
-#' \eqn{k=1} if a column is used to specify gene names, or \eqn{k=0} otherwise.
-#' If \eqn{k=1}, the position of the column containing gene names is given
-#' by \code{Column.gene}.
-#' The data.frame contains numeric values giving gene expressions of each gene
-#' in each sample.
-#' Gene expressions can be raw counts or normalized raw counts.
-#' Column names of the data.frame must describe each sample's information
-#' (individual, biological condition and time) and have the structure described
-#' in the section \code{Details}.
+#' @param SEresNorm Results of the function
+#' [DATAnormalization()].
 #' @param Vector.row.gene Vector of integer indicating the rows of the genes
 #' to be plotted.
-#' @param Column.gene Integer indicating the column where gene names are given.
-#' Set \code{Column.gene=NULL} if there is no such column.
-#' @param Group.position Integer indicating the position of group information
-#' in the string of characters in each sample names (see \code{Details}).
-#' Set \code{Group.position=NULL} if there is only one or no biological
-#' information in the string of character in each sample name.
-#' @param Time.position Integer indicating the position of time measurement
-#' information in the string of characters in each sample names
-#' (see \code{Details}).
-#' Set \code{Time.position=NULL} if there is only one or no time measurement
-#' information in the string of character in each sample name.
-#' @param Individual.position Integer indicating the position of the name of
-#' the individual (e.g patient, replicate, mouse, yeasts culture ...)
-#' in the string of characters in each sample names (see \code{Details}).
-#' The names of different individuals must be all different.
-#' Furthermore, if individual names are just numbers, they will be transform in
-#' a vector of class "character" by [CharacterNumbers()] and
-#' a "r" will be added to each individual name ("r" for replicate).
-#' @param Color.Group NULL or a data.frame with \eqn{N_{bc}} rows and
+#' @param DATAnorm \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' \code{TRUE} means the function plots gene normalized expression profiles.
+#' \code{FALSE} means the function plots gene raw expression profiles.
+#' @param Color.Group \code{NULL} or a data.frame with \eqn{N_{bc}} rows and
 #' two columns where \eqn{N_{bc}} is the number of biological conditions.
 #' If \code{Color.Group} is a data.frame, the first column must contain
 #' the name of each biological condition and the second column must contain
@@ -75,16 +30,18 @@
 #' "1_UnsupervisedAnalysis_\code{Name.folder.profile}" and a sub sub folder,
 #' "1-5_ProfileExpression_\code{Name.folder.profile}"
 #' all results will be saved in the sub folder
-#' "1_UnsupervisedAnalysis_\code{Name.folder.profile}/1-5_ProfileExpression_\code{Name.folder.profile}".
+#' "1_UnsupervisedAnalysis_\code{Name.folder.profile}/
+#' 1-5_ProfileExpression_\code{Name.folder.profile}".
 #' Otherwise, a sub folder entitled
 #' "1_UnsupervisedAnalysis_\code{Name.folder.profile}" and/or a sub sub folder
 #' "1-5_ProfileExpression_\code{Name.folder.profile}"
 #' will be created in \code{path.result} and all results will be saved in
-#' "1_UnsupervisedAnalysis_\code{Name.folder.profile}/1-5_ProfileExpression_\code{Name.folder.profile}".
+#' "1_UnsupervisedAnalysis_\code{Name.folder.profile}/
+#' 1-5_ProfileExpression_\code{Name.folder.profile}".
 #' If NULL, the results will not be saved in a folder. NULL as default.
 #' @param Name.folder.profile Character or \code{NULL}.
-#' If \code{Name.folder.profile} is a character, the folder and sub folder names
-#' which will contain the PCA graphs will respectively be
+#' If \code{Name.folder.profile} is a character, the folder and
+#' sub folder names which will contain the PCA graphs will respectively be
 #' "1_UnsupervisedAnalysis_\code{Name.folder.profile}" and
 #' "1-5_ProfileExpression_\code{Name.folder.profile}".
 #' Otherwise, the folder and sub folder names will respectively be
@@ -96,138 +53,150 @@
 #' the evolution of the expression of each replicate across time and
 #' the evolution of the mean and the standard deviation of the expression
 #' across time.
-#' * In the case where samples belong to different biological conditions only :
-#' a violin plot (see [ggplot2::geom_violin()]),
-#' and error bars (standard deviation) (see [ggplot2::geom_errorbar()])
+#' * In the case where samples belong to different biological conditions only:
+#' a violin plot
+#' (see [ggplot2::geom_violin()]),
+#' and error bars (standard deviation)
+#' (see [ggplot2::geom_errorbar()])
 #' for each biological condition.
 #' * In the case where samples belong to different time points and different
 #' biological conditions : the evolution of the expression of each replicate
 #' across time and the evolution of the mean and the standard deviation
 #' of the expression across time for each biological condition.
 #'
-#' @seealso The function calls the function [DATAplotExpression1Gene()]
+#' @seealso The function calls our R function
+#' [DATAnormalization()]
+#' fisrt, then
+#' [DATAplotExpression1Gene()]
 #' for each selected genes with \code{Vector.row.gene}.
 #'
 #' @importFrom grDevices pdf dev.off
+#' @importFrom SummarizedExperiment assays colData rownames
 #'
 #' @export
 #'
 #' @examples
-#' res.sim.count<-RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
-#'                                   Nb.Gene=10)
-#' ##
-#' Res.evo<-DATAplotExpressionGenes(ExprData=res.sim.count$Sim.dat,
-#'                                  Vector.row.gene=c(1,3),
-#'                                  Column.gene=1,
-#'                                  Group.position=1,
-#'                                  Time.position=2,
-#'                                  Individual.position=3,
-#'                                  Color.Group=NULL,
-#'                                  Plot.Expression=TRUE,
-#'                                  path.result=NULL,
-#'                                  Name.folder.profile=NULL)
+#' ## Simulation raw counts
+#' resSIMcount <- RawCountsSimulation(Nb.Group=2, Nb.Time=3, Nb.per.GT=4,
+#'                                    Nb.Gene=10)
+#' ## Preprocessing step
+#' resDATAprepSE <- DATAprepSE(RawCounts=resSIMcount$Sim.dat,
+#'                             Column.gene=1,
+#'                             Group.position=1,
+#'                             Time.position=2,
+#'                             Individual.position=3)
+#' ## Normalization
+#' resNorm <- DATAnormalization(SEres=resDATAprepSE,
+#'                              Normalization="rle",
+#'                              Plot.Boxplot=FALSE,
+#'                              Colored.By.Factors=FALSE)
+#' ##------------------------------------------------------------------------#
+#' resEVOgenes <- DATAplotExpressionGenes(SEresNorm=resNorm,
+#'                                        Vector.row.gene=c(1,3),
+#'                                        DATAnorm=TRUE,
+#'                                        Color.Group=NULL,
+#'                                        Plot.Expression=TRUE,
+#'                                        path.result=NULL,
+#'                                        Name.folder.profile=NULL)
 
-DATAplotExpressionGenes<-function(ExprData,
-                                  Vector.row.gene,
-                                  Column.gene,
-                                  Group.position,
-                                  Time.position,
-                                  Individual.position,
-                                  Color.Group=NULL,
-                                  Plot.Expression=TRUE,
-                                  path.result=NULL,
-                                  Name.folder.profile=NULL){
+DATAplotExpressionGenes <- function(SEresNorm,
+                                    Vector.row.gene,
+                                    DATAnorm=TRUE,
+                                    Color.Group=NULL,
+                                    Plot.Expression=TRUE,
+                                    path.result=NULL,
+                                    Name.folder.profile=NULL) {
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check
+    ## DATAprepSE
+    Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
+                     "'DATAnormalization().'")
+    if (is.null(SEresNorm$SEidentification)) {
+        stop(Err_SE)
+    } else {
+        if (SEresNorm$SEidentification != "SEresNormalization") {
+            stop(Err_SE)
+        }## if (SEresNorm$SEidentification != "SEresNormalization")
+    }## if ((is.null(SEresNorm$SEidentification))
+
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Folder creation if no existence
-    if(is.null(Name.folder.profile)){
-        Name.folder.profile<-""
-        SubFolder.name<-"1_UnsupervisedAnalysis"
-    }else{
-        Name.folder.profile<-paste0("_", Name.folder.profile)
-        SubFolder.name<-paste0("1_UnsupervisedAnalysis", Name.folder.profile)
+    if (is.null(Name.folder.profile)) {
+        Name.folder.profile <- ""
+        SubFolder.name <- "1_UnsupervisedAnalysis"
+    } else {
+        Name.folder.profile <- paste0("_", Name.folder.profile)
+        SubFolder.name <- paste0("1_UnsupervisedAnalysis", Name.folder.profile)
     }## if(is.null(Name.folder.profile))
 
-    if(!is.null(path.result)){
+    if (!is.null(path.result)) {
         if(!SubFolder.name%in%dir(path=path.result)){
             print("Folder creation")
             dir.create(path=file.path(path.result, SubFolder.name))
-            path.result.f<-file.path(path.result, SubFolder.name)
-        }else{
-            path.result.f<-file.path(path.result, SubFolder.name)
-        }
-    }else{
-        path.result.f<-NULL
+            path.result.f <- file.path(path.result, SubFolder.name)
+        } else {
+            path.result.f <- file.path(path.result, SubFolder.name)
+        }## if (!is.null(path.result))
+    } else {
+        path.result.f <- NULL
     }## if(!is.null(path.result)=)
 
-    if(!is.null(path.result.f)){
-        nom.dossier.result<-paste0("1-5_ProfileExpressionAnalysis",
-                                  Name.folder.profile)
-        if(!nom.dossier.result%in%dir(path = path.result.f)){
+    if (!is.null(path.result.f)) {
+        nom.dossier.result <- paste0("1-5_ProfileExpressionAnalysis",
+                                     Name.folder.profile)
+        if (!nom.dossier.result%in%dir(path = path.result.f)) {
             dir.create(path=file.path(path.result.f, nom.dossier.result))
-            path.result.new<-file.path(path.result.f, nom.dossier.result)
-        }else{
-            path.result.new<-file.path(path.result.f, nom.dossier.result)
+            path.result.new <- file.path(path.result.f, nom.dossier.result)
+        } else {
+            path.result.new <- file.path(path.result.f, nom.dossier.result)
         }## if(nom.dossier.result%in%dir(path = path.result.f)==FALSE)
-    }else{
-        path.result.new<-NULL
+    } else {
+        path.result.new <- NULL
     }## if(is.null(path.result))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Name all genes
-    if(is.null(Column.gene)){
-        if(is.null(row.names(ExprData))){
-            Name.G<-paste0("Gene.", Vector.row.gene)
-        }else{
-            Name.G<-row.names(ExprData)[Vector.row.gene]
-        }
-    }else{
-        Name.G<-ExprData[Vector.row.gene, Column.gene]
-    }## if(is.null(Column.gene))
+    ## SUB SE object
+    if (DATAnorm == TRUE) {
+        aSE <- 2
+    } else {
+        aSE <- 1
+    }## if (DATAnorm == TRUE)
 
-    ## Data with only expression
-    if(is.null(Column.gene)){
-        ind.col.expr<-seq_len(ncol(ExprData))
-    }else{
-        ind.col.expr<-seq_len(ncol(ExprData))[-Column.gene]
-    }## if(is.null(Column.gene))
+    assaySE <- data.frame(SummarizedExperiment::assays(SEresNorm$SEobj)[[aSE]])
+    cSEdat <- SummarizedExperiment::colData(SEresNorm$SEobj)
+    subSEnorm <- SEobjFUN(as.matrix(assaySE[Vector.row.gene,]), cSEdat)
+
+    NameG <- as.character(SummarizedExperiment::rownames(subSEnorm))
+
+    subSEresNorm <- SEresNorm
+    subSEresNorm$SEobj <-subSEnorm
 
     ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Data expression of the selected genes
-    ExprData.f<-data.frame(Gene=Name.G,
-                           as.matrix(ExprData[Vector.row.gene, ind.col.expr]))
-    row.names(ExprData.f)<-Name.G
-    colnames(ExprData.f)[-1]<-colnames(ExprData)[ind.col.expr]
+    List.All.G <- vector(mode="list", length=length(Vector.row.gene))
+    names(List.All.G) <- NameG
 
-    ##------------------------------------------------------------------------#
-    List.All.G<-vector(mode="list", length=length(Vector.row.gene))
-    names(List.All.G)<-Name.G
-
-    cpt<-0
-    for(g.sel in Vector.row.gene){
-        cpt<-cpt+1
-        PlotExpr1G<-DATAplotExpression1Gene(ExprData=ExprData.f,
-                                            row.gene=cpt,
-                                            Column.gene=1,
-                                            Group.position=Group.position,
-                                            Time.position=Time.position,
-                                            Individual.position=Individual.position,
-                                            Color.Group=Color.Group)
-        List.All.G[[cpt]]<-PlotExpr1G
+    cpt <- 0
+    for (g.sel in Vector.row.gene) {
+        cpt <- cpt+1
+        PlotExpr1G <- DATAplotExpression1Gene(SEres=subSEresNorm,
+                                              row.gene=cpt,
+                                              Color.Group=Color.Group)
+        List.All.G[[cpt]] <- PlotExpr1G
     }## for(g.sel in Vector.row.gene)
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Save of all graph in a pdf file
-    if(!is.null(path.result)){
+    if (!is.null(path.result)) {
         grDevices::pdf(file.path(path.result.new,
                                  paste0("PlotsProfileGeneExpression",
                                         Name.folder.profile, ".pdf")),
                        width=11, height=8, onefile=TRUE)
 
-        for(g.sel in seq_len(length(List.All.G))){
+        for (g.sel in seq_len(length(List.All.G))) {
             print(List.All.G[[g.sel]])
         }## for(g.sel in Vector.row.gene)
 
@@ -236,8 +205,8 @@ DATAplotExpressionGenes<-function(ExprData,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    if(isTRUE(Plot.Expression)){
-        for(g.sel in seq_len(length(List.All.G))){
+    if (isTRUE(Plot.Expression)) {
+        for (g.sel in seq_len(length(List.All.G))) {
             print(List.All.G[[g.sel]])
         }## for(g.sel in Vector.row.gene)
     }## if(isTRUE(Plot.Expression))
@@ -245,6 +214,6 @@ DATAplotExpressionGenes<-function(ExprData,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Output
-    return(list(DataForPlot=ExprData.f,
+    return(list(SEobj=subSEnorm,
                 List.plots=List.All.G))
 }## DATAplotExpressionGenes()

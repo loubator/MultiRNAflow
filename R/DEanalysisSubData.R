@@ -7,25 +7,28 @@
 #' If \code{Res.DE.analysis} is a data.frame() or the output from
 #' [DEanalysisGlobal()], then
 #' * If \code{Set.Operation="union"} then the rows extracted from \code{Data}
-#' are those such that the sum of the selected columns by \code{ColumnsCriteria}
-#' in \code{Res.DE.analysis} is >0.
+#' are those such that the sum of the selected columns by
+#' \code{ColumnsCriteria} in \code{Res.DE.analysis} is >0.
 #' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()], the rows extracted from \code{Data} will be those DE
-#' at least at one time ti (except the reference time t0).
+#' [DEanalysisGlobal()],
+#' the rows extracted from \code{Data} will be those DE at least at one time ti
+#' (except the reference time t0).
 #'
 #' * If \code{Set.Operation="intersect"} then the rows extracted from
 #' \code{Data} are those such that the product of the selected columns
 #' by \code{ColumnsCriteria} in \code{Res.DE.analysis} is >0.
 #' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()], the rows extracted from \code{Data} will be those DE
-#' at all time ti (except the reference time t0).
+#' [DEanalysisGlobal()],
+#' the rows extracted from \code{Data} will be those DE at all time ti
+#' (except the reference time t0).
 #'
 #' * If \code{Set.Operation="setdiff"} then the rows extracted from \code{Data}
 #' are those such that only one element of the selected columns by
 #' \code{ColumnsCriteria} in \code{Res.DE.analysis} is >0.
 #' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()], the rows extracted from \code{Data} will be those DE
-#' at only one time ti (except the reference time t0).
+#' [DEanalysisGlobal()],
+#' the rows extracted from \code{Data} will be those DE at only one time ti
+#' (except the reference time t0).
 #'
 #' If \code{Res.DE.analysis} is a vector, \code{ColumnsCriteria} and
 #' \code{Set.Operation} are not used.
@@ -40,8 +43,8 @@
 #' in each sample. Gene expressions can be raw counts or normalized raw counts.
 #' Data and \code{Res.DE.analysis} must have the same number of rows.
 #' @param Res.DE.analysis A list containing a data.frame or a data.frame or
-#' a binary vector.
-#' If it is a list, it must be the outputs from [DEanalysisGlobal()]
+#' a binary vector. If it is a list, it must be the outputs from
+#' [DEanalysisGlobal()]
 #' (see \code{Examples}).
 #' If it is a data.frame, it must contains at least one binary column
 #' (filled with 0 and 1).
@@ -56,7 +59,8 @@
 #' @param Save.SubData \code{TRUE} or \code{FALSE} or a Character.
 #' \code{NULL} as default.
 #' If \code{TRUE}, two csv files (see \code{Value}) will be saved in the folder
-#' "2_SupervisedAnalysis_\code{Name.folder.DE}" (see [DEanalysisGlobal()]).
+#' "2_SupervisedAnalysis_\code{Name.folder.DE}"
+#' (see [DEanalysisGlobal()]).
 #'
 #' @return The function returns
 #' * A sub data.frame of \code{Data} containing only the rows specified by

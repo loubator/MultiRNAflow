@@ -4,11 +4,13 @@
 #' @description This function realizes the intermediate steps of the analysis
 #' of the function [DEanalysisTimeAndGroup()].
 #'
-#' @param DESeq.result Output from the function [DESeq2::DESeq()].
+#' @param DESeq.result Output from the function
+#' [DESeq2::DESeq()].
 #' @param pval.min Numeric value between 0 and 1. A gene will be considered as
 #' differentially expressed (DE) between two biological conditions if its
-#' Benjamini-Hochberg adjusted p-value (see [stats::p.adjust()]) is below
-#' the threshold \code{pval.min}. Default value is 0.05.
+#' Benjamini-Hochberg adjusted p-value
+#' (see [stats::p.adjust()])
+#' is below the threshold \code{pval.min}. Default value is 0.05.
 #' @param log.FC.min Non negative numeric value.
 #' If the log2 fold change between biological conditions or times has
 #' an absolute value below the threshold \code{log.FC.min},
@@ -18,8 +20,8 @@
 #' @param LRT.supp.info \code{TRUE} or \code{FALSE}.
 #' If \code{TRUE}, the algorithm realizes another statistical test in order
 #' to detect if, among all biological conditions and/or times, at least one has
-#' a different behavior than the others
-#' (see the input \code{test} in [DESeq2::DESeq()]).
+#' a different behavior than the others (see the input \code{test} in
+#' [DESeq2::DESeq()]).
 #'
 #' @importFrom DESeq2 results resultsNames
 #'
@@ -30,9 +32,13 @@
 #'     (except the reference time t0).
 #'   * DE specific genes per biological condition for a fixed time ti
 #'   (except the reference time t0).
-#' * inputs for the functions : [DEplotBarplot()], [DEplotBarplotTime()],
-#' [DEplotVennBarplotGroup()], [DEplotVennBarplotTime()],
-#' [DEplotBarplotFacetGrid()], [DEplotAlluvial()].
+#' * inputs for the functions :
+#' [DEplotBarplot()],
+#' [DEplotBarplotTime()],
+#' [DEplotVennBarplotGroup()],
+#' [DEplotVennBarplotTime()],
+#' [DEplotBarplotFacetGrid()],
+#' [DEplotAlluvial()].
 #'
 #' @seealso The outputs of the function are used by the main function
 #' [DEanalysisTimeAndGroup()].
@@ -41,17 +47,20 @@
 #'
 #' @examples
 #' data(RawCounts_Schleiss2021_CLLsub500)
-#' ## We take only the first three time (both group)
-#' ## for the speed of the example
+#' ## We take only the first three times (both group) for the speed of
+#' ## the example
 #' Index3t<-c(2:4,11:13,20:22, 29:31,38:40,47:49)
 #' RawCounts_P_NP_3t<-RawCounts_Schleiss2021_CLLsub500[,c(1,Index3t)]
-#' DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_P_NP_3t,
-#'                                      Column.gene=1,
-#'                                      Group.position=2,
-#'                                      Time.position=4,
-#'                                      Individual.position=3)
-#' ##
-#' dds.DE <- DESeq2::DESeq(DESeq2.info$DESeq2.obj)
+#'
+#' ## Preprocessing step
+#' resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_P_NP_3t,
+#'                                 Column.gene=1,
+#'                                 Group.position=2,
+#'                                 Time.position=4,
+#'                                 Individual.position=3)
+#'
+#' ##------------------------------------------------------------------------#
+#' dds.DE <- DESeq2::DESeq(resDATAprepSEleuk$DESeq2.obj)
 #' ##
 #' res.G.T.2<-DEresultGroupPerTime(DESeq.result=dds.DE,
 #'                                 LRT.supp.info=FALSE,
@@ -74,13 +83,13 @@ DEresultGroupPerTime<-function(DESeq.result,
     ## 1) Parameters
     Nb.gene<-nrow(DESeq2::results(DESeq.result)) # length(DESeq.result)
 
-    # Vector.group<-as.factor(DESeq.result@colData$Group)
+
     Vector.group<-as.factor(SummarizedExperiment::colData(DESeq.result)$Group)
     Nb.group<-length(levels(Vector.group))
     nb.pair.of.group<-(Nb.group*(Nb.group-1))/2
     Levels.group<-levels(as.factor(Vector.group))
 
-    # Levels.time<-levels(as.factor(DESeq.result@colData$Time))
+
     Levels.time<-levels(as.factor(SummarizedExperiment::colData(DESeq.result)$Time))
     Nb.time<-length(Levels.time)
     # time.order=sort(Levels.time)

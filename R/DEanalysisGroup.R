@@ -1,13 +1,16 @@
 #' @title DE Analysis when samples belong to different biological conditions.
 #'
-#' @description The function realizes from the [DESeq2::DESeq()] output
-#' the analysis of DE genes between all pairs of biological conditions.
+#' @description The function realizes from the
+#' [DESeq2::DESeq()]
+#' output the analysis of DE genes between all pairs of biological conditions.
 #'
-#' @param DESeq.result Output from the function [DESeq2::DESeq()].
+#' @param DESeq.result Output from the function
+#' [DESeq2::DESeq()].
 #' @param pval.min Numeric value between 0 and 1. A gene will be considered as
 #' differentially expressed (DE) between two biological conditions if
-#' its Benjamini-Hochberg adjusted p-value (see [stats::p.adjust()]) is below
-#' the threshold \code{pval.min}. Default value is 0.05.
+#' its Benjamini-Hochberg adjusted p-value
+#' (see [stats::p.adjust()])
+#' is below the threshold \code{pval.min}. Default value is 0.05.
 #' @param log.FC.min Non negative numeric value.
 #' If the log2 fold change between biological conditions or times has
 #' an absolute value below the threshold \code{log.FC.min}, then the gene is
@@ -15,9 +18,9 @@
 #' If \code{log.FC.min=0}, all DE genes will be kept.
 #' @param LRT.supp.info \code{TRUE} or \code{FALSE}.
 #' If \code{TRUE}, the algorithm realizes another statistical test in order
-#' to detect if, among all biological conditions and/or times, at least one has
-#' a different behavior than the others
-#' (see the input 'test' in [DESeq2::DESeq()]).
+#' to detect if, among all biological conditions and/or times, at least one
+#' has a different behavior than the others (see the input 'test' in
+#' [DESeq2::DESeq()]).
 #' @param Plot.DE.graph \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
 #' If \code{TRUE}, all graphs will be plotted.
 #' Otherwise no graph will be plotted.
@@ -31,20 +34,21 @@
 #' the strings of characters "_\code{SubFile.name}".
 #' If \code{NULL}, no suffix will be added.
 #'
+#' @importFrom SummarizedExperiment colData
 #' @importFrom grDevices dev.off pdf
 #'
 #' @return The function returns
 #' * a data.frame (output \code{Results}) which contains
 #'   * gene names
-#'   * pvalues, log2 fold change and DE genes between each pairs of biological
-#'   conditions.
-#'   * a binary column (1 and 0) where 1 means the gene is DE between at least
-#'   one pair of biological conditions.
+#'   * pvalues, log2 fold change and DE genes between each pairs of
+#'   biological conditions.
+#'   * a binary column (1 and 0) where 1 means the gene is DE between at
+#'   least one pair of biological conditions.
 #'   * \eqn{N_{bc}} binary columns, where \eqn{N_{bc}} is the number of
-#'   biological conditions, which gives the specific genes for each biological
-#'   condition.
-#'   A '1' in one of these columns means the gene is specific to the biological
-#'   condition associated to the given column. 0 otherwise.
+#'   biological conditions, which gives the specific genes for each
+#'   biological condition.
+#'   A '1' in one of these columns means the gene is specific to the
+#'   biological condition associated to the given column. 0 otherwise.
 #'   A gene is called specific to a given biological condition BC1,
 #'   if the gene is DE between BC1 and any other biological conditions,
 #'   but not DE between any pair of other biological conditions.
@@ -53,7 +57,8 @@
 #'   (or over-expressed) for the biological condition associated to the
 #'   given column. A gene is called up-regulated for a given biological
 #'   condition BC1 if the gene is specific to the biological condition BC1
-#'   and expressions in BC1 are higher than in the other biological conditions.
+#'   and expressions in BC1 are higher than in the other
+#'   biological conditions.
 #'   A '-1' in one of these columns means the gene is down-regulated
 #'   (or under-expressed) for the biological condition associated to the
 #'   given column.
@@ -69,13 +74,15 @@
 #' if the gene is not specific to the given biological condition.
 #' The category 'Other' does not exist when there are only two biological
 #' conditions.
-#' * an UpSet plot (Venn diagram displayed as a barplot) which gives the number
-#' of genes for each possible intersection (see [DEplotVennBarplotGroup()]).
+#' * an UpSet plot (Venn diagram displayed as a barplot) which gives the
+#' number of genes for each possible intersection
+#' (see [DEplotVennBarplotGroup()]).
 #' We consider that a set of pairs of biological conditions forms an
 #' intersection if there is at least one gene which is DE for each of
 #' these pairs of biological conditions, but not for the others.
-#' * a barplot which gives the number of genes categorized as "Upregulated" and
-#' "DownRugulated", per biological condition (see [DEplotBarplot()]).
+#' * a barplot which gives the number of genes categorized as "Upregulated"
+#' and "DownRugulated", per biological condition
+#' (see [DEplotBarplot()]).
 #' * a barplot which gives the number of genes categorized as "Upregulated",
 #' "DownRugulated" and "Other", per biological condition
 #' (see [DEplotBarplot()]).
@@ -89,16 +96,21 @@
 #' @export
 #'
 #' @examples
+#' ## Data
 #' data(RawCounts_Antoszewski2022_MOUSEsub500)
 #' ## No time points. We take only two groups for the speed of the example
 #' RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
-#' DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_T1Wt,
-#'                                      Column.gene=1,
-#'                                      Group.position=1,
-#'                                      Time.position=NULL,
-#'                                      Individual.position=2)
-#' ##
-#' dds.DE.G<-DESeq2::DESeq(DESeq2.info$DESeq2.obj, quiet=TRUE, betaPrior=FALSE)
+#'
+#' ## Preprocessing step
+#' resDATAprepSEmus2<- DATAprepSE(RawCounts=RawCounts_T1Wt,
+#'                                Column.gene=1,
+#'                                Group.position=1,
+#'                                Time.position=NULL,
+#'                                Individual.position=2)
+#'
+#' ##------------------------------------------------------------------------#
+#' dds.DE.G<-DESeq2::DESeq(resDATAprepSEmus2$DESeq2.obj,
+#'                         quiet=TRUE, betaPrior=FALSE)
 #' ##
 #' res.sum.group<-DEanalysisGroup(DESeq.result=dds.DE.G,
 #'                                pval.min=0.01,
@@ -124,8 +136,8 @@ DEanalysisGroup<-function(DESeq.result,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## 1) Summary DESeq2 results
-    ## DESeq.result@colData[[1]]
-    Fct.group<-as.factor(SummarizedExperiment::colData(DESeq.result)[[1]])
+    Fct.group <- data.frame(SummarizedExperiment::colData(DESeq.result))[,1]
+    Fct.group<-as.factor(as.character(Fct.group))
     nb.group<-length(levels(Fct.group))
     nb.pair.of.group<-(nb.group*(nb.group-1))/2
 

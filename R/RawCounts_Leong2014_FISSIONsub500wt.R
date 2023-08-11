@@ -11,24 +11,42 @@
 #' The column names are as follow
 #'  \describe{
 #'            \item{Gene}{Gene name}
-#'            \item{wt_t0_r1}{The sample is the first replica (r1) of the biological condition control (wt) at time t0 (0 min)}
-#'            \item{wt_t0_r2}{The sample is the second replica (r2) of the biological condition control (wt) at time t0 (0 min)}
-#'            \item{wt_t0_r3}{The sample is the third replica (r3) of the biological condition control (wt) at time t0 (0 min)}
-#'            \item{wt_t1_r1}{The sample is the first replica (r1) of the biological condition control (wt) at time t1 (15 min)}
-#'            \item{wt_t1_r2}{The sample is the second replica (r2) of the biological condition control (wt) at time t1 (15 min)}
-#'            \item{wt_t1_r3}{The sample is the third replica (r3) of the biological condition control (wt) at time t1 (15 min)}
-#'            \item{wt_t2_r1}{The sample is the first replica (r1) of the biological condition control (wt) at time t2 (30 min)}
-#'            \item{wt_t2_r2}{The sample is the second replica (r2) of the biological condition control (wt) at time t2 (30 min)}
-#'            \item{wt_t2_r3}{The sample is the third replica (r3) of the biological condition control (wt) at time t2 (30 min)}
-#'            \item{wt_t3_r1}{The sample is the first replica (r1) of the biological condition control (wt) at time t3 (60 min)}
-#'            \item{wt_t3_r2}{The sample is the second replica (r2) of the biological condition control (wt) at time t3 (60 min)}
-#'            \item{wt_t3_r3}{The sample is the third replica (r3) of the biological condition control (wt) at time t3 (60 min)}
-#'            \item{wt_t4_r1}{The sample is the first replica (r1) of the biological condition control (wt) at time t4 (120 min)}
-#'            \item{wt_t4_r2}{The sample is the second replica (r2) of the biological condition control (wt) at time t4 (120 min)}
-#'            \item{wt_t4_r3}{The sample is the third replica (r3) of the biological condition control (wt) at time t4 (120 min)}
-#'            \item{wt_t5_r1}{The sample is the first replica (r1) of the biological condition control (wt) at time t5 (180 min)}
-#'            \item{wt_t5_r2}{The sample is the second replica (r2) of the biological condition control (wt) at time t5 (180 min)}
-#'            \item{wt_t5_r3}{The sample is the third replica (r3) of the biological condition control (wt) at time t5 (180 min)}
+#'            \item{wt_t0_r1}{The sample is the first replica (r1)
+#'            of the biological condition control (wt) at time t0 (0 min)}
+#'            \item{wt_t0_r2}{The sample is the second replica (r2)
+#'            of the biological condition control (wt) at time t0 (0 min)}
+#'            \item{wt_t0_r3}{The sample is the third replica (r3)
+#'            of the biological condition control (wt) at time t0 (0 min)}
+#'            \item{wt_t1_r1}{The sample is the first replica (r1)
+#'            of the biological condition control (wt) at time t1 (15 min)}
+#'            \item{wt_t1_r2}{The sample is the second replica (r2)
+#'            of the biological condition control (wt) at time t1 (15 min)}
+#'            \item{wt_t1_r3}{The sample is the third replica (r3)
+#'            of the biological condition control (wt) at time t1 (15 min)}
+#'            \item{wt_t2_r1}{The sample is the first replica (r1)
+#'            of the biological condition control (wt) at time t2 (30 min)}
+#'            \item{wt_t2_r2}{The sample is the second replica (r2)
+#'            of the biological condition control (wt) at time t2 (30 min)}
+#'            \item{wt_t2_r3}{The sample is the third replica (r3)
+#'            of the biological condition control (wt) at time t2 (30 min)}
+#'            \item{wt_t3_r1}{The sample is the first replica (r1)
+#'            of the biological condition control (wt) at time t3 (60 min)}
+#'            \item{wt_t3_r2}{The sample is the second replica (r2)
+#'            of the biological condition control (wt) at time t3 (60 min)}
+#'            \item{wt_t3_r3}{The sample is the third replica (r3)
+#'            of the biological condition control (wt) at time t3 (60 min)}
+#'            \item{wt_t4_r1}{The sample is the first replica (r1)
+#'            of the biological condition control (wt) at time t4 (120 min)}
+#'            \item{wt_t4_r2}{The sample is the second replica (r2)
+#'            of the biological condition control (wt) at time t4 (120 min)}
+#'            \item{wt_t4_r3}{The sample is the third replica (r3)
+#'            of the biological condition control (wt) at time t4 (120 min)}
+#'            \item{wt_t5_r1}{The sample is the first replica (r1)
+#'            of the biological condition control (wt) at time t5 (180 min)}
+#'            \item{wt_t5_r2}{The sample is the second replica (r2)
+#'            of the biological condition control (wt) at time t5 (180 min)}
+#'            \item{wt_t5_r3}{The sample is the third replica (r3)
+#'            of the biological condition control (wt) at time t5 (180 min)}
 #'  }
 #'
 #' @details

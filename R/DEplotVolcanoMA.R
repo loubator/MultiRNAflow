@@ -1,7 +1,8 @@
 #' @title Volcano and MA graphs
 #'
 #' @description The function returns Volcano plots and MA plots from
-#' the results of our function [DEanalysisGlobal()].
+#' the results of our function
+#' [DEanalysisGlobal()].
 #'
 #' @details
 #' * If data belong to different time points only, the function returns
@@ -23,7 +24,8 @@
 #'   corresponding to the \eqn{log_2} fold change between
 #'   each pair of biological conditions, for all fixed time point.
 #'
-#' @param Res.DE.analysis A list. Output from [DEanalysisGlobal()]
+#' @param Res.DE.analysis A list. Output from
+#' [DEanalysisGlobal()]
 #' (see \code{Examples}).
 #' @param NbGene.plotted Non negative integer. The algorithm computes the sum
 #' of all the absolute \eqn{log_2} fold change present in the element
@@ -57,9 +59,11 @@
 #' @importFrom ggrepel geom_label_repel
 #'
 #' @return The function returns Volcano plots and MA plots
-#' from the results of our function [DEanalysisGlobal()].
+#' from the results of our function
+#' [DEanalysisGlobal()].
 #'
-#' @seealso The function calls the output of [DEanalysisGlobal()].
+#' @seealso The function calls the output of
+#' [DEanalysisGlobal()].
 #'
 #' @export
 #'
@@ -218,7 +222,7 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
     AbsLog2Fcmin<-Res.DE.analysis$Summary.Inputs$logFCmin
 
     ##------------------------------------------------------------------------#
-    log2Mean<-log2(apply(Res.DE.analysis$List.Datas$RLEdata[,-1], 1 ,
+    log2Mean<-log2(apply(Res.DE.analysis$RLEdata[,-1], 1 ,
                          mean) + 1)
     IdLog2FC<-grep(pattern="Log2FoldChange",
                    x=colnames(Res.DE.analysis$DE.results),
@@ -234,7 +238,7 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
     ##------------------------------------------------------------------------#
     # Volcano and MA plots for each case
     for(i in seq_len(Nlog2FC)){
-        DatVolMA<-data.frame(Gene=Res.DE.analysis$List.Datas$RLEdata$Gene,
+        DatVolMA<-data.frame(Gene=Res.DE.analysis$RLEdata$Gene,
                              log2Mean=log2Mean,
                              log2FoldChange=NA,
                              padj=NA,
@@ -402,7 +406,7 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
                 print(gMA)
             }## if(isTRUE(Display.plots))
         }## if(is.null(path.result)==FALSE)
-        #
+
         options(warn = 0)
         ##--------------------------------------------------------------------#
     }## for(i in 1:length(IdLog2FC))

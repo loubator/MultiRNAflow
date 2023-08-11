@@ -141,6 +141,7 @@
 #' function [DEanalysisGlobal()].
 #'
 #' @importFrom DESeq2 results resultsNames
+#' @importFrom SummarizedExperiment colData
 #' @importFrom grDevices dev.off png
 #'
 #' @export
@@ -151,13 +152,16 @@
 #' ## the example
 #' Index3t<-c(2:4,11:13,20:22, 29:31,38:40,47:49)
 #' RawCounts_P_NP_3t<-RawCounts_Schleiss2021_CLLsub500[,c(1,Index3t)]
-#' DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_P_NP_3t,
-#'                                      Column.gene=1,
-#'                                      Group.position=2,
-#'                                      Time.position=4,
-#'                                      Individual.position=3)
-#' ##
-#' dds.DE<-DESeq2::DESeq(DESeq2.info$DESeq2.obj)
+#'
+#' ## Preprocessing step
+#' resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_P_NP_3t,
+#'                                 Column.gene=1,
+#'                                 Group.position=2,
+#'                                 Time.position=4,
+#'                                 Individual.position=3)
+#'
+#' ##------------------------------------------------------------------------#
+#' dds.DE<-DESeq2::DESeq(resDATAprepSEleuk$DESeq2.obj)
 #' ##
 #' res.G.T<-DEanalysisTimeAndGroup(DESeq.result=dds.DE,
 #'                                 LRT.supp.info=FALSE,
@@ -226,36 +230,25 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
     ## 1) Parameters
 
     # Gene names and number of genes
-    # res.dds<-DESeq.result@rowRanges@partitioning@NAMES
-    res.dds<-dimnames(DESeq.result)[[1]]
-    # DESeq2::results(DESeq.result)
+    geneNames<-dimnames(DESeq.result)[[1]] ## DESeq2::results(DESeq.result)
 
-    if(is.null(res.dds)){
-        Row.names.f<-paste0("Gene", seq_len(length(res.dds)))
+    if(is.null(geneNames)){
+        Row.names.f<-paste0("Gene", seq_len(length(geneNames)))
     }else{
-        Row.names.f<-res.dds
-    }# if(is.null(res.dds)==TRUE)
+        Row.names.f<-geneNames
+    }# if(is.null(geneNames)==TRUE)
 
     Nb.gene<-length(Row.names.f)
-    # nrow(DESeq2::results(DESeq.result))
-    # row.names(SummarizedExperiment::assay(DESeq.result))
-    # Vector.group<-as.factor(DESeq.result@colData$Group)
     Vector.group<-as.factor(SummarizedExperiment::colData(DESeq.result)$Group)
     Nb.group<-length(levels(Vector.group))
     nb.pair.of.group<-(Nb.group*(Nb.group-1))/2
     Levels.group<-levels(Vector.group)
-    # Levels.group<-levels(as.factor(DESeq.result@colData$Group))
 
 
     vTimeDESeq<-as.factor(SummarizedExperiment::colData(DESeq.result)$Time)
     vTimeDESeq<-as.factor(gsub("T", "", gsub("t", "", vTimeDESeq)))
     Levels.time<-levels(as.factor(vTimeDESeq))
     Nb.time<-length(Levels.time)
-    # levels(DESeq.result@colData$Time)<-levels(as.factor(gsub("T","",
-    #                                                          gsub("t","",
-    #                                                               DESeq.result@colData$Time))))
-    # Levels.time<-levels(as.factor(DESeq.result@colData$Time))
-    # Nb.time<-length(Levels.time)
 
 
     ref.level.group<-Levels.group[1]
@@ -263,7 +256,6 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
     Id.ref.T<-which(vTimeDESeq==ref.level.time)
     Vect.T.no.ref<-vTimeDESeq[-Id.ref.T]
     Other.t<-Levels.time[-1]
-    # DESeq.result@colData$Time
 
     timeline.basis.num<-as.numeric(gsub(x=ref.level.time, pattern="t",
                                         replacement=""))

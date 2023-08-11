@@ -14,7 +14,8 @@
 #'
 #' @return A vector where each integer is transformed in class "character".
 #'
-#' @seealso The function is called by [ColnamesToFactors()].
+#' @seealso The function is called by
+#' [ColnamesToFactors()].
 #'
 #' @export
 #'
@@ -24,35 +25,36 @@
 #' CharacterNumbers(Vect.number=1:8)
 
 
-CharacterNumbers<-function(Vect.number){
+CharacterNumbers <- function(Vect.number) {
     ##------------------------------------------------------------------------#
     ## Check
-    if(!is.numeric(Vect.number)){
+    if (!is.numeric(Vect.number)) {
         stop("'Vect.number' must be a numeric vector")
-    }# if(!is.numeric(Vect.number))
+    }## if(!is.numeric(Vect.number))
 
     ##------------------------------------------------------------------------#
     ## Setting
-    vNBno0<-Vect.number
-    vNBno0[which(vNBno0==0)]<-1.5
+    vNBno0 <- Vect.number
+    vNBno0[which(vNBno0 == 0)] <- 1.5
     ## because of log10 which is used to computed the maximum number of digits
-    Max.digit<-floor(log10(abs(max(vNBno0)))) + 1
+    Max.digit <- floor(log10(abs(max(vNBno0)))) + 1
 
     ##------------------------------------------------------------------------#
     ## Vector which will containsthe same numbers reshaped as character
-    Ch.numb<-rep(NA, times=length(vNBno0))
-    if(Max.digit == 1){
+    Ch.numb <- rep(NA, times=length(vNBno0))
+    if (Max.digit == 1) {
         ## Numbers belong to 0 and 9 so no need to add '0' in front of numbers
-        Ch.numb<-as.character(vNBno0)
-    }else{
-        for(dg in seq_len(Max.digit)){##1:Max.digit
+        Ch.numb <- as.character(vNBno0)
+    } else {
+        for (dg in seq_len(Max.digit)) {##1:Max.digit
             I.dig<-which(floor(log10(abs(vNBno0))) + 1 == dg)
-            if(dg < Max.digit){
+            if (dg < Max.digit) {
                 Ch.numb[I.dig]<-paste0(paste0(rep(0, times=Max.digit-dg),
-                                              collapse=""), vNBno0[I.dig])
+                                              collapse=""),
+                                       vNBno0[I.dig])
                 ## paste(..., sep = "") is equivalent to paste0(...)
-            }else{
-                Ch.numb[I.dig]<-as.character(vNBno0[I.dig])
+            } else {
+                Ch.numb[I.dig] <- as.character(vNBno0[I.dig])
             }## if(dg<Max.digit)
         }## for(dg in 1:Max.digit)
     }## if(Max.digit==1)

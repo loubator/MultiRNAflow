@@ -1,7 +1,7 @@
 #' @title GSEA analysis with gprofiler2
 #'
-#' @description The function realizes,
-#' from the outputs of [DEanalysisGlobal()],
+#' @description The function realizes, from the outputs of
+#' [DEanalysisGlobal()],
 #' an enrichment analysis (GSEA) of a subset of genes with
 #' the R package \code{gprofiler2}.
 #'
@@ -13,8 +13,9 @@
 #' The enrichment analysis will take into account the genes order as
 #' the first genes will be considered to have the highest biological importance
 #' and the last genes the lowest.
-#' See the input \code{ordered_query} of [gprofiler2::gost()] and the vignette
-#' of \code{gprofiler2} for more details.
+#' See the input \code{ordered_query} of
+#' [gprofiler2::gost()]
+#' and the vignette of \code{gprofiler2} for more details.
 #'
 #' * If \code{Set.Operation="union"} then the rows (so genes) extracted from
 #' \code{Res.DE.analysis$DE.results} are those such that the sum of
@@ -34,14 +35,13 @@
 #' For example, the rows extracted from \code{Res.DE.analysis$DE.results}
 #' will be those DE at only one time ti (except the reference time t0).
 #'
-#'
 #' @param Internect.Connection \code{TRUE} or \code{FALSE}.
 #' \code{FALSE} as default.
 #' If \code{TRUE}, the function realizes an enrichment analysis.
 #' If \code{FALSE}, the function returns a message indicating that
 #' the user must have an internet connection.
-#' @param Res.DE.analysis A list corresponding to the output
-#' of [DEanalysisGlobal()].
+#' @param Res.DE.analysis A list corresponding to the output of
+#' [DEanalysisGlobal()].
 #' @param ColumnsCriteria A vector of integers where each integer indicates
 #' a column of \code{Res.DE.analysis$DE.results} to be selected for
 #' GSEA analysis. These columns should either contain only binary values,
@@ -52,9 +52,9 @@
 #' (default), "intersect", "setdiff" (see \code{Details}).
 #' @param ColumnsLog2ordered \code{NULL} or a vector of integers.
 #' If \code{ColumnsLog2ordered} is a vector of integers, it corresponds to
-#' the columns number of \code{Res.DE.analysis$DE.results},
-#' the output of [DEanalysisGlobal()], which must contains \eqn{log_2}
-#' fold change values (see \code{Details}).
+#' the columns number of \code{Res.DE.analysis$DE.results}, the output of
+#' [DEanalysisGlobal()],
+#' which must contains \eqn{log_2} fold change values (see \code{Details}).
 #' @param Organism A character indicating the organism
 #' where data were taken from.
 #' See vignette of the R package \code{gprofiler2} for supported organisms.
@@ -80,16 +80,19 @@
 #' @param Save.plots \code{TRUE} or \code{FALSE} or a Character.
 #' If \code{Save.plots=TRUE} and the output \code{path.result} of
 #' [DEanalysisGlobal()] is not \code{NULL}, all files will be saved in
-#' "2_SupervisedAnalysis_\code{Name.folder.DE}/2-5_Enrichment_analysis_\code{Name.folder.DE}/
+#' "2_SupervisedAnalysis_\code{Name.folder.DE}/
+#' 2-5_Enrichment_analysis_\code{Name.folder.DE}/
 #' 2-5-1_gprofiler2_results_\code{Name.folder.DE}", with \code{Name.folder.DE}
-#' an input of [DEanalysisGlobal()].
+#' an input of
+#' [DEanalysisGlobal()].
 #' If \code{Save.plots} is a character, it must be a path and all files
 #' will be saved in the sub-folder "gprofiler2_results_\code{Name.folder.DE}".
 #' Otherwise, the different files will not be saved.
 #'
 #'
 #' @return The function returns
-#' * a data.frame which contains the outputs of [gprofiler2::gost()]
+#' * a data.frame which contains the outputs of
+#' [gprofiler2::gost()]
 #' * a Manhattan plot showing all GO names according to their pvalue.
 #' * A lollipop graph showing the \code{MaxNumberGO} most important GO.
 #'
@@ -244,13 +247,12 @@ GSEAQuickAnalysis<-function(Internect.Connection=FALSE,
 
         ##--------------------------------------------------------------------#
         ## Selection of genes according to Columns criteria and Set.operation
-        ResSubDE<-DEanalysisSubData(Data=Res.DE.analysis$List.Datas$RLEdata,
+        ResSubDE<-DEanalysisSubData(Data=Res.DE.analysis$RLEdata,
                                     Res.DE.analysis=Res.DE.analysis,
                                     ColumnsCriteria=ColumnsCriteria,
                                     Set.Operation=Set.Operation)
 
-        GeneNames<-Res.DE.analysis$List.Datas$RLEdata$Gene
-        ## GeneNames<-Res.DE.analysis$List.Datas$RawCounts$Gene
+        GeneNames<-Res.DE.analysis$RLEdata$Gene
 
         ##--------------------------------------------------------------------#
         ## Gene order considered as important or not

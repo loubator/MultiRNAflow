@@ -10,18 +10,30 @@
 #' The column names are as follow
 #'  \describe{
 #'            \item{Gene}{ENSEMBL gene names.}
-#'            \item{N1wtT1wt_r1}{The sample is the first replica (r1) of the biological condition N1wt and T1wt.}
-#'            \item{N1wtT1wt_r2}{The sample is the second replica (r2) of the biological condition N1wt and T1wt.}
-#'            \item{N1wtT1wt_r3}{The sample is the third replica (r3) of the biological condition N1wt and T1wt.}
-#'            \item{N1haT1wt_r4}{The sample is the first replica (r4) of the biological condition N1ha and T1wt.}
-#'            \item{N1haT1wt_r5}{The sample is the second replica (r5) of the biological condition N1ha and T1wt.}
-#'            \item{N1haT1wt_r6}{The sample is the third replica (r6) of the biological condition N1ha and T1wt.}
-#'            \item{N1haT1ko_r7}{The sample is the first replica (r7) of the biological condition N1ha and T1ko.}
-#'            \item{N1haT1ko_r8}{The sample is the second replica (r8) of the biological condition N1ha and T1ko.}
-#'            \item{N1haT1ko_r9}{The sample is the third replica (r9) of the biological condition N1ha and T1ko.}
-#'            \item{N1wtT1ko_r10}{The sample is the first replica (r10) of the biological condition N1wt and T1ko.}
-#'            \item{N1wtT1ko_r11}{The sample is the second replica (r11) of the biological condition N1wt and T1ko.}
-#'            \item{N1wtT1ko_r12}{The sample is the third replica (r12) of the biological condition N1wt and T1ko.}
+#'            \item{N1wtT1wt_r1}{The sample is the first replica (r1)
+#'            of the biological condition N1wt and T1wt.}
+#'            \item{N1wtT1wt_r2}{The sample is the second replica (r2)
+#'            of the biological condition N1wt and T1wt.}
+#'            \item{N1wtT1wt_r3}{The sample is the third replica (r3)
+#'            of the biological condition N1wt and T1wt.}
+#'            \item{N1haT1wt_r4}{The sample is the first replica (r4)
+#'            of the biological condition N1ha and T1wt.}
+#'            \item{N1haT1wt_r5}{The sample is the second replica (r5)
+#'            of the biological condition N1ha and T1wt.}
+#'            \item{N1haT1wt_r6}{The sample is the third replica (r6)
+#'            of the biological condition N1ha and T1wt.}
+#'            \item{N1haT1ko_r7}{The sample is the first replica (r7)
+#'            of the biological condition N1ha and T1ko.}
+#'            \item{N1haT1ko_r8}{The sample is the second replica (r8)
+#'            of the biological condition N1ha and T1ko.}
+#'            \item{N1haT1ko_r9}{The sample is the third replica (r9)
+#'            of the biological condition N1ha and T1ko.}
+#'            \item{N1wtT1ko_r10}{The sample is the first replica (r10)
+#'            of the biological condition N1wt and T1ko.}
+#'            \item{N1wtT1ko_r11}{The sample is the second replica (r11)
+#'            of the biological condition N1wt and T1ko.}
+#'            \item{N1wtT1ko_r12}{The sample is the third replica (r12)
+#'            of the biological condition N1wt and T1ko.}
 #'  }
 #'
 #' @details

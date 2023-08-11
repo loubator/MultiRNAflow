@@ -2,8 +2,8 @@
 #'
 #' @description The function returns two heatmaps:
 #' one heatmap of gene expressions between samples and selected genes and
-#' a correlation heatmap between samples
-#' from the output of [DEanalysisGlobal()].
+#' a correlation heatmap between samples from the output of
+#' [DEanalysisGlobal()].
 #'
 #' @details
 #' * If \code{Set.Operation="union"} then the rows extracted from \code{Data}
@@ -24,14 +24,16 @@
 #' those such that only one element of the selected columns in
 #' \code{Res.DE.analysis} is >0.
 #' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()], the rows extracted from \code{Data} will be those DE
-#' at only one time ti (except the reference time t0).
+#' [DEanalysisGlobal()],
+#' the rows extracted from \code{Data} will be those DE at only one time ti
+#' (except the reference time t0).
 #'
 #' The time in the first column of \code{Color.Time} must be either
 #' 't0', 'T0' or '0' for time 0,
 #' 't1', 'T1' or '1' for time 1, ...
 #'
-#' @param Res.DE.analysis A list. Output from [DEanalysisGlobal()].
+#' @param Res.DE.analysis A list. Output from
+#' [DEanalysisGlobal()].
 #' @param ColumnsCriteria A vector of integers where each integer indicates
 #' column of the output \code{DE.results} from \code{Res.DE.analysis}.
 #' Columns should contained binary values, but if there are other
@@ -64,7 +66,8 @@
 #' Otherwise no graph will be plotted.
 #' @param Save.plots TRUE or FALSE or a Character.
 #' If \code{Save.plots=FALSE}, the different files will not be saved.
-#' If \code{Save.plots=TRUE} and the \code{path.result} of [DEanalysisGlobal()]
+#' If \code{Save.plots=TRUE} and the \code{path.result} of
+#' [DEanalysisGlobal()]
 #' is not NULL, all files will be saved in
 #' "2_SupervisedAnalysis_\code{Name.folder.DE}/
 #' 2-4_Supplementary_Plots_\code{Name.folder.DE}/Plots_Heatmaps".
@@ -75,7 +78,8 @@
 #' one heatmap of gene expressions between samples and selected genes;
 #' and a correlation heatmap between samples.
 #'
-#' @seealso The function calls the function [ComplexHeatmap::Heatmap()]
+#' @seealso The function calls the function
+#' [ComplexHeatmap::Heatmap()]
 #' in order to plot the Heatmaps.
 #'
 #' @importFrom stats cor
@@ -131,7 +135,7 @@ DEplotHeatmaps<-function(Res.DE.analysis,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## RLE count data
-    RleDat<-Res.DE.analysis$List.Datas$RLEdata
+    RleDat<-Res.DE.analysis$RLEdata
     ## Sub data preprocessing for both heatmaps
 
     if(!is.null(ColumnsCriteria)){

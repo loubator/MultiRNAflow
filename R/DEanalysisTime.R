@@ -1,19 +1,24 @@
 #' @title DE analysis when samples belong to different time points only.
 #'
-#' @description The function realizes from the [DESeq2::DESeq()] output
-#' the analysis of DE genes between each time versus the reference time t0.
+#' @description The function realizes from the
+#' [DESeq2::DESeq()]
+#' output the analysis of DE genes between each time versus
+#' the reference time t0.
 #'
-#' @param DESeq.result Output from the function [DESeq2::DESeq()].
+#' @param DESeq.result Output from the function
+#' [DESeq2::DESeq()].
 #' @param pval.min Numeric value between 0 and 1. A gene will be considered as
 #' differentially expressed (DE) between two biological conditions if
-#' its Benjamini-Hochberg adjusted p-value (see [stats::p.adjust()]) is below
-#' the threshold pval.min. Default value is 0.05
+#' its Benjamini-Hochberg adjusted p-value
+#' (see [stats::p.adjust()]) is below the threshold pval.min.
+#' Default value is 0.05
 #' @param pval.vect.t \code{NULL} or vector of dimension \eqn{T-1} filled with
 #' numeric values between 0 and 1, with \eqn{T} the number of time
 #' measurements.
 #' A gene will be considered as differentially expressed (DE) between the time
 #' ti and the reference time t0 if its Benjamini-Hochberg adjusted p-value
-#' (see [stats::p.adjust()]) is below the i-th threshold of \code{pval.vect.t}.
+#' (see [stats::p.adjust()])
+#' is below the i-th threshold of \code{pval.vect.t}.
 #' If NULL, \code{pval.vect.t} will be vector of dimension \eqn{T-1} filled
 #' with \code{pval.min}.
 #' @param log.FC.min Non negative numeric value.
@@ -39,6 +44,7 @@
 #' If \code{NULL}, no suffix will be added.
 #'
 #' @importFrom DESeq2 results
+#' @importFrom SummarizedExperiment colData
 #' @importFrom grDevices png dev.off
 #'
 #' @return The function returns
@@ -54,13 +60,15 @@
 #' * an alluvial graph of differentially expressed (DE) genes
 #' (see [DEplotAlluvial()])
 #' * a graph showing the number of DE genes as a function of time for each
-#' temporal group (see [DEplotAlluvial()]).
+#' temporal group
+#' (see [DEplotAlluvial()]).
 #' By temporal group, we mean the sets of genes which are first DE at
 #' the same time.
 #' * a barplot which gives the number of DE genes per time
 #' (see [DEplotBarplotTime()])
 #' * an UpSet plot (Venn diagram displayed as a barplot) which gives the number
-#' of genes per temporal pattern (see [DEplotVennBarplotTime()]).
+#' of genes per temporal pattern
+#' (see [DEplotVennBarplotTime()]).
 #' By temporal pattern, we mean the set of times ti such that the gene is
 #' DE between ti and the reference time t0.
 #' * a similar UpSet plot where each bar is split in different colors
@@ -76,13 +84,17 @@
 #' data(RawCounts_Leong2014_FISSIONsub500wt)
 #' ## We take only the first three time for the speed of the example
 #' RawCounts_Fission_3t<-RawCounts_Leong2014_FISSIONsub500wt[,1:10]
-#' DESeq2.info<-DEanalysisPreprocessing(RawCounts=RawCounts_Fission_3t,
-#'                                      Column.gene=1,
-#'                                      Group.position=NULL,
-#'                                      Time.position=2,
-#'                                      Individual.position=3)
-#' ##
-#' dds.DE.T<-DESeq2::DESeq(DESeq2.info$DESeq2.obj,quiet=TRUE,betaPrior=FALSE)
+#'
+#' ## Preprocessing step
+#' resDATAprepSEfission <- DATAprepSE(RawCounts=RawCounts_Fission_3t,
+#'                                    Column.gene=1,
+#'                                    Group.position=NULL,
+#'                                    Time.position=2,
+#'                                    Individual.position=3)
+#'
+#' ##-------------------------------------------------------------------------#
+#' dds.DE.T<-DESeq2::DESeq(resDATAprepSEfission$DESeq2.obj,
+#'                         quiet=TRUE, betaPrior=FALSE)
 #' ##
 #' res.T<-DEanalysisTime(DESeq.result=dds.DE.T,
 #'                       pval.min=0.05,
@@ -111,22 +123,20 @@ DEanalysisTime<-function(DESeq.result,
     ##------------------------------------------------------------------------#
     ## 1) Parameters
     ## Gene names and number of genes
-    ## Gene.Names<-row.names(SummarizedExperiment::assay(DESeq.result))
-    ## res.dds<-DESeq.result@rowRanges@partitioning@NAMES
-    # DESeq.result colData(dds)% rowData(dds)% dimnames(dds)
 
-    res.dds<-dimnames(DESeq.result)[[1]]
-    # DESeq2::results(DESeq.result)
-    if(is.null(res.dds)){# is.null(row.names(res.dds))==TRUE)
-        Row.name.res<-paste0("Gene", seq_len(length(res.dds)))
-    }else{
-        Row.name.res<-res.dds#row.names(res.dds)
-    }# if(is.null(row.names(res.dds.group))==TRUE)
+    Gene.Names<-dimnames(DESeq.result)[[1]] ## DESeq2::results(DESeq.result)
+    if (is.null(Gene.Names)) {
+        Row.name.res<-paste0("Gene", seq_len(length(Gene.Names)))
+    } else {
+        Row.name.res<-Gene.Names
+    }## if(is.null(row.names(res.dds.group))==TRUE)
 
     Nb.gene<-length(Row.name.res)
 
-    ## Time, levels(as.factor(DESeq.result@colData$Time))
-    Levels.time<-levels(as.factor(SummarizedExperiment::colData(DESeq.result)[[1]]))
+    ## Time
+    Fct.time <- data.frame(SummarizedExperiment::colData(DESeq.result))[,1]
+    Fct.time <- as.factor(as.character(Fct.time))
+    Levels.time<-levels(Fct.time)
     ref.level.time<-Levels.time[1]
     Other.t<-Levels.time[-1]
     Nb.time<-length(Levels.time)
