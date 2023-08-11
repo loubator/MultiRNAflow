@@ -80,7 +80,7 @@ data.frame should contain the names of the columns (strings of characters) that 
 the following structure.
 
 ```{r ColnamesDataWeger2021}
-head(colnames(RawCounts_Weger2021_MOUSEsub500),n=5)
+head(colnames(RawCounts_Weger2021_MOUSEsub500), n=5)
 ```
 
 In this example, "Gene" indicates the column which contains the names of the different
@@ -92,57 +92,71 @@ The information located to the left of the first underscore will be considered t
 In most of the functions of our package, the order of the previous information in the column names will be indicated with the inputs `Group.position`, `Time.position` and `Individual.position`.
 Similarly the input `Column.gene` will indicate the number of the column containing gene names.
 
-## Exploratory data analysis
+## Preprocessing
 
-4. Normalization with `DATAnormalization()`
+4. Preprocessing with `DATAprepSE()`
 
-```{r NormalizationMouse2, eval=TRUE}
-res.norm<-DATAnormalization(RawCounts=RawCounts_Weger2021_MOUSEsub500,
+```{r PreprocessingMouse2, eval=TRUE}
+resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_Weger2021_MOUSEsub500,
                             Column.gene=1,
                             Group.position=1,
                             Time.position=2,
-                            Individual.position=3,
-                            Normalization="vst",
-                            Blind.rlog.vst=FALSE,
-                            Plot.Boxplot=FALSE,
-                            Colored.By.Factors=TRUE,
-                            Color.Group=NULL,
-                            path.result=NULL)
+                            Individual.position=3)
+```
+
+* **Output**: The function realizes the normalization step and returns
+  - A SummarizeExperiment object containing all information about the raw counts data
+  - A DESeqDataSet object to be used by the function `DEanalysisGlobal` for the statistical (supervised) analysis.
+* **Input**:
+  - The dataset must be RNA-seq raw counts (`RawCounts`)
+  - The argument `Column.gene=1` means that the first column of the dataset contain genes name, `Time.position=2` means that the time of measurements is between the first and the second underscores in the columns names, `Individual.position=3` means that the name of the individual is between the second and the third underscores in the columns names and `Group.position=NULL` means that there is only one biological condition in the dataset. Similarly, `Time.position=NULL` would mean that there is only one time of measurement for each individual and `Column.gene=NULL` would mean that there is no column containing gene names.
+* **Other**:
+  - Write `?DATAprepSE` in your console for more information about the function.
+  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
+  
+## Exploratory data analysis
+
+5. Normalization with `DATAnormalization()`
+
+```{r NormalizationMouse2, eval=TRUE}
+resNorm <- DATAnormalization(SEres=resDATAprepSE,
+                             Normalization="vst",
+                             Blind.rlog.vst=FALSE,
+                             Plot.Boxplot=FALSE,
+                             Colored.By.Factors=TRUE,
+                             Color.Group=NULL,
+                             path.result=NULL)
 ```
 
 * **Output**: The function realizes the normalization step and returns
   - A normalized data
   - A boxplot (if `Plot.Boxplot=TRUE`) showing the distribution of the normalized expression (`Normalization="vst"` means that the vst method is used) of genes for each sample.
 * **Input**:
-  - The dataset must be RNA-seq raw counts (`RawCounts`)
-  - The argument `Column.gene=1` means that the first column of the dataset contain genes name, `Time.position=2` means that the time of measurements is between the first and the second underscores in the columns names, `Individual.position=3` means that the name of the individual is between the second and the third underscores in the columns names and `Group.position=NULL` means that there is only one biological condition in the dataset. Similarly, `Time.position=NULL` would mean that there is only one time of measurement for each individual and `Column.gene=NULL` would mean that there is no column containing gene names.
+  - The results of the function `DATAprepSE()`.
   - In order to display the output graph, set `Plot.Boxplot=TRUE`.
   - If `Colored.By.Factors=TRUE`, the color of the boxplots would be different for different biological conditions.
   - In order to save the different results in a folder, select a folder path in `path.result`.
 * **Other**:
   - Write `?DATAnormalization` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
 
 
-5. Principal component analysis (PCA) with `PCAanalysis()`
+6. Principal component analysis (PCA) with `PCAanalysis()`
 
 ```{r PCAMus2, eval=TRUE}
-res.pca<-PCAanalysis(ExprData=res.norm$NormalizedData,
-                     Column.gene=1,
-                     Group.position=1,
-                     Time.position=2,
-                     Individual.position=3,
-                     gene.deletion=NULL,
-                     sample.deletion=NULL,
-                     Supp.del.sample=FALSE,
-                     Plot.PCA=FALSE,
-                     Mean.Accross.Time=FALSE,
-                     Color.Group=NULL,
-                     Cex.label=0.6,
-                     Cex.point=0.7, epsilon=0.2,
-                     Phi=25,Theta=140,
-                     D3.mouvement=FALSE,
-                     path.result=NULL)
+resPCA <- PCAanalysis(SEresNorm=resNorm,
+                      DATAnorm=TRUE,
+                      gene.deletion=NULL,
+                      sample.deletion=NULL,
+                      Supp.del.sample=FALSE,
+                      Plot.PCA=FALSE,
+                      Mean.Accross.Time=FALSE,
+                      Color.Group=NULL,
+                      Cex.label=0.6,
+                      Cex.point=0.7, epsilon=0.2,
+                      Phi=25,Theta=140,
+                      D3.mouvement=FALSE,
+                      path.result=NULL)
 ```
 
 * **Output**: When samples belong to different biological conditions and different time points, the previous lines of code return
@@ -155,7 +169,8 @@ between each pair of consecutive points for each sample (if `Mean.Accross.Time=F
 otherwise it will be only between means).
   - The same graphs describe above but without lines.
 * **Input**:
-  - We recommend the use of the normalized data as input of `ExprData`.
+  - The results of the function `DATAprepSE()`.
+  - We recommend the use of the normalized data (`DATAnorm=TRUE`) for the PCA analysis.
   - By default (if `Color.Group=NULL`), a color will be automatically applied for each biological condition. If you want to change the colors, read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
   - If you want to delete, for instance, the genes ’ENSMUSG00000025921’ and ’ENSMUSG00000026113’ (respectively the second and sixth gene) and/or delete the samples 'BmKo\_t2\_r1' and 'BmKo\_t5\_r2', set
     - `gene.deletion=c("ENSMUSG00000025921", "ENSMUSG00000026113")` and/or `sample.deletion=c("BmKo_t2_r1", "BmKo_t5_r2")`
@@ -164,27 +179,24 @@ otherwise it will be only between means).
   - In order to save the different results in a folder, select a folder path in `path.result`.
 * **Other**:
   - Write `?PCAanalysis` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
 
 
-6. Hierarchical Clustering on Principle Components (HCPC) with `HCPCanalysis()`
+7. Hierarchical Clustering on Principle Components (HCPC) with `HCPCanalysis()`
 
 ```{r HCPCmus2500, warning=FALSE, message=FALSE, eval=TRUE}
-res.hcpc<-HCPCanalysis(ExprData=res.norm$NormalizedData,
-                       Column.gene=1,
-                       Group.position=1,
-                       Time.position=2,
-                       Individual.position=3,
-                       gene.deletion=NULL,
-                       sample.deletion=NULL,
-                       Supp.del.sample=FALSE,
-                       Plot.HCPC=FALSE,
-                       Phi=25,Theta=140,
-                       Cex.point=0.6,
-                       epsilon=0.2,
-                       Cex.label=0.6,
-                       D3.mouvement=FALSE,
-                       path.result=NULL)
+resHCPC <- HCPCanalysis(SEresNorm=resNorm,
+                        DATAnorm=TRUE,
+                        gene.deletion=NULL,
+                        sample.deletion=NULL,
+                        Supp.del.sample=FALSE,
+                        Plot.HCPC=FALSE,
+                        Phi=25,Theta=140,
+                        Cex.point=0.6,
+                        epsilon=0.2,
+                        Cex.label=0.6,
+                        D3.mouvement=FALSE,
+                        path.result=NULL)
 ```
 
 * **Output**:
@@ -193,29 +205,27 @@ res.hcpc<-HCPCanalysis(ExprData=res.norm$NormalizedData,
   - A graph indicating by color for each sample, its cluster, the biological condition and the time point associated to the sample.
   - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if `D3.mouvement=FALSE`). These PCA graphs are identical to the outputs of `PCAanalysis()` with all samples but samples are colored with different colors for different clusters.
 * **Input**:
-  - We recommend the use of the normalized data as input of `ExprData`.
+  - The results of the function `DATAprepSE()`.
+  - We recommend the use of the normalized data (`DATAnorm=TRUE`) for the HCPC analysis.
   - In order to display the different output graph, set `Plot.HCPC=TRUE`.
   - In order to save the different results in a folder, select a folder path in `path.result`.
 * **Other**:
   - The optimal number of clusters is automatically computed by the R function `HCPC()`.
   - Write `?HCPCanalysis` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
 
 
-7. Temporal clustering analysis with `MFUZZanalysis()`.
+8. Temporal clustering analysis with `MFUZZanalysis()`.
 
 ```{r MfuzzMus2, eval=TRUE, results='hide', fig.show='hide'}
-res.mfuzz<-MFUZZanalysis(ExprData=res.norm$NormalizedData,
-                         Column.gene=1,
-                         Group.position=1,
-                         Time.position=2,
-                         Individual.position=3,
-                         DataNumberCluster=NULL,
-                         Method="hcpc",
-                         Membership=0.5,
-                         Min.std=0.1,
-                         Plot.Mfuzz=FALSE,
-                         path.result=NULL)
+resMFUZZ <- MFUZZanalysis(SEresNorm=resNorm,
+                          DATAnorm=TRUE,
+                          DataNumberCluster=NULL,
+                          Method="hcpc",
+                          Membership=0.5,
+                          Min.std=0.1,
+                          Plot.Mfuzz=FALSE,
+                          path.result=NULL)
 ```
 
 * **Output**:
@@ -223,33 +233,32 @@ res.mfuzz<-MFUZZanalysis(ExprData=res.norm$NormalizedData,
   - The number of clusters automatically computed (if `DataNumberCluster=NULL`). If `Method="hcpc"`, the function plots the scaled within-cluster inertia, but if `Method="kmeans"`, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select `Method="hcpc"` which is by default.
   - the output graph from the function `mfuzz()` which represents the most common temporal behavior among all genes for the biological condition ‘BmKo’.
 * **Input**:
-  - We recommend the use of the normalized data as input of `ExprData`.
+  - The results of the function `DATAprepSE()`.
+  - We recommend the use of the normalized data (`DATAnorm=TRUE`) for the clustering analysis.
   - For each cluster, genes with membership values below the threshold `Membership` (numeric value between 0 and 1) will not be displayed. The membership values correspond to the probability of gene to belong to each cluster.
   - All genes where their standard deviations are smaller than the threshold `Min.std` (numeric positive value) will be excluded.
   - In order to display the different output graph, set `Plot.Mfuzz=TRUE`.
   - In order to save the different results in a folder, select a folder path in `path.result`.
 * **Other**:
   - Write `?MFUZZanalysis` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
 
 
-8. Plot temporal expression with with `DATAplotExpressionGenes()`
+9. Plot temporal expression with with `DATAplotExpressionGenes()`
 
 ```{r DATAplotExpressionGenesMusBmCrKoWt, eval=TRUE, results='hide', fig.show='hide'}
-res.expr<-DATAplotExpressionGenes(ExprData=res.norm$NormalizedData,
-                                  Vector.row.gene=c(17),
-                                  Column.gene=1,
-                                  Group.position=1,
-                                  Time.position=2,
-                                  Individual.position=3,
-                                  Color.Group=NULL,
-                                  Plot.Expression=FALSE,
-                                  path.result=NULL)
+resEXPR <- DATAplotExpressionGenes(SEresNorm=resNorm,
+                                   DATAnorm=TRUE,
+                                   Vector.row.gene=c(17),
+                                   Color.Group=NULL,
+                                   Plot.Expression=FALSE,
+                                   path.result=NULL)
 ```
 
 * **Output**: A graph plotting for each biological condition: the evolution of the 17th gene expression of the three replicates across time and the evolution of the mean and the standard deviation of the 17th gene expression across time. The color of the different lines are different for different biological conditions.
 * **Input**:
-  - We recommend the use of the normalized data as input of `ExprData`.
+  - The results of the function `DATAprepSE()`.
+  - We recommend the use of the normalized data (`DATAnorm=TRUE`).
   - If the user wants to select several genes, for instance the 97th, the 192th, the 194th and the 494th, he needs to set `Vector.row.gene=c(97,192,194,494)`.
   - By default (if `Color.Group=NULL`), a color will be automatically applied for each biological condition. If you want to change the colors, read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
   - In order to display the different output graph, set `Plot.Expression=TRUE`.
@@ -262,30 +271,32 @@ res.expr<-DATAplotExpressionGenes(ExprData=res.norm$NormalizedData,
 
 ## Supervised statistical analysis
 
-9. Differential Expresion (DE) analysis with `DEanalysisGlobal()`
+10. Differential Expresion (DE) analysis with `DEanalysisGlobal()`
 
 For the speed of the algorithm, we will take only three biological conditions and three times
 
 ```{r SubMusBmCrKoWt}
-Sub3bc3T<-RawCounts_Weger2021_MOUSEsub500
-Sub3bc3T<-Sub3bc3T[,seq_len(73)]
-SelectTime<-grep("_t0_",colnames(Sub3bc3T))
-SelectTime<-c(SelectTime,grep("_t1_", colnames(Sub3bc3T)))
-SelectTime<-c(SelectTime,grep("_t2_", colnames(Sub3bc3T)))
-Sub3bc3T<-Sub3bc3T[,c(1,SelectTime)]
+Sub3bc3T <- RawCounts_Weger2021_MOUSEsub500
+Sub3bc3T <- Sub3bc3T[, seq_len(73)]
+SelectTime <- grep("_t0_", colnames(Sub3bc3T))
+SelectTime <- c(SelectTime, grep("_t1_", colnames(Sub3bc3T)))
+SelectTime <- c(SelectTime, grep("_t2_", colnames(Sub3bc3T)))
+Sub3bc3T <- Sub3bc3T[, c(1, SelectTime)]
+
+resSEsub <- DATAprepSE(RawCounts=Sub3bc3T,
+                       Column.gene=1,
+                       Group.position=1,
+                       Time.position=2,
+                       Individual.position=3)
 ```
 
 
 ```{r DEMusBmCrKoWt, eval=TRUE, echo=TRUE}
-res.de<-DEanalysisGlobal(RawCounts=Sub3bc3T,
-                         Column.gene=1,
-                         Group.position=1,
-                         Time.position=2,
-                         Individual.position=3,
-                         pval.min=0.05,
-                         log.FC.min=1,
-                         Plot.DE.graph=FALSE,
-                         path.result=NULL)
+resDE <- DEanalysisGlobal(SEres=resSEsub,
+                          pval.min=0.05,
+                          log.FC.min=1,
+                          Plot.DE.graph=FALSE,
+                          path.result=NULL)
 ```
 
 * **Output**: 
@@ -336,14 +347,14 @@ res.de<-DEanalysisGlobal(RawCounts=Sub3bc3T,
   - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
   
 
-10. Volcano and ratio intensity (MA) plots with `DEplotVolcanoMA()`
+11. Volcano and ratio intensity (MA) plots with `DEplotVolcanoMA()`
 
 ```{r VolcanoMA_Mouse2, eval=TRUE, echo=TRUE}
-res.VolcanoMA<-DEplotVolcanoMA(Res.DE.analysis=res.de,
-                               NbGene.plotted=2,
-                               SizeLabel=3,
-                               Display.plots=FALSE,
-                               Save.plots=TRUE)
+resMAvolcano <- DEplotVolcanoMA(Res.DE.analysis=resDE,
+                                NbGene.plotted=2,
+                                SizeLabel=3,
+                                Display.plots=FALSE,
+                                Save.plots=TRUE)
 ```
 
 * **Output**: The function returns Volcano plots and MA plots from the results of our function `DEanalysisGlobal()`.
@@ -355,17 +366,17 @@ res.VolcanoMA<-DEplotVolcanoMA(Res.DE.analysis=res.de,
   - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
 
 
-11. Heatmaps with `DEplotHeatmaps()`
+12. Heatmaps with `DEplotHeatmaps()`
 
 ```{r Heatmaps_Mouse2, eval=TRUE, echo=TRUE}
-res.heatmaps<-DEplotHeatmaps(Res.DE.analysis=res.de,
-                             ColumnsCriteria=2,
-                             Set.Operation="union",
-                             NbGene.analysis=20,
-                             SizeLabelRows=5,
-                             SizeLabelCols=5,
-                             Display.plots=FALSE,
-                             Save.plots=TRUE)
+resHEAT <- DEplotHeatmaps(Res.DE.analysis=resDE,
+                          ColumnsCriteria=2,
+                          Set.Operation="union",
+                          NbGene.analysis=20,
+                          SizeLabelRows=5,
+                          SizeLabelCols=5,
+                          Display.plots=FALSE,
+                          Save.plots=TRUE)
 ```
 
 
@@ -379,19 +390,19 @@ res.heatmaps<-DEplotHeatmaps(Res.DE.analysis=res.de,
   - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
 
 
-12. GO enrichment analysis with `GSEAQuickAnalysis()` and `GSEApreprocessing()`
+13. GO enrichment analysis with `GSEAQuickAnalysis()` and `GSEApreprocessing()`
 
 ```{r GSEAquickAnalysis_Mouse2, eval=TRUE}
-res.gprofiler2<-GSEAQuickAnalysis(Internect.Connection=FALSE,
-                                  Res.DE.analysis=res.de,
-                                  ColumnsCriteria=2,
-                                  ColumnsLog2ordered=NULL,
-                                  Set.Operation="union",
-                                  Organism="mmusculus",
-                                  MaxNumberGO=20,
-                                  Background=FALSE,
-                                  Display.plots=FALSE,
-                                  Save.plots=TRUE)
+resRgprofiler2 <- GSEAQuickAnalysis(Internect.Connection=FALSE,
+                                    Res.DE.analysis=resDE,
+                                    ColumnsCriteria=2,
+                                    ColumnsLog2ordered=NULL,
+                                    Set.Operation="union",
+                                    Organism="mmusculus",
+                                    MaxNumberGO=20,
+                                    Background=FALSE,
+                                    Display.plots=FALSE,
+                                    Save.plots=TRUE)
 ```
 
 * **Output**: The function realizes, from the outputs of `DEanalysisGlobal()`, an enrichment analysis (GSEA) of a subset of genes with the R package `gprofiler2`.
@@ -408,11 +419,11 @@ res.gprofiler2<-GSEAQuickAnalysis(Internect.Connection=FALSE,
 
 
 ```{r GSEAprepro_Mouse2, eval=TRUE}
-res.preprocessing<-GSEApreprocessing(Res.DE.analysis=res.de,
-                                     ColumnsCriteria=2,
-                                     Set.Operation="union",
-                                     Rnk.files=FALSE,
-                                     Save.files=FALSE)
+resGSEApreprocess <- GSEApreprocessing(Res.DE.analysis=resDE,
+                                       ColumnsCriteria=2,
+                                       Set.Operation="union",
+                                       Rnk.files=FALSE,
+                                       Save.files=FALSE)
 ```
 
 * **Output**: 

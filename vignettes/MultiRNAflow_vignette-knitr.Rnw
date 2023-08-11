@@ -47,6 +47,14 @@ BiocStyle::latex(use.unsrturl=FALSE)
 
 \begin{document}
 
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+concordance=TRUE
+)
+@
+
+
 \maketitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -275,17 +283,35 @@ As there usually are to many genes in a dataset, the heatmaps are realized after
 \subsubsubsection{Gene ontology and gene enrichment}\label{sec:stepsGO}
 
 Gene Ontology (GO) enrichment analysis is a technique for interpreting DE genes through the Gene Ontology system of classification. The goal is to retrieve a functional profile of DE genes and better understand the underlying biological processes. We recommend the most used online tools and software: GSEA \cite{Subramanian2005GSEA}, DAVID \cite{Sherman2021DAVID}, WebGestalt \cite{Liao2019WebGestalt}, g:Profiler \cite{Raudvere2019gProfiler}, Panther \cite{Thomas2020PANTHER}, ShinyGO \cite{GE2020ShinyGO}, Enrichr \cite{Kuleshov2016Enrichr} and GOrilla \cite{Eden2009GOrilla}.
+Each of these softwares and online tools requires specific input files in order to realize their analysis. The R function \textbf{GSEApreprocessing()} automatically creates all required files.\newline
+Figure~\ref{fig:ApllicationNoteImage}.L and Figure~\ref{fig:ApllicationNoteImage}.M were produced by the online tool WebGestalt and the software GSEA.
 
-Each of these softwares and online tools requires specific input files in order to realize their analysis. The R function \textbf{GSEApreprocessing()} automatically creates all required files.
+
 Alternatively, the function \textbf{GSEAquickAnalysis()} provides a GSEA analysis with the R package gprofiler2 \cite{Kolberg2020gprofiler2}. Among the ouputs, \textbf{GSEAquickAnalysis()} returns
-
+%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{itemize}
-\item A Manhattan plot ranking all GO names according to their pvalue.
-\item A lollipop graph showing the most important Gene Ontologies ranked by their \newline $-\log_{10}(\mbox{pvalue})$.
-\item All genes associated to all GO names.
+\item a data.frame (output \texttt{resGSEAgprofiler2Fission\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a lollipop graph (Figure~\ref{fig:FissionLollipop}) showing the most important Gene Ontologies ranked by their
+$-\log_{10}(\mbox{pvalue})$.
+The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and pathways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
+\item A Manhattan plot (Figure~\ref{fig:FissionManhattan}) ranking all genes ontologies according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
 \end{itemize}
 
-Figure~\ref{fig:ApllicationNoteImage}.L and Figure~\ref{fig:ApllicationNoteImage}.M were produced by the online tool WebGestalt and the software GSEA.
+\begin{figure}
+\centering
+\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-5LollipopChart.pdf}
+\caption{Lollipop chart giving the most significant gene ontologies}
+\label{fig:FissionLollipop}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-5ManhattanPlot.pdf}
+\caption{Mahattan plot indicating all genes ontologies}
+\label{fig:FissionManhattan}
+\end{figure}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Dataset used as examples in the package}
@@ -458,10 +484,11 @@ Our package contains 38 functions among which 11 are main functions.
 The user should only use
 
 \begin{itemize}
+\item \textbf{DATAprepSE()} to store all information about the dataset in a standardized way (SummarizedExperiment class object)
 \item these main functions for exploratory data analysis (unsupervised analysis)
 %
 \begin{itemize}
-\item \textbf{DATAnormalization()}. This function allows to normalize raw counts data and the results will be used by the functions \textbf{PCAanalysis()}, \textbf{HCPCanalysis()}, \textbf{MFUZZanalysis()} and \textbf{DATAplotExpressionGenes()}.
+\item \textbf{DATAnormalization()}. This function allows to normalize raw counts data and the results will be used by the functions \textbf{PCAanalysis()}, \textbf{HCPCanalysis()}, \textbf{MFUZZanalysis()}\newline and \textbf{DATAplotExpressionGenes()}.
 \item \textbf{PCAanalysis()}. The function realizes the PCA analysis.
 \item \textbf{HCPCanalysis()}. The function realizes the clustering analysis with the R package HCPC.
 \item \textbf{MFUZZanalysis()}. The function realizes the temporal clustering analysis with the R package Mfuzz
@@ -472,7 +499,6 @@ The user should only use
 %
 \begin{itemize}
 \item \textbf{DEanalysisGlobal()}. This function realizes the differential expression analysis.
-\item \textbf{DEanalysisSubData()}. This function allows to select a sub data.frame from the original one using the output of \textbf{DEanalysisGlobal()}.
 \item \textbf{DEplotVolcanoMA()}. The function plots and save all Volcano and MA plots from the output of \textbf{DEanalysisGlobal()}.
 \item \textbf{DEplotHeatmaps()}. The function plots a correlation heatmap and a heatmap of the normalized data for a selection of DE genes.
 \item \textbf{GSEAQuickAnalysis()}. The function realizes the GSEA analysis with the R package gprofiler2.
@@ -516,7 +542,7 @@ in order to load the \nameref{sec:dataWeger2021}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The dataset must be a data.frame containing raw counts data.
-If it is not the case, the functions \textbf{DATAnormalization()} and \textbf{DEanalysisGlobal()} will stop and print an error.
+If it is not the case, the function \textbf{DATAprepSE()} will stop and print an error.
 Each line should correspond to a gene, each column to a sample, except a particular column that may contain strings of characters describing the names of the genes.
 The first line of the data.frame should contain the names of the columns (strings of characters) that must have the following structure.
 
@@ -535,7 +561,7 @@ For instance, the sample "wt\_t0\_r1" corresponds to the first replicate (r1) of
 The information located to the left of the first underscore will be considered to be in position 1, the information located between the first underscore and the second one will be considered to be in position 2, and so on. In the previous example, the biological condition is in position 1, the time is in position 2 and the replicate is in position 3.\newline
 
 In most of the functions of our package, the order of the previous information in the column names will be indicated with the inputs \texttt{Group.position}, \texttt{Time.position} and \texttt{Individual.position}. Similarly the input \texttt{Column.gene} will indicate the number of the column containing gene names.
-For example, in the previous dataset, the function \textbf{DATAplotExpressionGenes()} must be called with the following arguments:
+For example, in the previous dataset, the function \textbf{DATAprepSE()} must be called with the following arguments:
 
 <<ExampleParametersData, echo=FALSE, eval=TRUE>>=
 data("RawCounts_Leong2014_FISSIONsub500wt")
@@ -543,15 +569,11 @@ data("RawCounts_Leong2014_FISSIONsub500wt")
 
 
 <<ExampleParameters, echo=TRUE, eval=TRUE>>=
-res.ex<-DATAplotExpressionGenes(ExprData=RawCounts_Leong2014_FISSIONsub500wt,
-                                Vector.row.gene=c(2),
-                                Column.gene=1,
-                                Group.position=NULL,
-                                Time.position=2,
-                                Individual.position=3,
-                                Color.Group=NULL,
-                                Plot.Expression=FALSE,
-                                path.result=NULL)
+resSEexample <- DATAprepSE(RawCounts=RawCounts_Leong2014_FISSIONsub500wt,
+                           Column.gene=1,
+                           Group.position=NULL,
+                           Time.position=2,
+                           Individual.position=3)
 @
 
 Here, the argument \texttt{Column.gene=1} means that the first column of the dataset contain genes name, \texttt{Time.position=2} means that the time of measurements is between the first and the second underscores in the columns names, \texttt{Individual.position=3} means that the name of the individual is between the second and the third underscores in the columns names and
@@ -559,6 +581,123 @@ Here, the argument \texttt{Column.gene=1} means that the first column of the dat
 Similarly, \texttt{Time.position=NULL} would mean that there is only one time of measurement for each individual and \texttt{Column.gene=NULL} would mean that there is no column containing gene names.
 
 \clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Preprocessing step for the four dataset with DATAprepSE()}
+\label{sec:PreprocessingStep}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The preprocessing step is realized by our R function \textbf{DATAprepSE()} to store all information about the dataset in a standardized way (SummarizedExperiment class object).
+The user must realize this step in order to realize
+exploratory data analysis (unsupervised analysis, section \ref{sec:ExploratoryAnalysis}) or
+statistical analysis of the transcriptional response (supervised analysis, section \ref{sec:SupervisedAnalysis})
+
+\subsection{Mouse data (case 1)}\label{sec:DATAprepSEus1}
+
+In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500}
+(see the subsection \ref{sec:dataAntoszewski2022}) in order to explain
+\textbf{DATAprepSE()} in \textbf{Case 1}.
+
+The following lines of code realize the normalization step
+
+<<DATAprepSEmus1, echo=TRUE, eval=TRUE>>=
+resSEmus1500 <- DATAprepSE(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
+                           Column.gene=1,
+                           Group.position=1,
+                           Time.position=NULL,
+                           Individual.position=2)
+@
+
+The function returns
+
+\begin{itemize}
+\item \Rclass{SummarizedExperiment} class object containing all information of the dataset to be used for exploratory data analysis
+\item \Rclass{DESeqDataSet} class object to be used for statistical analysis of the transcriptional response.
+\end{itemize}
+
+Write \texttt{?DATAprepSE} in your console for more information about the function.
+
+
+\subsection{Fission data (case 2)}\label{sec:DATAprepSEfission}
+
+In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014\_FISSIONsub500wt}
+(see the subsection \nameref{sec:dataLeong2014}) in order to explain \textbf{DATAprepSE()} in \textbf{case 2}.
+
+The following lines of code realize the normalization step
+
+<<DATAprepSEfission, echo=TRUE, eval=TRUE>>=
+resSEfission500 <- DATAprepSE(RawCounts=RawCounts_Leong2014_FISSIONsub500wt,
+                              Column.gene=1,
+                              Group.position=NULL,
+                              Time.position=2,
+                              Individual.position=3)
+@
+
+The function returns
+
+\begin{itemize}
+\item \Rclass{SummarizedExperiment} class object containing all information of the dataset to be used for exploratory data analysis
+\item \Rclass{DESeqDataSet} class object to be used for statistical analysis of the transcriptional response.
+\end{itemize}
+
+Write \texttt{?DATAprepSE} in your console for more information about the function.
+
+
+\subsection{Leukemia data (Case 3 with two biological conditions)}
+\label{sec:DATAprepSEleuk}
+
+In this section we use the Chronic lymphocytic leukemia (CLL) subdataset\newline
+\textbf{RawCounts\_Schleiss2021\_CLLsub500} (see subsection \nameref{sec:dataSchleiss2021})
+in order to explain \textbf{DATAprepSE()} in \textbf{case 3} when there only two biological conditions.
+
+The following lines of code realize the normalization step.
+
+<<DATAprepSEleuk, eval=TRUE>>=
+resSEleuk500 <- DATAprepSE(RawCounts=RawCounts_Schleiss2021_CLLsub500,
+                           Column.gene=1,
+                           Group.position=2,
+                           Time.position=4,
+                           Individual.position=3)
+@
+
+
+The function returns
+
+\begin{itemize}
+\item \Rclass{SummarizedExperiment} class object containing all information of the dataset to be used for exploratory data analysis
+\item \Rclass{DESeqDataSet} class object to be used for statistical analysis of the transcriptional response.
+\end{itemize}
+
+Write \texttt{?DATAprepSE} in your console for more information about the function.
+
+
+\subsection{Mouse data 2 (case 3 with more than two biological conditions)}
+\label{sec:DATAprepSEmus2}
+
+In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEsub500}
+(see Subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DATAprepSE()} in \textbf{case 3} when there are more than two biological conditions.
+
+The following lines of code realize the normalization step.
+
+<<DATAprepSEmus22, eval=TRUE>>=
+resSEmus2500 <- DATAprepSE(RawCounts=RawCounts_Weger2021_MOUSEsub500,
+                           Column.gene=1,
+                           Group.position=1,
+                           Time.position=2,
+                           Individual.position=3)
+@
+
+The function returns
+
+\begin{itemize}
+\item \Rclass{SummarizedExperiment} class object containing all information of the dataset to be used for exploratory data analysis
+\item \Rclass{DESeqDataSet} class object to be used for statistical analysis of the transcriptional response.
+\end{itemize}
+
+Write \texttt{?DATAprepSE} in your console for more information about the function.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -571,32 +710,24 @@ Similarly, \texttt{Time.position=NULL} would mean that there is only one time of
 
 \subsubsection{Mouse data (case 1)}\label{sec:DATAnormalizationMus1}
 
-In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500} (see the subsection \ref{sec:dataAntoszewski2022}) in order to explain \textbf{DATAnormalization()} in \textbf{Case 1}.
+In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500}
+(see the subsection \ref{sec:dataAntoszewski2022}) in order to explain \textbf{DATAnormalization()} in \textbf{Case 1}.
 
-The following lines of code realize the normalization step.
+The following lines of code realize the normalization step from the results of the function \textbf{DATAprepSE()}
+(subsection \ref{sec:DATAprepSEmus1})
 
-<<NormalizationMouse, echo=TRUE, eval=TRUE>>=
-res.Norm.Mus500<-DATAnormalization(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-                                   Column.gene=1,
-                                   Group.position=1,
-                                   Time.position=NULL,
-                                   Individual.position=2,
-                                   Normalization="rle",
-                                   Blind.rlog.vst=FALSE,
-                                   Plot.Boxplot=FALSE,
-                                   Colored.By.Factors=TRUE,
-                                   Color.Group=NULL,
-                                   path.result=NULL)
+<<NormalizationMouse1, echo=TRUE, eval=TRUE>>=
+resNORMmus1500 <- DATAnormalization(SEres=resSEmus1500,
+                                    Normalization="rle",
+                                    Blind.rlog.vst=FALSE,
+                                    Plot.Boxplot=TRUE,
+                                    Colored.By.Factors=TRUE,
+                                    Color.Group=NULL,
+                                    path.result=NULL)
 @
 
 
-If \Rcode{Plot.Boxplot=TRUE} a boxplot showing the distribution of the normalized expression (\texttt{Normalization="rle"} means that the rle method is used) of genes for each sample, is returned as shown below (Figure \ref{Mouse1Boxplot}).
-
-\begin{figure}
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_1-1Normalization_RLEboxplot.pdf}
-\caption{Boxplot of the distribution of the rle normalized expression of genes for each sample.}
-\label{Mouse1Boxplot}
-\end{figure}
+If \Rcode{Plot.Boxplot=TRUE} a boxplot showing the distribution of the normalized expression (\texttt{Normalization="rle"} means that the rle method is used) of genes for each sample is returned.
 
 If \texttt{Colored.By.Factors=TRUE}, the color of the boxplots would be different for different biological conditions.
 By default (if \texttt{Color.Group=NULL}), a color will be automatically applied for each biological condition. Colors can be changed the colors by creating the following data.frame
@@ -606,28 +737,24 @@ data.col.mus50<-data.frame(Name=c("N1wtT1wt","N1haT1wt","N1haT1ko","N1wtT1ko"),
                            Col=c("black","red","green","blue"))
 @
 
-and setting \texttt{Color.Group=data.col.mus50}.\newline
+and setting \texttt{Color.Group=data.col.mus50}.
 
-For more details on the use of the inputs \texttt{Column.gene}, \texttt{Time.position}, \texttt{Group.position} and \texttt{Individual.position}, see Section \nameref{sec:StructureDataset}.
+The x-labels correspond to the new name of the samples which are just biological information, time information and individual information separated by a dot. If the user wants to see the 6th first rows of the normalized data, he can write in his console \texttt{head(res.Norm.Mus500\$NormalizedData, n=6)}.
 
-The x-labels correspond to the new name of the samples which are just biological information, time information and individual information separated by a dot. If the user wants to see the 6th first rows of the normalized data, he can write in his console \texttt{head(res.Norm.Mus500, n=6)}.
-
-The user can save the graph in a folder thanks to the input path.result. If \texttt{path.result=NULL} the results will still be plotted but not saved in a folder.\newline
+The user can save the graph in a folder thanks to the input path.result. If \texttt{path.result=NULL} the results will still be plotted but not saved in a folder.
 
 Write \texttt{?DATAnormalization} in your console for more information about the function.
 
 \subsubsection{Fission data (case 2)}\label{sec:DATAnormalizationFission}
 
-In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014\_FISSIONsub500wt} (see the subsection \nameref{sec:dataLeong2014}) in order to explain \textbf{DATAnormalization} in \textbf{case 2}.
+In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014\_FISSIONsub500wt}
+(see the subsection \nameref{sec:dataLeong2014}) in order to explain \textbf{DATAnormalization} in \textbf{case 2}.
 
-The following lines of code realize the normalization step
+The following lines of code realize the normalization step from the results of the function \textbf{DATAprepSE()}
+(subsection \ref{sec:DATAprepSEfission})
 
 <<NormalizationFission, eval=TRUE>>=
-res.Norm.Yeast500<-DATAnormalization(RawCounts=RawCounts_Leong2014_FISSIONsub500wt,
-                                     Column.gene=1,
-                                     Group.position=NULL,
-                                     Time.position=2,
-                                     Individual.position=3,
+resNORMyeast500 <- DATAnormalization(SEres=resSEfission500,
                                      Normalization="rlog",
                                      Blind.rlog.vst=FALSE,
                                      Plot.Boxplot=FALSE,
@@ -638,54 +765,46 @@ res.Norm.Yeast500<-DATAnormalization(RawCounts=RawCounts_Leong2014_FISSIONsub500
 @
 
 
-If \texttt{Plot.Boxplot=TRUE} a boxplot showing the distribution of the normalized expression (\texttt{Normalization="rlog"} means that the rlog method is used) of genes for each sample, is returned as shown below (Figure \ref{FissionBoxplot}).
-
-\begin{figure}
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-1Normalization_RLOGboxplot.pdf}
-\caption{\label{FissionBoxplot}Boxplot of the distribution of the rlog normalized expression of genes for each sample.}
-\end{figure}
+If \texttt{Plot.Boxplot=TRUE} a boxplot showing the distribution of the normalized expression\newline
+(\texttt{Normalization="rlog"} means that the rlog method is used) of genes for each sample is returned
+(similar to the figure of the subsection \nameref{sec:DATAnormalizationMus1}).
 
 If \texttt{Colored.By.Factors=TRUE}, the color of the boxplots would be different for different time points. In case 2, the option \texttt{Color.Group} is not used.
 The x-labels indicate time information and individual information separated by a dot.
 
 For more details on the use of the inputs \texttt{Column.gene}, \texttt{Time.position}, \texttt{Group.position} and \texttt{Individual.position}, see Section \nameref{sec:StructureDataset}.
 
-If the user wants to see the 10 first rows of the normalized data, he can write in his console \texttt{head(res.Norm.Yeast500, n=10)}.
+If the user wants to see the 10 first rows of the normalized data, he can write in his console
+\texttt{head(resNORMyeast500\$NormalizedData, n=10)}.
 
 The user chooses the path of the folder where the graph can be saved.
-If \texttt{path.result=NULL}, results are plotted but not saved.\newline
+If \texttt{path.result=NULL}, results are plotted but not saved.
 
 Write \texttt{?DATAnormalization} in your console for more information about the function.
 
 \subsubsection{Leukemia data (Case 3 with two biological conditions)}
 \label{sec:DATAnormalizationLeuk}
 
-In this section we use the Chronic lymphocytic leukemia (CLL) subdataset\newline \textbf{RawCounts\_Schleiss2021\_CLLsub500} (see Subsection \nameref{sec:dataSchleiss2021}) in order to explain \textbf{DATAnormalization()} in \textbf{case 3} when there only two biological conditions.
+In this section we use the Chronic lymphocytic leukemia (CLL) subdataset\newline
+\textbf{RawCounts\_Schleiss2021\_CLLsub500} (see Subsection \nameref{sec:dataSchleiss2021}) in order to explain \textbf{DATAnormalization()} in \textbf{case 3} when there only two biological conditions.
 
-The following lines of code realize the normalization step.
+The following lines of code realize the normalization step from the results of the function \textbf{DATAprepSE()}
+(subsection \ref{sec:DATAprepSEleuk})
 
 <<NormalizationLeukemia, eval=TRUE>>=
-res.Norm.Leuk500<-DATAnormalization(RawCounts=RawCounts_Schleiss2021_CLLsub500,
-                                    Column.gene=1,
-                                    Group.position=2,
-                                    Time.position=4,
-                                    Individual.position=3,
-                                    Normalization="vst",
-                                    Blind.rlog.vst=FALSE,
-                                    Plot.Boxplot=FALSE,
-                                    Colored.By.Factors=TRUE,
-                                    Color.Group = NULL,
-                                    path.result=NULL)
+resNORMleuk500<-DATAnormalization(SEres=resSEleuk500,
+                                  Normalization="vst",
+                                  Blind.rlog.vst=FALSE,
+                                  Plot.Boxplot=FALSE,
+                                  Colored.By.Factors=TRUE,
+                                  Color.Group = NULL,
+                                  path.result=NULL)
 @
 
 
-If \texttt{Plot.Boxplot=TRUE} a boxplot showing the distribution of the normalized expression (\texttt{Normalization="vst"} means that the vst method is used) of genes for each sample, is returned as shown above (Figure \ref{LeukBoxplot}).
-
-\begin{figure}
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-1Normalization_VSTboxplot.pdf}
-\caption{Boxplot of the distribution of the vst normalized expression of genes for each sample.}
-\label{LeukBoxplot}
-\end{figure}
+If \texttt{Plot.Boxplot=TRUE} a boxplot showing the distribution of the normalized expression\newline
+(\texttt{Normalization="vst"} means that the vst method is used) of genes for each sample is returned
+(similar to the figure of the subsection \nameref{sec:DATAnormalizationMus1}).
 
 If \texttt{Colored.By.Factors=TRUE}, the color of the boxplots would be different for different biological conditions.
 By default (if \texttt{Color.Group=NULL}), a color will be automatically applied for each biological condition. You can change the colors by creating the following data.frame
@@ -697,7 +816,7 @@ data.col.Leuk<-data.frame(Name=c("NP","P"),
 
 and setting \texttt{Color.Group=data.col.Leuk}.
 
-The x-labels correspond to the new name of the samples which are just biological information, time information and individual information separated by a dot. If the user wants to see the 6th first rows of the normalized data, he can write in his console \texttt{head(res.Norm.Leuk500, n=6)}.
+The x-labels correspond to the new name of the samples which are just biological information, time information and individual information separated by a dot. If the user wants to see the 6th first rows of the normalized data, he can write in his console \texttt{head(resNORMleuk500\$NormalizedData, n=6)}.
 
 The user can save the graph in a folder thanks to the input path.result. If \texttt{path.result=NULL} the results will still be plotted but not saved in a folder.
 
@@ -711,42 +830,34 @@ In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEs
 The following lines of code realize the normalization step.
 
 <<NormalizationMouse2, eval=TRUE>>=
-res.Norm.Mus2.500<-DATAnormalization(RawCounts=RawCounts_Weger2021_MOUSEsub500,
-                                     Column.gene=1,
-                                     Group.position=1,
-                                     Time.position=2,
-                                     Individual.position=3,
-                                     Normalization="vst",
-                                     Blind.rlog.vst=FALSE,
-                                     Plot.Boxplot=FALSE,
-                                     Colored.By.Factors=TRUE,
-                                     Color.Group=NULL,
-                                     path.result=NULL)
+resNORMmus2500 <- DATAnormalization(SEres=resSEmus2500,
+                                    Normalization="vst",
+                                    Blind.rlog.vst=FALSE,
+                                    Plot.Boxplot=FALSE,
+                                    Colored.By.Factors=TRUE,
+                                    Color.Group=NULL,
+                                    path.result=NULL)
 @
 
 
-If \texttt{Plot.Boxplot=TRUE} a boxplot showing the distribution of the normalized expression (\texttt{Normalization="vst"} means that the vst method is used) of genes for each sample, is returned as shown below (Figure~\ref{Mouse2Boxplot}).
-
-\begin{figure}
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-1Normalization_VSTboxplot.pdf}
-\caption{Boxplot of the distribution of the vst normalized expression of genes for each sample.}
-\label{Mouse2Boxplot}
-\end{figure}
+If \texttt{Plot.Boxplot=TRUE} a boxplot showing the distribution of the normalized expression\newline
+(\texttt{Normalization="vst"} means that the vst method is used) of genes for each sample is returned
+(similar to the figure of the subsection \nameref{sec:DATAnormalizationMus1}).
 
 If \texttt{Colored.By.Factors=TRUE}, the color of the boxplots would be different for different biological conditions.
 By default (if \texttt{Color.Group=NULL}), a color will be automatically applied for each biological condition. You can change the colors by creating the following data.frame
 
 <<NormalizationMus2color, eval=TRUE>>=
-data.col.Mus2<-data.frame(Name=c("BmKo","BmWt","CrKo","CrWt"),
-                          Col=c("red","blue","orange","darkgreen"))
+data.col.Mus2 <- data.frame(Name=c("BmKo","BmWt","CrKo","CrWt"),
+                            Col=c("red","blue","orange","darkgreen"))
 @
 
-and setting \texttt{Color.Group=data.col.Mus2}.\newline
+and setting \texttt{Color.Group=data.col.Mus2}.
 
-The x-labels correspond to the new name of the samples which are just biological information, time information and individual information separated by a dot. If the user wants to see the 6th first rows of the normalized data, he can write in his console \texttt{head(res.Norm.Mus2.500, n=6)}
+The x-labels correspond to the new name of the samples which are just biological information, time information and individual information separated by a dot. If the user wants to see the 6th first rows of the normalized data, he can write in his console
+\texttt{head(resNORMmus2500\$NormalizedData, n=6)}
 
-
-The user can save the graph in a folder thanks to the input path.result. If \texttt{path.result=NULL} the results will still be plotted but not saved in a folder.\newline
+The user can save the graph in a folder thanks to the input path.result. If \texttt{path.result=NULL} the results will still be plotted but not saved in a folder.
 
 Write \texttt{?DATAnormalization} in your console for more information about the function.
 
@@ -761,49 +872,29 @@ Write \texttt{?DATAnormalization} in your console for more information about the
 
 In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500} in order to explain \textbf{PCAanalysis()} and \textbf{HCPCanalysis()} in \textbf{case 1}.
 
-\subsubsubsection{PCA}\label{sec:PCAMus1}
+\subsubsubsection{PCA (case 1)}\label{sec:PCAMus1}
 
-The user can realize the PCA and see the results with the following lines of code.
-
-<<PCAMouse, eval=TRUE>>=
-ResPCAMus500<-PCAanalysis(ExprData=res.Norm.Mus500$NormalizedData,
-                          Column.gene=1,
-                          Group.position=1,
-                          Time.position=NULL,
-                          Individual.position=2,
-                          sample.deletion=NULL,
-                          Supp.del.sample=FALSE,
-                          gene.deletion=NULL,
-                          Plot.PCA=FALSE,
-                          Mean.Accross.Time=FALSE,
-                          Color.Group = NULL,
-                          Cex.label=0.8,
-                          Cex.point=0.7, epsilon=0.2,
-                          Phi=25,Theta=140,
-                          D3.mouvement=FALSE,
-                          path.result=NULL)
-@
-
-
-When samples belong only to different biological conditions, the previous lines of code return:
+When samples belong only to different biological conditions, the lines of code below return from the results of the function \textbf{DATAnormalization()}
 \begin{itemize}
 \item the results of the function \Rfunction{PCA()}
-\item one 2D PCA graph (Figure~\ref{fig:Mouse1PCA2D}), one 3D PCA graph (Figure~\ref{fig:Mouse1PCA3D}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) where samples are colored with different colors for different biological conditions.
+\item one 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) where samples are colored with different colors for different biological conditions.
 \end{itemize}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_1-2PCA_2DGroup.pdf}
-\caption{2D PCA analysis where samples belong to different biological condition.}
-\label{fig:Mouse1PCA2D}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_1-2PCA_3DGroup.pdf}
-\caption{3D PCA analysis where samples belong to different biological condition.}
-\label{fig:Mouse1PCA3D}
-\end{figure}
+<<PCAMouse1, eval=TRUE>>=
+ResPCAMus500 <- PCAanalysis(SEresNorm=resNORMmus1500,
+                            sample.deletion=NULL,
+                            Supp.del.sample=FALSE,
+                            gene.deletion=NULL,
+                            Plot.PCA=TRUE,
+                            Mean.Accross.Time=FALSE,
+                            Color.Group = NULL,
+                            Cex.label=0.8,
+                            Cex.point=0.7, epsilon=0.2,
+                            Phi=25,Theta=140,
+                            D3.mouvement=FALSE,
+                            path.result=NULL)
+@
+
 
 The graphs are
 \begin{itemize}
@@ -826,140 +917,70 @@ If the user wants to delete, for instance, the genes 'ENSMUSG00000064842' and 'E
 
 \begin{itemize}
 \item \texttt{gene.deletion=c("ENSMUSG00000064842","ENSMUSG00000051951")} and/or\newline \texttt{sample.deletion=c("N1wtT1wt\_r2","N1haT1wt\_r5")}
-\item \texttt{gene.deletion=c(2,4)} and/or \texttt{sample.deletion=c(3,6)}.\newline The integers in \texttt{gene.deletion} and \texttt{sample.deletion} represent respectively the row numbers and the column numbers of \texttt{ExprData} where the selected genes and samples are located.
+\item \texttt{gene.deletion=c(2,4)} and/or \texttt{sample.deletion=c(3,6)}.\newline The integers in \texttt{gene.deletion} and \texttt{sample.deletion} represent respectively the row numbers and the column numbers of \texttt{RawCounts} where the selected genes and samples are located.
 \end{itemize}
 
 Write \texttt{?PCAanalysis} in your console for more information about the function.
 
-\subsubsubsection{HCPC}\label{sec:HCPCMus1}
+\subsubsubsection{HCPC (case 1)}\label{sec:HCPCMus1}
 
 The user can realize the clustering with HCPC using the function \textbf{HCPCanalysis()} as below.
+The lines of code below return from the results of the function \textbf{DATAnormalization()}
+%%%%%
+\begin{itemize}
+\item The results of the function \Rfunction{HCPC()}
+\item A dendrogram
+\item A graph indicating by color for each sample, its cluster and the biological condition associated to the sample
+\item One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \textbf{PCAanalysis()} but samples are colored with different colors for different clusters.
+\end{itemize}
 
-<<HCPCmouse, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResHCPCMus500<-HCPCanalysis(ExprData=res.Norm.Mus500$NormalizedData,
-                            Column.gene=1,
-                            Group.position=1,
-                            Time.position=NULL,
-                            Individual.position=2,
-                            gene.deletion=NULL,
-                            sample.deletion=NULL,
-                            Supp.del.sample=FALSE,
-                            Plot.HCPC=FALSE,
-                            Cex.label=0.8, Cex.point=0.7, epsilon=0.2,
-                            Phi=25, Theta=140,
-                            D3.mouvement=FALSE,
-                            path.result=NULL)
+<<HCPCmouse1, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResHCPCMus500 <- HCPCanalysis(SEresNorm=resNORMmus1500,
+                              gene.deletion=NULL,
+                              sample.deletion=NULL,
+                              Supp.del.sample=FALSE,
+                              Plot.HCPC=FALSE,
+                              Cex.label=0.8, Cex.point=0.7, epsilon=0.2,
+                              Phi=25, Theta=140,
+                              D3.mouvement=FALSE,
+                              path.result=NULL)
 @
 
 
-The previous lines of code return
-
-\begin{itemize}
-\item The results of the function \Rfunction{HCPC()}
-\item A dendrogram (Figure~\ref{fig:Mouse1Dendrogram})
-\item A graph indicating by color for each sample, its cluster and the biological condition associated to the sample (Figure~\ref{fig:Mouse1HCPCsampleCluster})
-\item One 2D PCA graph (Figure~\ref{fig:Mouse1HCPC2dPCA}), one 3D PCA graph (Figure~\ref{fig:Mouse1HCPC3dPCA}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \textbf{PCAanalysis()} but samples are colored with different colors for different clusters.
-\end{itemize}
-
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_1-3HCPC_Dendrogram.pdf}
-\caption{Dendrogram.}
-\label{fig:Mouse1Dendrogram}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_1-3HCPC_SampleDistribution.pdf}
-\caption{Links between sample information and clusters.}
-\label{fig:Mouse1HCPCsampleCluster}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_1-3HCPC_PCA2d.pdf}
-\caption{2D PCA analysis where samples belong to different biological condition.}
-\label{fig:Mouse1HCPC2dPCA}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_1-3HCPC_PCA3d.pdf}
-\caption{3D PCA analysis where samples belong to different biological condition.}
-\label{fig:Mouse1HCPC3dPCA}
-\end{figure}
-
-The graphs are
-\begin{itemize}
-\item displayed if \texttt{Plot.HCPC=TRUE}
-\item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
-\end{itemize}
-
 The optimal number of clusters is automatically computed by the R function \Rfunction{HCPC()}.
-
 
 Write \texttt{?HCPCanalysis} in your console for more information about the function.
 
-\clearpage
 
 \subsubsection{Fission data (case 2)}\label{sec:FactorialFission}
 
 In this section we use the fission yeast subdataset
 \textbf{RawCounts\_Leong2014\_FISSIONsub500wt} (see the subsection \nameref{sec:dataLeong2014}) in order to explain \textbf{PCAanalysis()} and \textbf{HCPCanalysis()} in \textbf{case 2}.
 
-\subsubsubsection{PCA}\label{sec:PCAFission}
+\subsubsubsection{PCA (case 2)}\label{sec:PCAFission}
 
-The user can realize a PCA analysis with the following lines of code.
-
-<<PCAfission, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResPCAYeast500<-PCAanalysis(ExprData=res.Norm.Yeast500$NormalizedData,
-                            Column.gene=1,
-                            Group.position=NULL,
-                            Time.position=2,
-                            Individual.position=3,
-                            gene.deletion=NULL,
-                            sample.deletion=NULL,
-                            Supp.del.sample=FALSE,
-                            Plot.PCA=FALSE,
-                            Mean.Accross.Time=FALSE,
-                            Cex.label=0.8, Cex.point=0.7, epsilon=0.3,
-                            Phi=25,Theta=140,
-                            D3.mouvement=FALSE,
-                            path.result=NULL)
-@
-
-The input \texttt{ExprData=res.Norm.Yeast500\$NormalizedData} is the output of the function \textbf{DATAnormalization()} used above.
-
-In \textbf{case 2}, the previous lines of code return
+In \textbf{case 2}, the lines of code below return from the results of the function \textbf{DATAnormalization()}
 
 \begin{itemize}
 \item the results of the function \Rfunction{PCA()}
-\item one 2D PCA graph (Figure~\ref{fig:YeastWtPCA2D}), one 3D PCA graph (Figure~\ref{fig:YeastWtPCA3D}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) where samples are colored with different colors for different time points.
+\item one 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) where samples are colored with different colors for different time points.
 Furthermore, lines are drawn in gray between each pair of consecutive points for each individual.
 \item the same graphs as above but without lines (not shown).
 \end{itemize}
 
+<<PCAfission, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResPCAYeast500 <- PCAanalysis(SEresNorm=resNORMyeast500,
+                              gene.deletion=NULL,
+                              sample.deletion=NULL,
+                              Supp.del.sample=FALSE,
+                              Plot.PCA=FALSE,
+                              Mean.Accross.Time=FALSE,
+                              Cex.label=0.8, Cex.point=0.7, epsilon=0.3,
+                              Phi=25,Theta=140,
+                              D3.mouvement=FALSE,
+                              path.result=NULL)
+@
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-2PCA_2DTimeLinks.pdf}
-\caption{2D PCA graph where samples are colored with different colors for different time points and lines are drawn between each pair of consecutive points for each individual.}
-\label{fig:YeastWtPCA2D}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-2PCA_3DTimeLinks.pdf}
-\caption{3D PCA graph where samples are colored with different colors for different time points and lines are drawn between each pair of consecutive points for each individual.}
-\label{fig:YeastWtPCA3D}
-\end{figure}
-
-The graphs are
-\begin{itemize}
-\item displayed if \texttt{Plot.PCA=TRUE}
-\item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
-\end{itemize}
 
 These figures show that the temporal behavior is similar between individuals.
 
@@ -968,7 +989,7 @@ If the user wants for instance, to perform the PCA analysis without the genes 'S
 \begin{itemize}
 \item either \texttt{gene.deletion=c("SPAC212.11","SPNCRNA.70")} and/or\newline \texttt{sample.deletion=c("wt\_t0\_r2","wt\_t1\_r1")},
 \item or \texttt{gene.deletion=c(1,3)} and/or \texttt{sample.deletion=c(3,5)}.\newline
-The integers in \texttt{gene.deletion} and \texttt{sample.deletion} represent respectively the row numbers (resp. the column numbers) of \texttt{ExprData} corresponding to genes (resp. samples) that need to be removed from \texttt{ExprData}.
+The integers in \texttt{gene.deletion} and \texttt{sample.deletion} represent respectively the row numbers (resp. the column numbers) of \texttt{RawCounts} corresponding to genes (resp. samples) that need to be removed from \texttt{RawCounts}.
 \end{itemize}
 
 In \textbf{case 2}, the user cannot select a color for each time.
@@ -976,70 +997,32 @@ A specific palette is automatically used.
 
 Write \texttt{?PCAanalysis} in your console for more information about the function.
 
-\clearpage
 
-\subsubsubsection{HCPC}\label{sec:HCPCFission}
+\subsubsubsection{HCPC (case 2)}\label{sec:HCPCFission}
 
-The user can realize the clustering with HCPC using the function \textbf{HCPCanalysis()}.
-This function has similar inputs as \textbf{PCAanalysis()}.
-
-<<HCPCfission, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResHCPCYeast500<-HCPCanalysis(ExprData=res.Norm.Yeast500$NormalizedData,
-                              Column.gene=1,
-                              Group.position=NULL,
-                              Time.position=2,
-                              Individual.position=3,
-                              gene.deletion=NULL,
-                              sample.deletion=NULL,
-                              Supp.del.sample=FALSE,
-                              Plot.HCPC=FALSE,
-                              Cex.label=0.9,
-                              Cex.point=0.7,
-                              epsilon=0.2,
-                              Phi=25,Theta=140,
-                              D3.mouvement=FALSE,
-                              path.result=NULL)
-@
-
-
-The previous lines of code return
+The lines of code below return from the results of the function \textbf{DATAnormalization()}
 
 \begin{itemize}
 \item The results of the function \Rfunction{HCPC()}
-\item A dendrogram (Figure~\ref{fig:FissionDendrogram})
-\item A graph indicating by color for each sample, its cluster and the time point associated to the sample (Figure~\ref{fig:FissionHCPCsampleCluster}).
-\item one 2D PCA graph (Figure~\ref{fig:FissionHCPC2dPCA}), one 3D PCA graph (Figure~\ref{fig:FissionHCPC3dPCA}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \textbf{PCAanalysis()} but samples are colored with different colors for different HCPC clusters.
+\item A dendrogram
+\item A graph indicating by color for each sample, its cluster and the time point associated to the sample.
+\item one 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \textbf{PCAanalysis()} but samples are colored with different colors for different HCPC clusters.
 \end{itemize}
 
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-3HCPC_Dendrogram.pdf}
-\caption{Dendrogram.}
-\label{fig:FissionDendrogram}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-3HCPC_SampleDistribution.pdf}
-\caption{Links between sample information and clusters.}
-\label{fig:FissionHCPCsampleCluster}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-3HCPC_PCA2d.pdf}
-\caption{2D PCA with HCPC results.}
-\label{fig:FissionHCPC2dPCA}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-3HCPC_PCA3d.pdf}
-\caption{3D PCA with HCPC results.}
-\label{fig:FissionHCPC3dPCA}
-\end{figure}
-
+<<HCPCfission, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResHCPCYeast500 <- HCPCanalysis(SEresNorm=resNORMyeast500,
+                                gene.deletion=NULL,
+                                sample.deletion=NULL,
+                                Supp.del.sample=FALSE,
+                                Plot.HCPC=TRUE,
+                                Cex.label=0.9,
+                                Cex.point=0.7,
+                                epsilon=0.2,
+                                Phi=25,Theta=140,
+                                D3.mouvement=FALSE,
+                                path.result=NULL)
+@
 
 The graphs are
 \begin{itemize}
@@ -1047,76 +1030,48 @@ The graphs are
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
-The optimal number of clusters is automatically computed by the R function \Rfunction{HCPC()}.
+This function has similar inputs as \textbf{PCAanalysis()} and the optimal number of clusters is automatically computed by the R function \Rfunction{HCPC()}.
 
 Write \texttt{?HCPCanalysis} in your console for more information about the function.
 
-\clearpage
 
 \subsubsection{Leukemia data (case 3 with only two biological conditions)}
 \label{sec:FactorialLeuk}
 
 In this section we use the Chronic lymphocytic leukemia (CLL) subdataset\newline \textbf{RawCounts\_Schleiss2021\_CLLsub500} (see Subsection \nameref{sec:dataSchleiss2021}) in order to explain \textbf{PCAanalysis()} and \textbf{HCPCanalysis()} in \textbf{case 3} when there only two biological conditions.
 
-\subsubsubsection{PCA}\label{sec:PCALeuk}
+\subsubsubsection{PCA (case 3 two conditions)}\label{sec:PCALeuk}
 
-The user can realize the PCA and see the results with the following lines of code.
-
-<<PCALeukemia, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResPCALeuk500<-PCAanalysis(ExprData=res.Norm.Leuk500$NormalizedData,
-                           Column.gene=1,
-                           Group.position=2,
-                           Time.position=4,
-                           Individual.position=3,
-                           gene.deletion=NULL,
-                           sample.deletion=NULL,
-                           Supp.del.sample=FALSE,
-                           Plot.PCA=FALSE,
-                           Mean.Accross.Time=FALSE,
-                           Color.Group = NULL,
-                           Cex.label=0.9,
-                           Cex.point=0.8,epsilon=0.2,
-                           Phi=25,Theta=140,
-                           D3.mouvement=FALSE,
-                           path.result=NULL,
-                           Name.folder.pca=NULL)
-@
-
-
-When samples belong to different biological conditions and different time points, the previous lines of code return:
-
+When samples belong to different biological conditions and different time points, the previous lines of code return from the results of the function \textbf{DATAnormalization()}:
+%%%%%%%
 \begin{itemize}
 \item The results of the function \Rfunction{PCA()}
-\item one 2D PCA graph (Figure~\ref{fig:LeukPCA2D}), one 3D PCA graph (Figure~\ref{fig:LeukPCA3D}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) where samples are colored with different colors for different biological conditions. Furthermore, lines are drawn between each pair of consecutive points for each sample (if \texttt{Mean.Accross.Time=FALSE}, otherwise it will be only between means).
-\item one 2D PCA graph (Figure~\ref{fig:LeukPCA2D1g}), one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) for each biological condition, where samples are colored with different colors for different time points. Furthermore, lines are drawn between each pair of consecutive points for each sample (if \texttt{Mean.Accross.Time=FALSE}, otherwise it will be only between means).
+\item one 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) where samples are colored with different colors for different biological conditions. Furthermore, lines are drawn between each pair of consecutive points for each sample (if \texttt{Mean.Accross.Time=FALSE}, otherwise it will be only between means).
+\item one 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) for each biological condition, where samples are colored with different colors for different time points. Furthermore, lines are drawn between each pair of consecutive points for each sample (if \texttt{Mean.Accross.Time=FALSE}, otherwise it will be only between means).
 \item the same graphs describe above but without lines.
 \end{itemize}
 
+<<PCALeukemia, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResPCALeuk500 <- PCAanalysis(SEresNorm=resNORMleuk500,
+                             gene.deletion=NULL,
+                             sample.deletion=NULL,
+                             Supp.del.sample=FALSE,
+                             Plot.PCA=FALSE,
+                             Mean.Accross.Time=FALSE,
+                             Color.Group = NULL,
+                             Cex.label=0.9,
+                             Cex.point=0.8,epsilon=0.2,
+                             Phi=25,Theta=140,
+                             D3.mouvement=FALSE,
+                             path.result=NULL,
+                             Name.folder.pca=NULL)
+@
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-2PCA_allBC_2DTimeLinks.pdf}
-\caption{2D PCA analysis where samples belong to different biological conditions and time points. Samples are colored with different colors for different biological conditions and lines are drawn between each pair of consecutive points for each individual.}
-\label{fig:LeukPCA2D}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-2PCA_allBC_3DTimeLinks.pdf}
-\caption{3D PCA analysis where samples belong to different biological conditions and time points. Samples are colored with different colors for different biological conditions and lines are drawn between each pair of consecutive points for each individual.}
-\label{fig:LeukPCA3D}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-2PCA_P_2DTimeLinks.pdf}
-\caption{2D PCA graph of the biological condition 'P' only, where samples are colored with different colors for different time points and lines are drawn between each pair of consecutive points for each individual.}
-\label{fig:LeukPCA2D1g}
-\end{figure}
 
 The graphs are
 \begin{itemize}
 \item displayed if \texttt{Plot.PCA=TRUE}
+\item similar to those described in subsection \nameref{sec:PCAFission}.
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
@@ -1135,77 +1090,43 @@ If the user wants to delete, for instance, the genes 'ABCA7' and 'ADAM28' (respe
 \begin{itemize}
 \item \texttt{gene.deletion=c("ABCA7","ADAM28")} and/or\newline \texttt{sample.deletion=c("CLL\_P\_r1\_t1", "CLL\_P\_r2\_t2")}
 \item \texttt{gene.deletion=c(2,6)} and/or \texttt{sample.deletion=c(3,13)}.\newline
-The integers in \texttt{gene.deletion} and \texttt{sample.deletion} represent respectively the row numbers and the column numbers of \texttt{ExprData} where the selected genes and samples are located.
+The integers in \texttt{gene.deletion} and \texttt{sample.deletion} represent respectively the row numbers and the column numbers of \texttt{RawCounts} where the selected genes and samples are located.
 \end{itemize}
 
 
 Write \texttt{?PCAanalysis} in your console for more information about the function.
 
-\subsubsubsection{HCPC}\label{sec:HCPCLeuk}
+\subsubsubsection{HCPC (case 3 two conditions)}\label{sec:HCPCLeuk}
 
-The user can realize the clustering with HCPC using the function \textbf{HCPCanalysis()} as below.
-
-<<HCPCleukemia, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResHCPCLeuk500<-HCPCanalysis(ExprData=res.Norm.Leuk500$NormalizedData,
-                             Column.gene=1,
-                             Group.position=2,
-                             Time.position=4,
-                             Individual.position=3,
-                             gene.deletion=NULL,
-                             sample.deletion=NULL,
-                             Supp.del.sample=FALSE,
-                             Plot.HCPC=FALSE,
-                             Phi=25,Theta=140,
-                             Cex.point=0.7,
-                             epsilon=0.2,
-                             Cex.label=0.9,
-                             D3.mouvement=FALSE,
-                             path.result=NULL,
-                             Name.folder.hcpc=NULL)
-@
-
-The previous lines of code return:
-
+The lines of code below return from the results of the function \textbf{DATAnormalization()}:
+%%%%%%%%%%%
 \begin{itemize}
 \item The results of the function \Rfunction{HCPC()}
-\item A dendrogram (Figure~\ref{fig:LeukDendrogram})
-\item A graph indicating by color for each sample, its cluster, the biological condition and the time point associated to the sample (Figure~\ref{fig:LeukHCPCsampleCluster}).
-\item One 2D PCA graph (Figure~\ref{fig:LeukHCPC2dPCA}), one 3D PCA graph (Figure~\ref{fig:LeukHCPC3dPCA}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \texttt{PCAanalysis()} with all samples but samples are colored with different colors for different clusters.
+\item A dendrogram
+\item A graph indicating by color for each sample, its cluster, the biological condition and the time point associated to the sample.
+\item One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \texttt{PCAanalysis()} with all samples but samples are colored with different colors for different clusters.
 \end{itemize}
 
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-3HCPC_Dendrogram.pdf}
-\caption{Dendrogram.}
-\label{fig:LeukDendrogram}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-3HCPC_SampleDistribution.pdf}
-\caption{Links between sample information and clusters.}
-\label{fig:LeukHCPCsampleCluster}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-3HCPC_PCA2d.pdf}
-\caption{2D PCA with HCPC results.}
-\label{fig:LeukHCPC2dPCA}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-3HCPC_PCA3d.pdf}
-\caption{3D PCA with HCPC results.}
-\label{fig:LeukHCPC3dPCA}
-\end{figure}
+<<HCPCleukemia, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResHCPCLeuk500 <- HCPCanalysis(SEresNorm=resNORMleuk500,
+                               gene.deletion=NULL,
+                               sample.deletion=NULL,
+                               Supp.del.sample=FALSE,
+                               Plot.HCPC=FALSE,
+                               Phi=25,Theta=140,
+                               Cex.point=0.7,
+                               epsilon=0.2,
+                               Cex.label=0.9,
+                               D3.mouvement=FALSE,
+                               path.result=NULL,
+                               Name.folder.hcpc=NULL)
+@
 
 
 The graphs are
 \begin{itemize}
 \item displayed if \texttt{Plot.HCPC=TRUE}
+\item similar to those described in subsection \nameref{sec:HCPCFission}.
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
@@ -1213,76 +1134,48 @@ The optimal number of clusters is automatically computed by the R function \Rfun
 
 Write \texttt{?HCPCanalysis} in your console for more information about the function.
 
-\clearpage
-
 \subsubsection{Mouse data 2 (case 3 with more than two biological conditions)}
 \label{sec:FactorialMus2}
 
-In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEsub500} (see Subsection \nameref{sec:dataWeger2021}) in order to explain \textbf{PCAanalysis()} and \textbf{HCPCanalysis()} in \textbf{case 3} when there are more than two biological conditions.
+In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEsub500}
+(see Subsection \nameref{sec:dataWeger2021}) in order to explain \textbf{PCAanalysis()} and \textbf{HCPCanalysis()}
+in \textbf{case 3} when there are more than two biological conditions.
 
-\subsubsubsection{PCA}\label{sec:PCAMus2}
+\subsubsubsection{PCA (case 3 with more than two conditions)}\label{sec:PCAMus2}
 
-The user can realize the PCA and see the results with the following lines of code.
-
-
-<<PCAMus2, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResPCAMus2.500<-PCAanalysis(ExprData=res.Norm.Mus2.500$NormalizedData,
-                            Column.gene=1,
-                            Group.position=1,
-                            Time.position=2,
-                            Individual.position=3,
-                            gene.deletion=NULL,
-                            sample.deletion=NULL,
-                            Supp.del.sample=FALSE,
-                            Plot.PCA=FALSE,
-                            Mean.Accross.Time=FALSE,
-                            Color.Group=NULL,
-                            Cex.label=0.6,
-                            Cex.point=0.7, epsilon=0.2,
-                            Phi=25,Theta=140,
-                            D3.mouvement=FALSE,
-                            path.result=NULL,
-                            Name.folder.pca=NULL)
-@
-
-
-When samples belong to different biological conditions and different time points, the previous lines of code return:
-
+When samples belong to different biological conditions and different time points, the previous lines of code return from the results of the function \textbf{DATAnormalization()}:
+%%%%%%%%%
 \begin{itemize}
 \item The results of the function \Rfunction{PCA()}
-\item one 2D PCA graph (Figure~\ref{fig:Mouse2PCA2D}), one 3D PCA graph (Figure~\ref{fig:Mouse2PCA3D}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) where samples are colored with different colors for different biological conditions. Furthermore, lines are drawn between each pair of consecutive points for each sample (if \texttt{Mean.Accross.Time=FALSE}, otherwise it will be only between means).
-\item one 2D PCA graph (Figure~\ref{fig:Mouse2PCA2D1g}), one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) for each biological condition, where samples are colored with different colors for different time points. Furthermore, lines are drawn between each pair of consecutive points for each sample (if \texttt{Mean.Accross.Time=FALSE}, otherwise it will be only between means).
+\item one 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) where samples are colored with different colors for different biological conditions. Furthermore, lines are drawn between each pair of consecutive points for each sample (if \texttt{Mean.Accross.Time=FALSE}, otherwise it will be only between means).
+\item one 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}) for each biological condition, where samples are colored with different colors for different time points. Furthermore, lines are drawn between each pair of consecutive points for each sample (if \texttt{Mean.Accross.Time=FALSE}, otherwise it will be only between means).
 \item the same graphs describe above but without lines.
 \end{itemize}
 
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-2PCA_allBC_2DTimeLinks.pdf}
-\caption{2D PCA analysis where samples belong to different biological conditions and time points. Samples are colored with different colors for different biological conditions and lines are drawn between each pair of consecutive points for each individual.}
-\label{fig:Mouse2PCA2D}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-2PCA_allBC_3DTimeLinks.pdf}
-\caption{3D PCA analysis where samples belong to different biological conditions and time points. Samples are colored with different colors for different biological conditions and lines are drawn between each pair of consecutive points for each individual.}
-\label{fig:Mouse2PCA3D}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-2PCA_BmKo_2DTimeLinks.pdf}
-\caption{2D PCA graph of the biological condition 'BmKo' only, where samples are colored with different colors for different time points and lines are drawn between each pair of consecutive points for each individual.}
-\label{fig:Mouse2PCA2D1g}
-\end{figure}
-
+<<PCAMus2, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResPCAMus2500 <- PCAanalysis(SEresNorm=resNORMmus2500,
+                             gene.deletion=NULL,
+                             sample.deletion=NULL,
+                             Supp.del.sample=FALSE,
+                             Plot.PCA=FALSE,
+                             Mean.Accross.Time=FALSE,
+                             Color.Group=NULL,
+                             Cex.label=0.6,
+                             Cex.point=0.7, epsilon=0.2,
+                             Phi=25,Theta=140,
+                             D3.mouvement=FALSE,
+                             path.result=NULL,
+                             Name.folder.pca=NULL)
+@
 
 The graphs are
 \begin{itemize}
 \item displayed if \texttt{Plot.PCA=TRUE}
+\item similar to those described in subsection \nameref{sec:PCAFission}.
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
+
 
 By default (if \texttt{Color.Group=NULL}), a color will be automatically applied for each biological condition. You can change the colors by creating the following data.frame
 
@@ -1297,76 +1190,47 @@ If you want to delete, for instance, the genes 'ENSMUSG00000025921' and 'ENSMUSG
 
 \begin{itemize}
 \item \texttt{gene.deletion=c("ENSMUSG00000025921", "ENSMUSG00000026113")} and/or\newline \texttt{sample.deletion=c("BmKo\_t2\_r1", "BmKo\_t5\_r2")}
-\item \texttt{gene.deletion=c(2,6)} and/or \texttt{sample.deletion=c(3,13)}.\newline The integers in \texttt{gene.deletion} and \texttt{sample.deletion} represent respectively the row numbers and the column numbers of \texttt{ExprData} where the selected genes and samples are located.
+\item \texttt{gene.deletion=c(2,6)} and/or \texttt{sample.deletion=c(3,13)}.\newline The integers in \texttt{gene.deletion} and \texttt{sample.deletion} represent respectively the row numbers and the column numbers of \texttt{RawCounts} where the selected genes and samples are located.
 \end{itemize}
 
 
 Write \texttt{?PCAanalysis} in your console for more information about the function.
 
-\subsubsubsection{HCPC}
+\subsubsubsection{HCPC (case 3 with more than two conditions)}
+\label{sec:HCPCMus2}
+
+The lines of code below return from the results of the function \textbf{DATAnormalization()}:
+%%%%%%%%%%%%
+\begin{itemize}
+\item The results of the function \Rfunction{HCPC()}
+\item A dendrogram
+\item A graph indicating by color for each sample, its cluster, the biological condition and the time point associated to the sample.
+\item One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \texttt{PCAanalysis()} with all samples but samples are colored with different colors for different clusters.
+\end{itemize}
 
 The user can realize the clustering with HCPC using the function \textbf{HCPCanalysis()} as below.
 
 <<HCPCmus2500, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResHCPCMus2.500<-HCPCanalysis(ExprData=res.Norm.Mus2.500$NormalizedData,
-                              Column.gene=1,
-                              Group.position=1,
-                              Time.position=2,
-                              Individual.position=3,
-                              gene.deletion=NULL,
-                              sample.deletion=NULL,
-                              Supp.del.sample=FALSE,
-                              Plot.HCPC=FALSE,
-                              Phi=25,Theta=140,
-                              Cex.point=0.6,
-                              epsilon=0.2,
-                              Cex.label=0.6,
-                              D3.mouvement=FALSE,
-                              path.result=NULL,
-                              Name.folder.hcpc=NULL)
+ResHCPCMus2500 <- HCPCanalysis(SEresNorm=resNORMmus2500,
+                               gene.deletion=NULL,
+                               sample.deletion=NULL,
+                               Supp.del.sample=FALSE,
+                               Plot.HCPC=FALSE,
+                               Phi=25,Theta=140,
+                               Cex.point=0.6,
+                               epsilon=0.2,
+                               Cex.label=0.6,
+                               D3.mouvement=FALSE,
+                               path.result=NULL,
+                               Name.folder.hcpc=NULL)
 @
 
-The previous lines of code return \Rfunction{HCPC()}
 
-\begin{itemize}
-\item The results of the function \Rfunction{HCPC()}
-\item A dendrogram (Figure~\ref{fig:Mouse2Dendrogram})
-\item A graph indicating by color for each sample, its cluster, the biological condition and the time point associated to the sample (Figure~\ref{fig:Mouse2HCPCsampleCluster}).
-\item One 2D PCA graph (Figure~\ref{fig:Mouse2HCPC2dPCA}), one 3D PCA graph (Figure~\ref{fig:Mouse2HCPC3dPCA}) and the same 3D PCA graph in a rgl window (only if \texttt{D3.mouvement=FALSE}). These PCA graphs are identical to the outputs of \texttt{PCAanalysis()} with all samples but samples are colored with different colors for different clusters.
-\end{itemize}
-
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-3HCPC_Dendrogram.pdf}
-\caption{Dendrogram.}
-\label{fig:Mouse2Dendrogram}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-3HCPC_SampleDistribution.pdf}
-\caption{Links between sample information and clusters.}
-\label{fig:Mouse2HCPCsampleCluster}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-3HCPC_PCA2d.pdf}
-\caption{2D PCA with HCPC results.}
-\label{fig:Mouse2HCPC2dPCA}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-3HCPC_PCA3d.pdf}
-\caption{3D PCA with HCPC results.}
-\label{fig:Mouse2HCPC3dPCA}
-\end{figure}
 
 The graphs are
 \begin{itemize}
 \item displayed if \texttt{Plot.HCPC=TRUE}
+\item similar to those described in subsection \nameref{sec:HCPCFission}.
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
@@ -1377,7 +1241,7 @@ Write \texttt{?HCPCanalysis} in your console for more information about the func
 \clearpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Temporal clustering analysis with MFUZZanalysis().}
+\subsection{Temporal clustering analysis with MFUZZanalysis()}
 \label{sec:MFUZZanalysis}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1385,44 +1249,24 @@ Write \texttt{?HCPCanalysis} in your console for more information about the func
 
 In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014\_FISSIONsub500wt} (see the subsection \nameref{sec:dataLeong2014}) in order to explain \textbf{MFUZZanalysis()} in \textbf{case 2}.
 
-The following function realizes the temporal clustering analysis. It takes as input, a number of clusters (\texttt{DataNumberCluster}) that can be chosen automatically if \texttt{DataNumberCluster=NULL}.
-
-<<MfuzzFission, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResMfuzzYeast500<-MFUZZanalysis(ExprData=res.Norm.Yeast500$NormalizedData,
-                                Column.gene=1,
-                                Group.position=NULL,
-                                Time.position=2,
-                                Individual.position=3,
-                                DataNumberCluster=NULL,
-                                Method="hcpc",
-                                Membership=0.5,
-                                Min.std=0.1,
-                                Plot.Mfuzz=FALSE,
-                                path.result=NULL)
-@
-
-
-The function returns
-
+The following function realizes the temporal clustering analysis. It takes as input, a number of clusters (\texttt{DataNumberCluster}) that can be chosen automatically if \texttt{DataNumberCluster=NULL} and the results of the function \textbf{DATAnormalization()}. The lines of code below return
+%%%%
 \begin{itemize}
 \item the summary of the results of the function \Rfunction{mfuzz()}.
-\item the scaled height plot (Figure~\ref{fig:FissionMfuzzNumberCluster}), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
-\item the output graphs from the R package Mfuzz (Figure~\ref{fig:FissionMfuzzCluster}), showing the most common temporal behavior among all genes.
+\item the scaled height plot, computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
+\item the output graphs from the R package Mfuzz, showing the most common temporal behavior among all genes.
 \end{itemize}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-4MFUZZ_OptimalClusterNumber.pdf}
-\caption{Selection of the number of clusters.}
-\label{fig:FissionMfuzzNumberCluster}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-4MFUZZ_Plot06alpha.pdf}
-\caption{Temporal clustering analysis using Mfuzz.}
-\label{fig:FissionMfuzzCluster}
-\end{figure}
+<<MfuzzFission, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResMfuzzYeast500 <- MFUZZanalysis(SEresNorm=resNORMyeast500,
+                                  DataNumberCluster=NULL,
+                                  Method="hcpc",
+                                  Membership=0.5,
+                                  Min.std=0.1,
+                                  Plot.Mfuzz=TRUE,
+                                  path.result=NULL)
+@
+
 
 The graphs are
 \begin{itemize}
@@ -1440,50 +1284,31 @@ Write \texttt{?MFUZZanalysis} in your console for more information about the fun
 
 In this section we use the Chronic lymphocytic leukemia (CLL) subdataset\newline \textbf{RawCounts\_Schleiss2021\_CLLsub500} (see Subsection \nameref{sec:dataSchleiss2021}) in order to explain \textbf{MFUZZanalysis()} in \textbf{case 3} when there only two biological conditions.
 
-The following function realizes the analysis. It takes as input, a number of clusters (\texttt{DataNumberCluster}) that can be chosen automatically if \texttt{DataNumberCluster=NULL}.
+The following function realizes the temporal clustering analysis. It takes as input, a number of clusters (\texttt{DataNumberCluster}) that can be chosen automatically if \texttt{DataNumberCluster=NULL} and the results of the function \textbf{DATAnormalization()}. The lines of code below return for each biological condition
+%%%%
+\begin{itemize}
+\item the summary of the results of the function \Rfunction{mfuzz()}
+\item the scaled height plot, computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
+\item the output graphs from the R package Mfuzz showing the most common temporal behavior among all genes for each biological condition. The plots below correspond to the biological condition 'P'.
+\end{itemize}
 
 
 <<MfuzzLeuk, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResMfuzzLeuk500<-MFUZZanalysis(ExprData=res.Norm.Leuk500$NormalizedData,
-                               Column.gene=1,
-                               Group.position=2,
-                               Time.position=4,
-                               Individual.position=3,
-                               DataNumberCluster=NULL,
-                               Method="hcpc",
-                               Membership=0.7,
-                               Min.std=0.1,
-                               Plot.Mfuzz=FALSE,
-                               path.result=NULL,
-                               Name.folder.mfuzz=NULL)
+ResMfuzzLeuk500 <- MFUZZanalysis(SEresNorm = resNORMleuk500,
+                                 DataNumberCluster=NULL,
+                                 Method="hcpc",
+                                 Membership=0.7,
+                                 Min.std=0.1,
+                                 Plot.Mfuzz=FALSE,
+                                 path.result=NULL,
+                                 Name.folder.mfuzz=NULL)
 @
-
-The function returns for each biological condition
-
-\begin{itemize}
-\item the summary of the results of the function \Rfunction{mfuzz()}
-\item the scaled height plot (Figure~\ref{fig:LeukMfuzzNumberCluster}), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
-\item the output graphs from the R package Mfuzz (Figure~\ref{fig:LeukPMfuzzCluster}) showing the most common temporal behavior among all genes for each biological condition. The plots below correspond to the biological condition 'P'.
-\end{itemize}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-4MFUZZ_OptimalClusterNumber.pdf}
-\caption{Selection of the number of clusters for each biological condition.}
-\label{fig:LeukMfuzzNumberCluster}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-4MFUZZ_Plot06alpha_P.pdf}
-\caption{Temporal clustering analysis of the biological condition 'P' using Mfuzz.}
-\label{fig:LeukPMfuzzCluster}
-\end{figure}
 
 
 The graphs are
 \begin{itemize}
 \item displayed if \texttt{Plot.Mfuzz=TRUE}
+\item similar to those described in subsection \nameref{sec:MFUZZfission}
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
@@ -1495,51 +1320,31 @@ Write \texttt{?MFUZZanalysis} in your console for more information about the fun
 \subsubsection{Mouse data 2 (case 3 with more than two biological conditions)}
 \label{sec:MFUZZmus2}
 
-In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEsub500} (see Subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{MFUZZanalysis()} in \textbf{case 3} when there are more than two biological conditions.
+In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEsub500}
+(see Subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{MFUZZanalysis()} in \textbf{case 3} when there are more than two biological conditions.
 
-The following function realizes the Mfuzz analysis. It takes as input, a number of clusters (\texttt{DataNumberCluster}) that can be chosen automatically if \texttt{DataNumberCluster=NULL}.
-
-
-<<MfuzzMus2, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResMfuzzLeuk500<-MFUZZanalysis(ExprData=res.Norm.Mus2.500$NormalizedData,
-                               Column.gene=1,
-                               Group.position=1,
-                               Time.position=2,
-                               Individual.position=3,
-                               DataNumberCluster=NULL,
-                               Method="hcpc",
-                               Membership=0.5,
-                               Min.std=0.1,
-                               Plot.Mfuzz=FALSE,
-                               path.result=NULL, Name.folder.mfuzz=NULL)
-@
-
-The function returns for each biological condition
-
+The following function realizes the temporal clustering analysis. It takes as input, a number of clusters (\texttt{DataNumberCluster}) that can be chosen automatically if \texttt{DataNumberCluster=NULL} and the results of the function \textbf{DATAnormalization()}. The lines of code below return for each biological condition
+%%%%
 \begin{itemize}
 \item the summary of the results of the function \Rfunction{mfuzz()}
-\item the scaled height (Figure~\ref{fig:Mouse2MfuzzNumberCluster}), computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
-\item the output graph from the R package Mfuzz (Figure~\ref{fig:Mouse2MfuzzCluster}) which represents the most common temporal behavior among all genes for the biological condition `BmKo.'
+\item the scaled height, computed with the \Rfunction{HCPC()} function, and shows the cluster chosen automatically (if \texttt{DataNumberCluster=NULL}). If \texttt{Method="hcpc"}, the function plots the scaled within-cluster inertia, but if \texttt{Method="kmeans"}, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select \texttt{Method="hcpc"} which is by default.
+\item the output graph from the R package Mfuzz which represents the most common temporal behavior among all genes for the biological condition `BmKo.'
 \end{itemize}
 
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-4MFUZZ_OptimalClusterNumber.pdf}
-\caption{Selection of the number of clusters for each biological condition.}
-\label{fig:Mouse2MfuzzNumberCluster}
-\end{figure}
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-4MFUZZ_Plot06alpha_BmKo.pdf}
-\caption{Temporal clustering analysis of the biological condition 'BmKo' using Mfuzz.}
-\label{fig:Mouse2MfuzzCluster}
-\end{figure}
+<<MfuzzMus2, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResMfuzzLeuk500 <- MFUZZanalysis(SEresNorm=resNORMmus2500,
+                                 DataNumberCluster=NULL,
+                                 Method="hcpc",
+                                 Membership=0.5,
+                                 Min.std=0.1,
+                                 Plot.Mfuzz=FALSE,
+                                 path.result=NULL, Name.folder.mfuzz=NULL)
+@
 
 The graphs are
 \begin{itemize}
 \item displayed if \texttt{Plot.Mfuzz=TRUE}
+\item similar to those described in subsection \nameref{sec:MFUZZfission}.
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
@@ -1555,38 +1360,27 @@ Write \texttt{?MFUZZanalysis} in your console for more information about the fun
 
 \subsubsection{Mouse data (case 1)}\label{sec:PlotExpressionMus1}
 
-In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500} (see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DATAplotExpressionGenes()} in \textbf{case 1}.
+In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500}
+(see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DATAplotExpressionGenes()} in \textbf{case 1}.
+
+The lines of code below allow to plot, from the results of the function \textbf{DATAnormalization()}, the expression profile of the 10th gene showing for each biological condition: a box plot, a violin plot, and error bars (standard deviation).
+Each box plot, violin plot and error bars is associated to the distribution of the expression of all sample belonging to the corresponding biological condition.
 
 <<DATAplotExpressionGenesMouse, warning=FALSE, message=FALSE, eval=TRUE>>=
-Res.evo.Mus500<-DATAplotExpressionGenes(ExprData=res.Norm.Mus500$NormalizedData,
-                                        Vector.row.gene=c(10),
-                                        Column.gene=1,
-                                        Group.position=1,
-                                        Time.position=NULL,
-                                        Individual.position=2,
-                                        Color.Group=NULL,
-                                        Plot.Expression=FALSE,
-                                        path.result=NULL)
+resEVOmus1500 <- DATAplotExpressionGenes(SEresNorm=resNORMmus1500,
+                                         Vector.row.gene=c(10),
+                                         Color.Group=NULL,
+                                         Plot.Expression=TRUE,
+                                         path.result=NULL)
 @
 
-The previous lines of code allow to plot the expression profile of the 10th gene showing for each biological condition: a box plot, a violin plot, and error bars (standard deviation).
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_1-5ProfileGeneExpression.pdf}
-\caption{Profile expression of the 10th gene for each biological condition.}
-\label{fig:MouseExpressionProfile}
-\end{figure}
-
-Each box plot, violin plot and error bars (Figure~\ref{fig:MouseExpressionProfile}) is associated to the distribution of the expression of all sample belonging to the corresponding biological condition.
+If the user wants to select several gene (so several output graphs), for instance the 28th, the 38th, the 39th and the 50th, he needs to set \texttt{Vector.row.gene=c(28,38:39,50)}.
 
 The graphs are
 \begin{itemize}
 \item displayed if \texttt{Plot.Expression=TRUE}
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
-
-If the user wants to select several gene, for instance the 28th, the 38th, the 39th and the 50th, he needs to set \texttt{Vector.row.gene=c(28,38:39,50)}.
 
 By default (if \texttt{Color.Group=NULL}), a color will be automatically applied for each biological condition. The user can change the colors by creating the following data.frame
 
@@ -1604,31 +1398,20 @@ Write \texttt{?DATAplotExpressionGenes} in your console for more information abo
 In this section we use the fission yeast subdataset
 \textbf{RawCounts\_Leong2014\_FISSIONsub500wt} (see the subsection \nameref{sec:dataLeong2014}) in order to explain \textbf{DATAplotExpressionGenes()} in \textbf{case 2}.
 
-
-<<DATAplotExpressionGenesFission, warning=FALSE, message=FALSE, eval=TRUE>>=
-Res.evo.Yeast<-DATAplotExpressionGenes(ExprData=res.Norm.Yeast500$NormalizedData,
-                                       Vector.row.gene=c(17),
-                                       Column.gene=1,
-                                       Group.position=NULL,
-                                       Time.position=2,
-                                       Individual.position=3,
-                                       Plot.Expression=FALSE,
-                                       path.result=NULL)
-@
-
-The previous lines of code allow to plot
-
+The lines of code below allow to plot, from the results of the function \textbf{DATAnormalization()},
+%%%%%
 \begin{itemize}
 \item the evolution of the 17th gene expression of all three replicates across time (purple lines)
 \item the evolution of the mean and the standard deviation of the 17th gene expression across time (black lines).
 \end{itemize}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_1-5ProfileGeneExpression.pdf}
-\caption{Profile expression of the 17th gene across.}
-\label{fig:YeastWTExpressionProfile17}
-\end{figure}
+<<DATAplotExpressionGenesFission, warning=FALSE, message=FALSE, eval=TRUE>>=
+resEVOyeast500<-DATAplotExpressionGenes(SEresNorm=resNORMyeast500,
+                                        Vector.row.gene=c(17),
+                                        Plot.Expression=TRUE,
+                                        path.result=NULL)
+@
+
 
 The graphs are
 \begin{itemize}
@@ -1636,7 +1419,8 @@ The graphs are
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
-If the user wants to select several genes, for instance the 1st, the 2nd, the 17th and the 19th, he needs to set \texttt{Vector.row.gene=c(1,2,17,19)}.
+If the user wants to select several genes, for instance the 1st, the 2nd, the 17th and the 19th, he needs to set
+\texttt{Vector.row.gene=c(1,2,17,19)}.
 
 Write \texttt{?DATAplotExpressionGenes} in your console for more information about the function.
 
@@ -1647,27 +1431,16 @@ Write \texttt{?DATAplotExpressionGenes} in your console for more information abo
 
 In this section we use the Chronic lymphocytic leukemia (CLL) subdataset\newline \textbf{RawCounts\_Schleiss2021\_CLLsub500} (see Subsection \nameref{sec:dataSchleiss2021}) in order to explain \textbf{DATAplotExpressionGenes()} in \textbf{case 3} when there only two biological conditions.
 
+The lines of code below allow to plot, from the results of the function \textbf{DATAnormalization()}, for each biological condition: the evolution of the 25th gene expression of the three replicates across time and the evolution of the mean and the standard deviation of the 25th gene expression across time. The color of the different lines are different for different biological conditions.
+
 <<DATAplotExpressionGenesLeukemia, warning=FALSE, message=FALSE, eval=TRUE>>=
-Res.evo.Leuk500<-DATAplotExpressionGenes(ExprData=res.Norm.Leuk500$NormalizedData,
+resEVOleuk500 <- DATAplotExpressionGenes(SEresNorm=resNORMleuk500,
                                          Vector.row.gene=c(25),
-                                         Column.gene=1,
-                                         Group.position=2,
-                                         Time.position=4,
-                                         Individual.position=3,
                                          Color.Group = NULL,
                                          Plot.Expression=FALSE,
                                          path.result=NULL,
                                          Name.folder.profile=NULL)
 @
-
-The previous lines of code allow to plot for each biological condition: the evolution of the 25th gene expression of the three replicates across time and the evolution of the mean and the standard deviation of the 25th gene expression across time. The color of the different lines are different for different biological conditions.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_1-5ProfileGeneExpression.pdf}
-\caption{Profile expression of the 25th gene across time for each biological condition.}
-\label{fig:LeukExpressionProfile}
-\end{figure}
 
 The graphs are
 \begin{itemize}
@@ -1696,26 +1469,16 @@ Write \texttt{?DATAplotExpressionGenes} in your console for more information abo
 
 In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEsub500} (see Subsection \nameref{sec:dataWeger2021}) in order to explain \textbf{DATAplotExpressionGenes()} in \textbf{case 3} when there are more than two biological conditions.
 
+The previous lines of code allow to plot, from the results of the function \textbf{DATAnormalization()}, for each biological condition: the evolution of the 17th gene expression of the three replicates across time and the evolution of the mean and the standard deviation of the 17th gene expression across time. The color of the different lines are different for different biological conditions.
+
 <<DATAplotExpressionGenesMusBmCrKoWt, warning=FALSE, message=FALSE, eval=TRUE>>=
-Res.evo.MusBmCrKoWt<-DATAplotExpressionGenes(ExprData=res.Norm.Mus2.500$NormalizedData,
-                                             Vector.row.gene=c(17),
-                                             Column.gene=1,
-                                             Group.position=1,
-                                             Time.position=2,
-                                             Individual.position=3,
-                                             Color.Group=NULL,
-                                             Plot.Expression=FALSE,
-                                             path.result=NULL)
+resEVOmus2500 <- DATAplotExpressionGenes(SEresNorm=resNORMmus2500,
+                                         Vector.row.gene=c(17),
+                                         Color.Group=NULL,
+                                         Plot.Expression=FALSE,
+                                         path.result=NULL)
 @
 
-The previous lines of code allow to plot for each biological condition: the evolution of the 17th gene expression of the three replicates across time and the evolution of the mean and the standard deviation of the 17th gene expression across time. The color of the different lines are different for different biological conditions.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_1-5ProfileGeneExpression.pdf}
-\caption{Profile expression of the 17th gene across time for each biological condition.}
-\label{fig:Mouse2ExpressionProfile}
-\end{figure}
 
 The graphs are
 \begin{itemize}
@@ -1752,50 +1515,42 @@ Write \texttt{?DATAplotExpressionGenes} in your console for more information abo
 
 \subsubsection{Mouse data (case 1)}\label{sec:DEanalysisMus1}
 
-In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500} (see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 1}.
+In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500}
+(see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 1}.
 
-The following commented lines of code realize the DE analysis.
-
-<<DEmouse, warning=FALSE, message=FALSE, eval=TRUE>>=
-# ResDEMus500<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#                               Column.gene=1,
-#                               Group.position=1,
-#                               Time.position=NULL,
-#                               Individual.position=2,
-#                               log.FC.min=0.5,
-#                               pval.min=0.05,
-#                               pval.vect.t=c(0.01),
-#                               LRT.supp.info=FALSE,
-#                               Plot.DE.graph=FALSE,
-#                               path.result=NULL,
-#                               Name.folder.DE=NULL)
-data("Results_DEanalysis_sub500")
-ResDEMus500<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
-@
-
-The lines are commented because they take too much time. Uncomment them in order to use the function \texttt{DEanalysisGlobal()}.
-\texttt{Results\_DEanalysis\_sub500} contains the results of \texttt{DEanalysisGlobal()} of three dataset which included \texttt{RawCounts\_Antoszewski2022\_MOUSEsub500}. The results of \texttt{DEanalysisGlobal()} with \texttt{RawCounts\_Antoszewski2022\_MOUSEsub500} are saved in \texttt{Results\_DEanalysis\_sub500\$DE\_Antoszewski2022\_MOUSEsub500}.
-
-
-The function above
-
+The function below
+%%%%%%%%
 \begin{itemize}
-\item returns a data.frame (output \texttt{DE.results}). See Subection \nameref{sec:DEanalysisMus1Summary}
+\item returns a data.frame (output \texttt{DE.results}). See subection \nameref{sec:DEanalysisMus1Summary}
 \item plots the following graphs
-%
+%%%%%%%
 \begin{itemize}
-\item an upset graph, realized with the R package UpSetR \cite{Conway2017UpSetR}, which corresponds to a Venn diagram barplot. If there are only two biological conditions, the graph will not be plotted. See subsection \nameref{sec:VennBarplotBC}
-\item a barplot showing the number of specific genes per biological condition. See Subection \nameref{sec:DEspecificBC}.
+\item an upset graph, realized with the R package UpSetR \cite{Conway2017UpSetR}, which corresponds to a Venn diagram barplot. If there are only two biological conditions, the graph will not be plotted. See subsection \nameref{sec:DEmus1GRAPHS}
+\item a barplot showing the number of specific genes per biological condition. See subection \nameref{sec:DEmus1GRAPHS}.
   \end{itemize}
 \end{itemize}
+
+Uncomment lines (\texttt{Results\_DEanalysis\_sub500}) contains the results of \texttt{DEanalysisGlobal()} of three dataset which included \texttt{RawCounts\_Antoszewski2022\_MOUSEsub500}. The results of \texttt{DEanalysisGlobal()} with \texttt{RawCounts\_Antoszewski2022\_MOUSEsub500} are saved in \texttt{Results\_DEanalysis\_sub500\$DE\_Antoszewski2022\_MOUSEsub500}.
+
+<<DEmouse, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResDEMus500 <- DEanalysisGlobal(SEres=resSEmus1500,
+                                pval.min=0.05,
+                                pval.vect.t=NULL,
+                                log.FC.min=1,
+                                LRT.supp.info=FALSE,
+                                Plot.DE.graph=TRUE,
+                                path.result=NULL,
+                                Name.folder.DE=NULL)
+# data("Results_DEanalysis_sub500")
+# ResDEMus500<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
+@
+
 
 The graphs are
 \begin{itemize}
 \item displayed if \texttt{Plot.DE.graph=TRUE}
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
-
-The data.frame and graphs are described in the following sub-sections.
 
 Write \texttt{?DEanalysisGlobal} in your console for more information about the function.
 
@@ -1826,18 +1581,12 @@ The data.frame contains
 \item \(N_{bc}=4\) columns filled with -1, 0 and 1, one per biological condition. A '1' in one of these columns means the gene is up-regulated (or over-expressed) for the biological condition associated to the given column. A gene is called up-regulated for a given biological condition BC1 if the gene is specific to the biological condition BC1 and expressions in BC1 are higher than in the other biological conditions. A '-1' in one of these columns means the gene is down-regulated (or under-expressed) for the biological condition associated to the given column. A gene is called down-regulated for a given biological condition BC1 if the gene is specific to the biological condition BC1 and expressions in BC1 are lower than in the other biological conditions. A '0' in one of these columns means the gene is not specific to the biological condition associated to the given column.
 \end{itemize}
 
-\subsubsubsection{Number of genes per intersection of pairs of biological conditions}
-\label{sec:VennBarplotBC}
+\subsubsubsection{Description of graphs}\label{sec:DEmus1GRAPHS}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_2-2DE_VennBarplot.pdf}
-\caption{Number of DE genes corresponding to each possible intersection}
-\label{fig:Mouse1UpsetBiocond}
-\end{figure}
+The function plots three graphs
 
-The graph above (Figure~\ref{fig:Mouse1UpsetBiocond}) plots the number of genes corresponding to each possible intersection in a Venn barplot. We say that
-
+The upset graph plots the number of genes corresponding to each possible intersection in a Venn barplot. We say that
+%%%%%%%
 \begin{itemize}
 \item a set of pairs of biological conditions forms an intersection when there is at least one gene which is DE for each of these pairs of biological conditions, but not for the others.
 \item a gene corresponds to a given intersection if this genes is DE for each pair of biological conditions in the intersection, but not for the others.
@@ -1857,67 +1606,54 @@ In other words, this is the number of genes DE between
 
 and not DE between any other pair of biological conditions. Note that this columns actually gives the number of specific genes to the biological condition N1wtT1wt.
 
-
-\subsubsubsection{Specific genes of a biological condition}\label{sec:DEspecificBC}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_2-2DE_NumberSpecificAndNoSpe_perBC.pdf}
-\caption{Number of Up-regulated genes, down-regulated genes et no specific genes per biological condition}
-\label{fig:MouseSpeNspe}
-\end{figure}
-
-The graph above (Figure~\ref{fig:MouseSpeNspe}) plots for each biological condition BC1
-
+The first barplot plots for each biological condition BC1
+%%%%%%%%
 \begin{itemize}
 \item The number of up- and down-regulated genes which are specific to the biological condition BC1.
 \item The number of genes categorized as ``Other.'' A gene belongs to the ``Other'' category if it is DE between BC1 and at least one other biological condition and not specific.
 \end{itemize}
 
-The same graph without ``Other'' will be plotted too. If there are only two biological condition, only the second barplot will be plotted.
+The second barplot is the same graph without ``Other'' will be plotted too. If there are only two biological condition, only the second barplot will be plotted.
+
 
 \clearpage
 
 \subsubsection{Fission data (case 2)}\label{sec:DEanalysisFission}
 
-In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014\_FISSIONsub500wt} (see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 2}.
+In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014\_FISSIONsub500wt}
+(see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 2}.
 
-The following commented lines of code realize the DE analysis.
-
-<<DEanalysisFISSION, warning=FALSE, message=FALSE, eval=TRUE>>=
-# DEyeast500wt<-DEanalysisGlobal(RawCounts=RawCounts_Leong2014_FISSIONsub500wt,
-#                                Column.gene=1,
-#                                Group.position=NULL,
-#                                Time.position=2,
-#                                Individual.position=3,
-#                                pval.min=0.05,
-#                                pval.vect.t=NULL,
-#                                log.FC.min=1,
-#                                LRT.supp.info=FALSE,
-#                                Plot.DE.graph=FALSE,
-#                                path.result=NULL,
-#                                Name.folder.DE=NULL)
-data("Results_DEanalysis_sub500")
-DEyeast500wt<-Results_DEanalysis_sub500$DE_Leong2014_FISSIONsub500wt
-@
+The function below
+%%%%%%%%%%%
+\begin{itemize}
+\item returns a data.frame (output \texttt{DE.results}). See subsection \nameref{sec:DEanalysisFissionSummary}
+\item plots the following graphs
+%
+\begin{itemize}
+\item an alluvial graph. See subsection \nameref{sec:DEyeastGRAPHS}
+\item a graph showing the number of DE genes as a function of time for each temporal group. By temporal group, we mean the sets of genes which are first DE at the same time. See subsection \nameref{sec:DEyeastGRAPHS}
+\item a barplot showing the number of DE genes (up- or down-regulated) for each time. See subsection \nameref{sec:DEyeastGRAPHS}.
+\item two upset graphs, realized with the R package UpSetR \cite{Conway2017UpSetR}, showing the number of DE genes belonging to each DE temporal pattern. By temporal pattern, we mean the set of times ti such that the gene is DE between ti and the reference time t0. See subsection \nameref{sec:DEyeastGRAPHS}.
+\end{itemize}
+%
+\end{itemize}
 
 The lines are commented because they take too much time. Uncomment them in order to use the function \Rfunction{DEanalysisGlobal()}.
 \texttt{Results\_DEanalysis\_sub500} contains the results of \Rfunction{DEanalysisGlobal()} of three dataset which included \texttt{RawCounts\_Leong2014\_FISSIONsub500wt}. The results of \Rfunction{DEanalysisGlobal()} with \texttt{RawCounts\_Leong2014\_FISSIONsub500wt} are saved in \texttt{Results\_DEanalysis\_sub500\$DE\_Leong2014\_FISSIONsub500wt}.
 
-The function above
+<<DEanalysisFISSION, warning=FALSE, message=FALSE, eval=TRUE>>=
+# DEyeast500wt <- DEanalysisGlobal(SEres=resSEfission500,
+#                                  pval.min=0.05,
+#                                  pval.vect.t=NULL,
+#                                  log.FC.min=1,
+#                                  LRT.supp.info=FALSE,
+#                                  Plot.DE.graph =FALSE,
+#                                  path.result=NULL,
+#                                  Name.folder.DE=NULL)
+data("Results_DEanalysis_sub500")
+DEyeast500wt <- Results_DEanalysis_sub500$DE_Leong2014_FISSIONsub500wt
+@
 
-\begin{itemize}
-\item returns a data.frame (output \texttt{DE.results}). See Subsection \nameref{sec:DEanalysisFissionSummary}
-\item plots the following graphs
-%
-\begin{itemize}
-\item an alluvial graph. See Subsection \nameref{sec:DEfissionAlluvial}
-\item a graph showing the number of DE genes as a function of time for each temporal group. By temporal group, we mean the sets of genes which are first DE at the same time. See Subsection \nameref{sec:DEfissionNbDEperTemporalGroup}
-\item a barplot showing the number of DE genes (up- or down-regulated) for each time. See Subsection \nameref{fig:YeastNumberDEperTime}.
-\item two upset graphs, realized with the R package UpSetR \cite{Conway2017UpSetR}, showing the number of DE genes belonging to each DE temporal pattern. By temporal pattern, we mean the set of times ti such that the gene is DE between ti and the reference time t0. See Subsection \nameref{sec:NumberDEperTemporalPattern}.
-\end{itemize}
-%
-\end{itemize}
 
 The graphs are
 \begin{itemize}
@@ -1925,7 +1661,6 @@ The graphs are
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
-The data.frame and graphs are described in the following sub-sections.
 
 Write \texttt{?DEanalysisGlobal} in your console for more information about the function.
 
@@ -1955,69 +1690,28 @@ The data.frame contains
 \item a column where each element is succession of 0 and 1. The positions of `1' indicate the set of times ti such that the gene is DE between ti and the reference time t0. So each element of the column is what we called previously, a temporal pattern.
 \end{itemize}
 
-\subsubsubsection{Alluvial graph of genes which are DE at at least one time ti versus the reference time t0}
-\label{sec:DEfissionAlluvial}
+\subsubsubsection{Description of graphs}\label{sec:DEyeastGRAPHS}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-2DE_AlluvialGraph.pdf}
-\caption{Alluvial graph of genes which are DE at at least one time ti versus the reference time t0}
-\label{fig:YeastAlluvial}
-\end{figure}
-
-The x-axis of the graph above (Figure~\ref{fig:YeastAlluvial}) is labeled with all times except t0. For each vertical barplot, there are two strata: 1 and 0 whose sizes indicate respectively the number of DE genes and of non DE genes, between the time corresponding to the barplot and the reference time t0.
-
-The alluvial graph (Figure~\ref{fig:YeastAlluvial}) is composed of curves each corresponding to a single gene, which are gathered in alluvia. An alluvium is composed of all genes having the same curve: for example, an alluvium going from the stratum 0 at time t1 (for instance) to the stratum 1 at time t2 corresponds to the set of genes which are not differentially expressed (DE) at t1 and are DE at time t2.
+The function returns the following plots
+%%%%%%%
+\begin{enumerate}
+\item An alluvial graph. The x-axis of the alluvial graph is labeled with all times except t0. For each vertical barplot, there are two strata: 1 and 0 whose sizes indicate respectively the number of DE genes and of non DE genes, between the time corresponding to the barplot and the reference time t0. \newline
+%%%%%%
+The alluvial graph is composed of curves each corresponding to a single gene, which are gathered in alluvia. An alluvium is composed of all genes having the same curve: for example, an alluvium going from the stratum 0 at time t1 (for instance) to the stratum 1 at time t2 corresponds to the set of genes which are not differentially expressed (DE) at t1 and are DE at time t2.
 Each alluvium connects pairs of consecutive barplots and its thickness gives the number of genes in the set.
-
+%%%%%%%%%%%%
 The color of each alluvium indicates the temporal group, defined as the set of genes which are all first DE at the same time with respect to the reference time t0.
-
-\subsubsubsection{Number of DE genes per time for each temporal group}
-\label{sec:DEfissionNbDEperTemporalGroup}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-2DE_NumberDEgenes_perTemporalGroup.pdf}
-\caption{Number of DE genes per time for each temporal group}
-\label{fig:YeastDePerTemporalGroup}
-\end{figure}
-
-The graph above (Figure~\ref{fig:YeastDePerTemporalGroup}) plots the time evolution of the number of DE genes within each temporal group.
-
-The x-axis labels indicate all times except t0.
-
-\subsubsubsection{Number of DE genes up-regulated and down-regulated per time}
-\label{sec:DEfissionUpDown}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-2DE_NumberUpDownRegulated_perTime.pdf}
-\caption{Number of DE genes per time.}
-\label{fig:YeastNumberDEperTime}
-\end{figure}
-
-The graph above (Figure~\ref{fig:YeastNumberDEperTime}) shows the number of DE genes per time.
-
-The x-axis labels indicate all times except t0.
-
+\item A graph giving the time evolution of the number of DE genes within each temporal group. The x-axis labels indicate all times except t0.
+%%%%%%%%
+\item A barplot showing the number of DE genes per time. The x-axis labels indicate all times except t0.
+%%%%%%%%%
 For each DE gene, we compute the sign of the log2 fold change between time ti and time t0. If the sign is positive (resp. negative), the gene is categorized as up-regulated (resp. down-regulated). In the graph, the up-regulated (resp. down-regulated) genes are indicated in red (resp. in blue).
-
-\paragraph{Number of DE genes belonging to each DE temporal pattern}
-\label{sec:NumberDEperTemporalPattern}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-2DE_VennBarplot_NumberUpRegulated.pdf}
-\caption{Number of DE genes per time.}
-\label{fig:YeastDeUpsetTime}
-\end{figure}
-
-The graph above (Figure~\ref{fig:YeastDeUpsetTime}), realized with the R package UpSetR \cite{Conway2017UpSetR}, plots the number of genes in each DE temporal pattern in a Venn barplot.
-By DE temporal pattern, we mean a subset of times in t1,\ldots,tn. We say that a gene belongs to a DE temporal pattern if the gene is DE versus t0 only at the times in this DE temporal patterns.
-
+\item An upset graph, realized with the R package UpSetR \cite{Conway2017UpSetR}, plotting the number of genes in each DE temporal pattern in a Venn barplot. By DE temporal pattern, we mean a subset of times in t1,\ldots,tn. We say that a gene belongs to a DE temporal pattern if the gene is DE versus t0 only at the times in this DE temporal patterns.
+%%%%%%%%%%%%
 For each gene in a given DE temporal pattern, we compute the number of DE times where it is up-regulated and we use a color code in the Venn barplot to indicate the number of genes in a temporal pattern that are up-regulated a given number of times.
+\item The same upset graph is also given without colors.
+\end{enumerate}
 
-The same graph is also given without colors.
 
 \clearpage
 
@@ -2026,61 +1720,39 @@ The same graph is also given without colors.
 
 In this section we use the Chronic lymphocytic leukemia (CLL) subdataset\newline \textbf{RawCounts\_Schleiss2021\_CLLsub500} (see Subsection \nameref{sec:dataSchleiss2021}) in order to explain \textbf{DEanalysisGlobal()} in \textbf{case 3} when there only two biological conditions.
 
-The following commented lines of code realize the DE analysis.
-
-<<DELeuk, warning=FALSE, message=FALSE, eval=TRUE>>=
-# ResDELeuk500<-DEanalysisGlobal(RawCounts=RawCounts_Schleiss2021_CLLsub500,
-#                                Column.gene=1,
-#                                Group.position=2,
-#                                Time.position=4,
-#                                Individual.position=3,
-#                                log.FC.min=1,
-#                                pval.min=0.05,
-#                                pval.vect.t=NULL,
-#                                LRT.supp.info=FALSE,
-#                                Plot.DE.graph=FALSE,
-#                                path.result=NULL,
-#                                Name.folder.DE=NULL)
-data("Results_DEanalysis_sub500")
-ResDELeuk500<-Results_DEanalysis_sub500$DE_Schleiss2021_CLLsub500
-@
-
-The lines are commented because they take too much time. Uncomment them in order to use the function \texttt{DEanalysisGlobal()}.
-\texttt{Results\_DEanalysis\_sub500} contains the results of \Rfunction{DEanalysisGlobal()} of three dataset which included \texttt{RawCounts\_Schleiss2021\_CLLsub500}. The results of \Rfunction{DEanalysisGlobal()} with \texttt{RawCounts\_Schleiss2021\_CLLsub500} are saved in \texttt{Results\_DEanalysis\_sub500\$DE\_Schleiss2021\_CLLsub500}.
-
-The function above
-
+The lines of code below
+%%%%%%%
 \begin{itemize}
-\item returns a data.frame (output \texttt{DE.results}). See Subsection \nameref{sec:DEsummaryLeuk}
+\item returns a data.frame (output \texttt{DE.results}). See subsection \nameref{sec:DEsummaryLeuk}
 \item plots the following graphs
 %
 \begin{itemize}
-\item \emph{Results from the temporal statistical analysis} (\textbf{case 2} for each biological condition)
-%
-\begin{itemize}
-\item \(N_{bc}=2\) alluvial graphs, one per biological condition (with \(N_{bc}\) the number of biological conditions). See Subsection \nameref{sec:AlluvialLeuk}.
-\item \(N_{bc}=2\) graphs showing the number of DE genes as a function of time for each temporal group, one per biological condition. By temporal group, we mean the sets of genes which are first DE at the same time. See Subsection \nameref{sec:TemporalGroupLeuk}.
-\item a barplot showing the number of DE genes up-regulated and down-regulated per time, for each biological condition. See Subsection \nameref{sec:UpDownPerBCtime}.
-\item \(2\times N_{bc}=4\) upset graphs, realized with the R package UpSetR \cite{Conway2017UpSetR}, showing the number of DE genes belonging to each DE temporal pattern, for each biological condition. By temporal pattern, we mean the set of times ti such that the gene is DE between ti and the reference time t0. See Subsection \nameref{sec:TemporalPatternLeuk}.
-\item an alluvial graph for DE genes which are DE at at least one time for each group. See Subsection \nameref{sec:AlluvialDE1timeMiniumPerBC}.
+\item \emph{Results from the temporal statistical analysis} (\textbf{case 2} for each biological condition).
+See subsection \nameref{sec:DEleukGRAPHStemporel}
+\item \emph{Results from the statistical analysis by biological condition} (\textbf{case 1} for each fixed time).
+See subsection \nameref{sec:DEleukGRAPHSbiocond}.
+\item \emph{Results from the combination of temporal and biological statistical analysis}.
+See subsection \nameref{sec:DEleukGRAPHSboth}
 \end{itemize}
-%
-\item \emph{Results from the statistical analysis by biological condition} (\textbf{case 1} for each fixed time)
-%
-\begin{itemize}
-\item a barplot showing the number of specific genes per biological condition, for each time. A gene is called specific to a given biological condition BC1 at a time ti, if the gene is DE between BC1 and any other biological conditions at time ti, but not DE between any pair of other biological conditions at time ti. See Subsection \nameref{sec:SpecificPerBCtimeLeuk}.
 \end{itemize}
-%
-\item \emph{Results from the combination of temporal and biological statistical analysis}
-%
-\begin{itemize}
-\item a barplot showing the number of signature genes and DE genes (but not signature) per time, for each biological condition. A gene is called signature of a biological condition BC1 at a given time ti, if the gene is specific to the biological condition BC1 at time ti and DE bewteen ti versus the reference time t0 for the biological condition BC1. See Subsection \nameref{sec:SignaturePerTimeBCleuk}.
-\item a barplot showing the number of genes which are DE at at least one time, specific at at least one time and signature at at least one time, for each biological condition. See Subsection \nameref{sec:DESumaryDESpecificSignatureLeuk}.
-\end{itemize}
-%
-\end{itemize}
-%
-\end{itemize}
+
+
+<<DELeuk, warning=FALSE, message=FALSE, eval=TRUE>>=
+ResDELeuk500 <- DEanalysisGlobal(SEres=resSEleuk500,
+                                 pval.min=0.05,
+                                 pval.vect.t=NULL,
+                                 log.FC.min=1,
+                                 LRT.supp.info=FALSE,
+                                 Plot.DE.graph =TRUE,
+                                 path.result=NULL,
+                                 Name.folder.DE=NULL)
+
+# data("Results_DEanalysis_sub500")
+# ResDELeuk500<-Results_DEanalysis_sub500$DE_Schleiss2021_CLLsub500
+@
+
+\texttt{Results\_DEanalysis\_sub500} contains the results of \Rfunction{DEanalysisGlobal()} of three dataset which included \texttt{RawCounts\_Schleiss2021\_CLLsub500}. The results of \Rfunction{DEanalysisGlobal()} with \texttt{RawCounts\_Schleiss2021\_CLLsub500} are saved in \texttt{Results\_DEanalysis\_sub500\$DE\_Schleiss2021\_CLLsub500}.
+
 
 The graphs are
 \begin{itemize}
@@ -2088,9 +1760,8 @@ The graphs are
 \item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
 \end{itemize}
 
-The data.frame and graphs are described in the following sub-sections.
-
 Write \texttt{?DEanalysisGlobal} in your console for more information about the function.
+
 
 \subsubsubsection{Data.frame summarising all the DE analysis (case 3 with only two biological conditions)}
 \label{sec:DEsummaryLeuk}
@@ -2140,119 +1811,75 @@ The data.frame contains
 %
 \end{itemize}
 
-\subsubsubsection{Alluvial graph of genes which are DE at at least one time ti versus the reference time t0, one per biological condition (case 3, 2 BC)}
-\label{sec:AlluvialLeuk}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-2-1DE_AlluvialGraph_P.pdf}
-\caption{Alluvial graph of genes which are DE at at least one time ti versus the reference time t0, for the biological condition P}
-\label{fig:LeukAlluvialP}
-\end{figure}
+\subsubsubsection{Graphs from the results of the temporal statistical analysis}
+\label{sec:DEleukGRAPHStemporel}
 
-The x-axis of the graph above (Figure~\ref{fig:LeukAlluvialP}) is labeled with all times except t0. For each vertical barplot, there are two strata: 1 and 0 whose sizes indicate respectively the number of DE genes and of non DE genes, between the time corresponding to the barplot and the reference time t0.
-
-The alluvial graph (Figure~\ref{fig:LeukAlluvialP}) is composed of curves each corresponding to a single gene, which are gathered in alluvia. An alluvium is composed of all genes having the same curve: for example, an alluvium going from the stratum 0 at time t1 (for instance) to the stratum 1 at time t2 corresponds to the set of genes which are not differentially expressed (DE) at t1 and are DE at time t2.
+The function plots
+%
+\begin{itemize}
+\item \(N_{bc}=2\) alluvial graphs, one per biological condition (with \(N_{bc}\) the number of biological conditions).
+The x-axis of the graph is labeled with all times except t0. For each vertical barplot, there are two strata: 1 and 0 whose sizes indicate respectively the number of DE genes and of non DE genes, between the time corresponding to the barplot and the reference time t0.
+%%
+The alluvial graph is composed of curves each corresponding to a single gene, which are gathered in alluvia. An alluvium is composed of all genes having the same curve: for example, an alluvium going from the stratum 0 at time t1 (for instance) to the stratum 1 at time t2 corresponds to the set of genes which are not differentially expressed (DE) at t1 and are DE at time t2.
 Each alluvium connects pairs of consecutive barplots and its thickness gives the number of genes in the set.
-
+%%
 The color of each alluvium indicates the temporal group, defined as the set of genes which are all first DE at the same time with respect to the reference time t0.
-
-\subsubsubsection{Number of DE genes per time for each temporal group, for each biological condition (case 3, 2 BC)}
-\label{sec:TemporalGroupLeuk}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-2-1DE_NumberDEgenes_perTemporalGroup_P.pdf}
-\caption{Number of DE genes per time for each temporal group, for the biological condition P}
-\label{fig:LeukDePerTemporalGroupP}
-\end{figure}
-
-The graph above (Figure~\ref{fig:LeukDePerTemporalGroupP}) plots the time evolution of the number of DE genes within each temporal group, for the biological condition P.
-
+%%%%%%%%%%%%%%%%%%%
+\item \(N_{bc}=2\) graphs showing the number of DE genes as a function of time for each temporal group, one per biological condition. By temporal group, we mean the sets of genes which are first DE at the same time.
+The graphs plot the time evolution of the number of DE genes within each temporal group, one per biological condition.
 The x-axis labels indicate all times except t0.
-
-\subsubsubsection{Number of DE genes up-regulated and down-regulated per time, for each biological condition (case 3, 2 BC)}
-\label{sec:UpDownPerBCtime}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-2-1DE_NumberUpDownRegulated_perTperBC.pdf}
-\caption{Number of DE genes per time, for each biological condition}
-\label{fig:LeukNumberDEperTimePerBC}
-\end{figure}
-
-The graph above (Figure~\ref{fig:LeukNumberDEperTimePerBC}) shows the number of DE genes per time, for each biological condition.
-
+%%%%%%%%%%%%%%%%%%%
+\item a barplot showing the number of DE genes up-regulated and down-regulated per time, for each biological condition.
+The graph shows the number of DE genes per time, for each biological condition.
 The x-axis labels indicate all times except t0.
-
 For each DE gene, we compute the sign of the log2 fold change between time ti and time t0. If the sign is positive (resp. negative), the gene is categorized as up-regulated (resp. down-regulated). In the graph, the up-regulated (resp. down-regulated) genes are indicated in red (resp. in blue).
-
-\subsubsubsection{Number of DE genes belonging to each DE temporal pattern, for each biological condition (case 3, 2 BC)}
-\label{sec:TemporalPatternLeuk}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-2-1DE_VennBarplot_NumberUpRegulated_P.pdf}
-\caption{Number of DE genes per temporal pattern, for the biological condition P.}
-\label{fig:LeukDeUpSetP}
-\end{figure}
-
-The graph above (Figure~\ref{fig:LeukDeUpSetP}), realized with the R package UpSetR \cite{Conway2017UpSetR}, plots the number of genes in each DE temporal pattern in a Venn barplot.
+%%%%%%%%%%%%%%%%%%%
+\item \(2\times N_{bc}=4\) upset graphs, realized with the R package UpSetR \cite{Conway2017UpSetR}, showing the number of DE genes belonging to each DE temporal pattern, for each biological condition. By temporal pattern, we mean the set of times ti such that the gene is DE between ti and the reference time t0.
+The graphs, realized with the R package UpSetR \cite{Conway2017UpSetR}, plot the number of genes in each DE temporal pattern in a Venn barplot, one per biological condition.
 By DE temporal pattern, we mean a subset of times in t1,\ldots,tn. We say that a gene belongs to a DE temporal pattern if the gene is DE versus t0 only at the times in this DE temporal patterns.
-
 For each gene in a given DE temporal pattern, we compute the number of DE times where it is up-regulated and we use a color code in the Venn barplot to indicate the number of genes in a temporal pattern that are up-regulated a given number of times.
-
 The same graph is also given without colors.
+%%%%%%%%%%%%%%%%%%%
+\item an alluvial graph for DE genes which are DE at at least one time for each group.
+The graph shows common and no common genes between which are DE at at least one time for the two biological conditions.
+\end{itemize}
 
-\subsubsubsection{Alluvial graph for DE genes which are DE at at least one time for each group (case 3, 2 BC)}
-\label{sec:AlluvialDE1timeMiniumPerBC}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-2-1DE_AlluvialGraph_DE1TminPerBC.pdf}
-\caption{Alluvial graph for DE genes which are DE at at least one time for each group.}
-\label{fig:Leukallu1tminPerBC}
-\end{figure}
 
-The graph above (Figure~\ref{fig:Leukallu1tminPerBC}) shows common and no common genes between which are DE at at least one time for the two biological conditions.
+\subsubsubsection{Graphs from the results of the biological condition analysis}
+\label{sec:DEleukGRAPHSbiocond}
 
-\subsubsubsection{Barplot showing the number of specific genes per biological condition, for each time (case 3, 2 BC)}
-\label{sec:SpecificPerBCtimeLeuk}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-2-2DE_NumberSpecificAndNoSpe_perBCperT.pdf}
-\caption{Number of specific genes per biological condition, for each time.}
-\label{fig:LeukSpecificPerTime}
-\end{figure}
+The function plots
+%%%%%%%%%%%%
+\begin{itemize}
+\item a barplot showing the number of specific genes per biological condition, for each time. A gene is called specific to a given biological condition BC1 at a time ti, if the gene is DE between BC1 and any other biological conditions at time ti, but not DE between any pair of other biological conditions at time ti.
+\item only if there are more than two biological conditions (which is not the case here),
+\(\binom{N_{bc}}{2}=\binom{4}{2}=6\) upset graph, realized with the R package UpSetR \cite{Conway2017UpSetR}, which corresponds to Venn diagram barplots for each time ti.
+Each graph the number of genes corresponding to each possible intersection in a Venn barplot at a given time. We say that
+\begin{itemize}
+\item a set of pairs of biological conditions forms an intersection at a given time ti when there is at least one gene which is DE for each of these pairs of biological conditions at time ti, but not for the others at time ti.
+\item a gene corresponds to a given intersection if this genes is DE for each pair of biological conditions in the intersection at time ti, but not for the others at time ti.
+\end{itemize}
+\item only if there are more than two biological conditions (which is not the case here), an alluvial graph for DE genes which are specific at at least one time for each group. The plots allows to detect genes that are specific only for one biological condition.
+\end{itemize}
 
-The graph above (Figure~\ref{fig:LeukSpecificPerTime}) shows the number of specific genes per biological condition, for each time.
 
-\subsubsubsection{Barplot showing the number of signature genes and no signature DE genes per time, for each biological condition (case 3, 2 BC)}
-\label{sec:SignaturePerTimeBCleuk}
+\subsubsubsection{Graphs from the results of the combination of temporal and biological statistical analysis}
+\label{sec:DEleukGRAPHSboth}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-2-3DE_NbSignatureAndNot_UpDown_perTperBC.pdf}
-\caption{Number of signature genes and DE genes (but not signature) per time, for each biological condition.}
-\label{fig:LeukSignaturePerTime}
-\end{figure}
-
-The graph is similar to the graph (Figure~\ref{fig:LeukNumberDEperTimePerBC}) but with signature genes.
-
-\subsubsubsection{Barplot showing the number of genes which are DE at at least one time, specific at at least one time and signature at at least one time, for each biological condition (case 3, 2 BC)}
-\label{sec:DESumaryDESpecificSignatureLeuk}
+The function plots
 %
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-2-3DE_DE_Specific_Signature_1Tmin_perBC.pdf}
-\caption{Number of genes which are DE at at least one time, specific at at least one time and signature at at least one time, for each biological condition.}
-\label{fig:LeukDESpecificSignature1TimeMnimum}
-\end{figure}
-%
+\begin{itemize}
+\item a barplot showing the number of signature genes and DE genes (but not signature) per time, for each biological condition. A gene is called signature of a biological condition BC1 at a given time ti, if the gene is specific to the biological condition BC1 at time ti and DE bewteen ti versus the reference time t0 for the biological condition BC1.
+%%%%%%%%%%%%%%%%%%
+\item a barplot showing the number of genes which are DE at at least one time, specific at at least one time and signature at at least one time, for each biological condition.
+The barplot summarizes well the combination of temporal and biological analysis because the figure gives for each biological condition the number of genes which are DE at at least one time, the number of specific genes at at least one time and the number of signature at at least one time.
+\item only if there are more than two biological conditions (which is not the case here), an alluvial graph for DE genes which are signature at at least one time for each group. The plots allows to detect genes that are signature only for one biological condition.
+\end{itemize}
 
-The figure~\ref{fig:LeukDESpecificSignature1TimeMnimum} summarizes well the combination of temporal and biological analysis because the figure gives for each biological condition the number of genes which are DE at at least one time, the number of specific genes at at least one time and the number of signature at at least one time.
-
+\clearpage
 
 \subsubsection{Mouse data 2 (case 3 with more than two biological conditions)}
 \label{sec:DEanalysisMus2}
@@ -2262,293 +1889,50 @@ In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEs
 For the speed of the algorithm, we will take only three biological conditions and three times
 
 <<UsbMusBmCrKoWt, warning=FALSE, message=FALSE, eval=TRUE>>=
-Sub3bc3T<-RawCounts_Weger2021_MOUSEsub500
-Sub3bc3T<-Sub3bc3T[,seq_len(73)]
-SelectTime<-grep("_t0_",colnames(Sub3bc3T))
-SelectTime<-c(SelectTime,grep("_t1_", colnames(Sub3bc3T)))
-SelectTime<-c(SelectTime,grep("_t2_", colnames(Sub3bc3T)))
-Sub3bc3T<-Sub3bc3T[,c(1,SelectTime)]
+Sub3bc3T <- RawCounts_Weger2021_MOUSEsub500[, seq_len(73)]
+SelectTime <- grep("_t0_", colnames(Sub3bc3T))
+SelectTime <- c(SelectTime, grep("_t1_", colnames(Sub3bc3T)))
+SelectTime <- c(SelectTime, grep("_t2_", colnames(Sub3bc3T)))
+Sub3bc3T <- Sub3bc3T[, c(1, SelectTime)]
+
+resSEmus25003b3t <- DATAprepSE(RawCounts=Sub3bc3T,
+                               Column.gene=1,
+                               Group.position=1,
+                               Time.position=2,
+                               Individual.position=3)
 @
 
 
+The lines of code below
+%%%%%%%
+\begin{itemize}
+\item returns a data.frame (output \texttt{DE.results}). See subsection \nameref{sec:DEsummaryLeuk}
+\item plots the following graphs (similar to those described in section \nameref{sec:DEanalysisLeuk})
+%
+\begin{itemize}
+\item \emph{Results from the temporal statistical analysis} (\textbf{case 2} for each biological condition).
+See subsection \nameref{sec:DEleukGRAPHStemporel}
+\item \emph{Results from the statistical analysis by biological condition} (\textbf{case 1} for each fixed time).
+See subsection \nameref{sec:DEleukGRAPHSbiocond}.
+\item \emph{Results from the combination of temporal and biological statistical analysis}.
+See subsection \nameref{sec:DEleukGRAPHSboth}
+\end{itemize}
+\end{itemize}
+
+
 <<DEMusBmCrKoWt, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResDEMusBmCrKoWt500<-DEanalysisGlobal(RawCounts=Sub3bc3T,
-                                      Column.gene=1,
-                                      Group.position=1,
-                                      Time.position=2,
-                                      Individual.position=3,
+ResDEMusBmCrKoWt500<-DEanalysisGlobal(SEres=resSEmus25003b3t,
                                       pval.min=0.05,
                                       pval.vect.t=NULL,
                                       log.FC.min=1,
                                       LRT.supp.info=FALSE,
                                       Plot.DE.graph=FALSE,
-                                      path.result=NULL,
-                                      Name.folder.DE=NULL)
+                                      path.result=NULL, Name.folder.DE=NULL)
 @
 
 
+As we are in the similar case described in section \nameref{sec:DEanalysisLeuk}, the results will not be described here.
 
-
-The function above
-
-\begin{itemize}
-\item returns a data.frame (output \texttt{DE.results}). See Subsection \nameref{sec:DEsummaryMus2}.
-\item plots the following graphs
-%
-\begin{itemize}
-\item \emph{Results from the temporal statistical analysis} (\textbf{case 2} for each biological condition)
-%
-\begin{itemize}
-\item \(N_{bc}=4\) alluvial graphs, one per biological condition (with \(N_{bc}\) the number of biological conditions). See Subsection \nameref{sec:DEalluvialPerBC}.
-\item \(N_{bc}=4\) graphs showing the number of DE genes as a function of time for each temporal group, one per biological condition. By temporal group, we mean the sets of genes which are first DE at the same time. See Subsection \nameref{sec:DEnumberTemporalGroupMus2}.
-\item a barplot showing the number of DE genes up-regulated and down-regulated per time, for each biological condition. See Subsection \nameref{sec:DEnumberUpDownPerTimeBCMus2}.
-\item \(2\times N_{bc}=8\) upset graphs, realized with the R package UpSetR \cite{Conway2017UpSetR}, showing the number of DE genes belonging to each DE temporal pattern, for each biological condition. By temporal pattern, we mean the set of times ti such that the gene is DE between ti and the reference time t0. See Subsection \nameref{sec:DEnumberTemporalPatternBCMus2}.
-\item an alluvial graph for DE genes which are DE at at least one time for each group. See Subsection \nameref{sec:DEalluvial1BCminMus2}.
-\end{itemize}
-%
-\item \emph{Results from the statistical analysis by biological condition} (\textbf{case 1} for each fixed time)
-%
-\begin{itemize}
-\item a barplot showing the number of specific genes per biological condition, for each time. A gene is called specific to a given biological condition BC1 at a time ti, if the gene is DE between BC1 and any other biological conditions at time ti, but not DE between any pair of other biological conditions at time ti. See Subsection \nameref{sec:DEbarplotSpecificPerBCtimeMus2}.
-\item \(\binom{N_{bc}}{2}=\binom{4}{2}=6\) upset graph, realized with the R package UpSetR \cite{Conway2017UpSetR}, which corresponds to Venn diagram barplots for each time ti. If there are only two biological conditions, the graph will not be plotted. See subsection \nameref{sec:DEintersectionPairBCMus2}
-\end{itemize}
-%
-\item \emph{Results from the combination of temporal and biological statistical analysis}
-%
-\begin{itemize}
-\item a barplot showing the number of signature genes and DE genes (but not signature) per time, for each biological condition. A gene is called signature of a biological condition BC1 at a given time ti, if the gene is specific to the biological condition BC1 at time ti and DE bewteen ti versus the reference time t0 for the biological condition BC1. See Subsection \nameref{sec:DEbarplotSignaturePerBCTimeMus2}.
-\item an alluvial graph for DE genes which are signature at at least one time for each group. See Subsection \nameref{sec:DEAlluvialSignatureMus2}.
-\item a barplot showing the number of genes which are DE at at least one time, specific at at least one time and signature at at least one time, for each biological condition. See Subsection \nameref{sec:DESpecificSignature1tminMus2}.
-\end{itemize}
-%
-\end{itemize}
-%
-\end{itemize}
-
-The graphs are
-\begin{itemize}
-\item displayed if \texttt{Plot.DE.graph=TRUE}
-\item saved in a folder if the user selects a folder path in \texttt{path.result}. If \texttt{path.result=NULL} the results will not be saved in a folder.
-\end{itemize}
-
-The data.frame and graphs are described in the following sub-sections.
-
-Write \texttt{?DEanalysisGlobal} in your console for more information about the function.
-
-\subsubsubsection{Data.frame summarising all the DE analysis (case 3 with more than two biological conditions)}
-\label{sec:DEsummaryMus2}
-
-The output data.frame \texttt{DE.results} can be observed with the following lines of code,
-
-<<DEresultsMouse2, warning=FALSE, message=FALSE, eval=TRUE>>=
-Res.DE.results.Mus2<-ResDEMusBmCrKoWt500$DE.results
-@
-
-as the glossary of the column names with
-
-<<GlossaryMouse2, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResGlossary.Mus2<-ResDEMusBmCrKoWt500$List.Glossary
-@
-
-and then write \texttt{Res.DE.results.Mus2} and \texttt{ResGlossary.Mus2} in the R console.
-
-The data.frame contains
-%
-\begin{itemize}
-\item gene names
-\item \emph{Results from the temporal statistical analysis} (\textbf{case 2} for each biological condition)
-%
-\begin{itemize}
-\item pvalues, log2 fold change and DE genes between each time ti versus the reference time t0, for each biological condition.
-\item \(N_{bc}=4\) binary columns (1 and 0), one per biological condition (with \(N_{bc}\) the number of biological conditions). A 1 in one of these two columns means the gene is DE at at least between one time ti versus the reference time t0, for the biological condition associated to the given column.
-\item \(N_{bc}=4\) columns where each element is succession of 0 and 1, one per biological condition. The positions of 1 in one of these two columns, indicate the set of times ti such that the gene is DE between ti and the reference time t0, for the biological condition associated to the given column. So each element of the column is what we called previously, a temporal pattern.
-\end{itemize}
-\item \emph{Results from the statistical analysis by biological condition} (\textbf{case 1} for each fixed time)
-%
-\begin{itemize}
-\item pvalues, log2 fold change and DE genes between each pairs of biological conditions, for each fixed time.
-\item \(T=6\) binary columns (1 and 0), one per time (with \(T\) the number of time measurements). A `1,' in one of these columns, means the gene is DE between at least one pair of biological conditions, for the fixed time associated to the given column.
-\item \(N_{bc} \times T=4\times 6=24\) binary columns, which give the genes specific for each biological condition at each time ti. A `1' in one of these columns means the gene is specific to the biological condition at a fixed time associated to the given column. `0' otherwise. A gene is called specific to a given biological condition BC1 at a time ti, if the gene is DE between BC1 and any other biological conditions at time ti, but not DE between any pair of other biological conditions at time ti.
-\item \(N_{bc} \times T=4\times 6=24\) columns filled with -1, 0 and 1. A `1' in one of these columns means the gene is up-regulated (or over-expressed) for the biological condition at a fixed time associated to the given column. A gene is called up-regulated for a given biological condition BC1 at time ti if the gene is specific to the biological condition BC1 at time ti and expressions in BC1 at time ti are higher than in the other biological conditions at time ti. A `-1' in one of these columns means the gene is down-regulated (or under-expressed) for the biological condition at a fixed time associated to the given column. A gene is called down-regulated for a given biological condition at a time ti BC1 if the gene is specific to the biological condition BC1 at time ti and expressions in BC1 at time ti are lower than in the other biological conditions at time ti. A `0' in one of these columns means the gene is not specific to the biological condition at a fixed time associated to the given column.
-\item \(N_{bc}=4\) binary columns (1 and 0). A `1' in one of these columns means the gene is specific at at least one time ti, for the biological condition associated to the given column. `0' otherwise.
-\end{itemize}
-\item \emph{Results from the combination of temporal and biological statistical analysis}
-%
-\begin{itemize}
-\item \(N_{bc} \times T=4\times 6=24\) binary columns, which give the signatures genes for each biological condition at each time ti. A `1' in one of these columns means the gene is signature gene to the biological condition at a fixed time associated to the given column. `0' otherwise. A gene is called signature of a biological condition BC1 at a given time ti, if the gene is specific to the biological condition BC1 at time ti and DE bewteen ti versus the reference time t0 for the biological condition BC1.
-%
-\item \(N_{bc}=4\) binary columns (1 and 0). A `1' in one of these columns means the gene is signature at at least one time ti, for the biological condition associated to the given column. `0' otherwise.
-%
-\end{itemize}
-%
-\end{itemize}
-
-\paragraph{Alluvial graph of genes which are DE at at least one time ti versus the reference time t0, one per biological condition (case 3, 4 BC)}
-\label{sec:DEalluvialPerBC}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight,]{MultiRNAflowImage/Mouse2_2-2-1DE_AlluvialGraph_BmKo.pdf}
-\caption{Alluvial graph of genes which are DE at at least one time ti versus the reference time t0, for the biological condition BmKo}
-\label{fig:Mouse2AlluvialBmKo}
-\end{figure}
-
-The x-axis of the graph above (Figure~\ref{fig:Mouse2AlluvialBmKo}) is labeled with all times except t0. For each vertical barplot, there are two strata: 1 and 0 whose sizes indicate respectively the number of DE genes and of non DE genes, between the time corresponding to the barplot and the reference time t0.
-
-The alluvial graph (Figure~\ref{fig:Mouse2AlluvialBmKo}) is composed of curves each corresponding to a single gene, which are gathered in alluvia. An alluvium is composed of all genes having the same curve: for example, an alluvium going from the stratum 0 at time t1 (for instance) to the stratum 1 at time t2 corresponds to the set of genes which are not differentially expressed (DE) at t1 and are DE at time t2.
-Each alluvium connects pairs of consecutive barplots and its thickness gives the number of genes in the set.
-
-The color of each alluvium indicates the temporal group, defined as the set of genes which are all first DE at the same time with respect to the reference time t0.
-
-\paragraph{Number of DE genes per time for each temporal group, for each biological condition (case 3, 4 BC)}
-\label{sec:DEnumberTemporalGroupMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight,]{MultiRNAflowImage/Mouse2_2-2-1DE_NumberDEgenes_perTemporalGroup_BmKo.pdf}
-\caption{Number of DE genes per time for each temporal group, for the biological condition BmKo}
-\label{fig:Mouse2DePerTemporalGroupBmKo}
-\end{figure}
-
-The graph above (Figure~\ref{fig:Mouse2DePerTemporalGroupBmKo}) plots the time evolution of the number of DE genes within each temporal group, for the biological condition BmKo.
-
-The x-axis labels indicate all times except t0.
-
-\subsubsubsection{Number of DE genes up-regulated and down-regulated per time, for each biological condition (case 3, 4 BC)}
-\label{sec:DEnumberUpDownPerTimeBCMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-2-1DE_NumberUpDownRegulated_perTperBC.pdf}
-\caption{Figure 58: Number of DE genes per time.}
-\label{fig:Mouse2NumberDEperTimePerBC}
-\end{figure}
-
-The graph above (Figure~\ref{fig:Mouse2NumberDEperTimePerBC}) shows the number of DE genes per time, for each biological condition.
-
-The x-axis labels indicate all times except t0.
-
-For each DE gene, we compute the sign of the log2 fold change between time ti and time t0. If the sign is positive (resp. negative), the gene is categorized as up-regulated (resp. down-regulated). In the graph, the up-regulated (resp. down-regulated) genes are indicated in red (resp. in blue).
-
-\subsubsubsection{Number of DE genes belonging to each DE temporal pattern, for each biological condition (case 3, 4 BC)}
-\label{sec:DEnumberTemporalPatternBCMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight,]{MultiRNAflowImage/Mouse2_2-2-1DE_VennBarplot_NumberUpRegulated_BmKo.pdf}
-\caption{Number of DE genes per temporal pattern, for the biological condition BmKo}
-\label{fig:Mouse2DeUpsetTimeBmKo}
-\end{figure}
-
-The graph above (Figure~\ref{fig:Mouse2DeUpsetTimeBmKo}), realized with the R package UpSetR \cite{Conway2017UpSetR}, plots the number of genes in each DE temporal pattern in a Venn barplot.
-By DE temporal pattern, we mean a subset of times in t1,\ldots,tn. We say that a gene belongs to a DE temporal pattern if the gene is DE versus t0 only at the times in this DE temporal patterns.
-
-For each gene in a given DE temporal pattern, we compute the number of DE times where it is up-regulated and we use a color code in the Venn barplot to indicate the number of genes in a temporal pattern that are up-regulated a given number of times.
-
-The same graph is also given without colors.
-
-\subsubsubsection{Alluvial graph for DE genes which are DE at at least one time for each group (case 3, 4 BC)}
-\label{sec:DEalluvial1BCminMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight,]{MultiRNAflowImage/Mouse2_2-2-1DE_AlluvialGraph_DE1TminPerBC.pdf}
-\caption{Alluvial graph for DE genes which are DE at at least one time for each group.}
-\label{fig:Mouse2allu1tminPerBC}
-\end{figure}
-
-The graph above (Figure~\ref{fig:Mouse2allu1tminPerBC}) shows common and no common genes between which are DE at at least one time for the two biological conditions.
-
-\subsubsubsection{Number of genes per intersection of pairs of biological conditions, for each time point}
-\label{sec:DEintersectionPairBCMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-2-1DE_VennBarplot_t0.pdf}
-\caption{Number of DE genes corresponding to each possible intersection}
-\label{fig:Mouse2UpsetBiocondt0}
-\end{figure}
-
-The graph above (Figure~\ref{fig:Mouse2UpsetBiocondt0}) plots the number of genes corresponding to each possible intersection in a Venn barplot at time t0. This graph is plotted only when the number of biological conditions is stricty higer than two.
-
-We say that
-
-\begin{itemize}
-\item a set of pairs of biological conditions forms an intersection at a given time ti when there is at least one gene which is DE for each of these pairs of biological conditions at time ti, but not for the others at time ti.
-\item a gene corresponds to a given intersection if this genes is DE for each pair of biological conditions in the intersection at time ti, but not for the others at time ti.
-\end{itemize}
-
-For instance, the first column gives the number of genes corresponding to the intersection
-%
-\[\biggl\{\{\mbox{BmWt, BmKo}\},
-\{\mbox{CrWt, BmKo}\},
-\{\mbox{CrKo, BmKo}\}\biggl\} \ .\]
-at time t0. In other words, this is the number of genes DE between
-
-\begin{itemize}
-\item BmWt versus BmKo
-\item CrWt versus BmKo
-\item CrKo versus BmKo
-\end{itemize}
-
-and not DE between any other pair of biological conditions at time t0.
-
-Note that this columns actually gives the number of specific genes to the biological condition BmKo at time t0.
-
-\subsubsubsection{Barplot showing the number of specific genes and no specific genes per biological condition, for each time point (case 3, 4 BC)}
-\label{sec:DEbarplotSpecificPerBCtimeMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-2-2DE_NumberSpecificAndNoSpe_perBCperT.pdf}
-\caption{Number of specific genes and non specific genes per biological condition, for each time}
-\label{fig:Mouse2SpecificPerTime}
-\end{figure}
-
-The graph above (Figure~\ref{fig:Mouse2SpecificPerTime}) plots for each biological condition BC1 and for each time ti
-
-\begin{itemize}
-\item The number of up- and down-regulated genes which are specific to the biological condition BC1, for each time ti.
-\item The number of genes categorized as ``Other.'' A gene belongs to the ``Other'' category if it is DE between BC1 and at least one other biological condition at time ti and not specific at time ti.
-\end{itemize}
-
-The same graph without ``Other'' will be plotted too. If there are only two biological condition, only the second barplot will be plotted.
-
-\subsubsubsection{Barplot showing the number of signature genes and no signature DE genes per time, for each biological condition (case 3, 4 BC)}
-\label{sec:DEbarplotSignaturePerBCTimeMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-2-3DE_NbSignatureAndNot_UpDown_perTperBC.pdf}
-\caption{Number of signature genes and DE genes (but not signature) per time, for each biological condition.}
-\label{fig:Mouse2SignaturePerTime}
-\end{figure}
-
-The graph is similar to the graph (Figure~\ref{fig:Mouse2SignaturePerTime}) but with signature genes.
-
-\subsubsubsection{Barplot showing the number of genes which are DE at at least one time, specific at at least one time and signature at at least one time, for each biological condition (case 3, 4 BC)}
-\label{sec:DESpecificSignature1tminMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-2-3DE_DE_Specific_Signature_1Tmin_perBC.pdf}
-\caption{Number of genes which are DE at at least one time, specific at at least one time and signature at at least one time, for each biological condition.}
-\label{fig:Mouse2DESpecificSignature1TimeMnimum}
-\end{figure}
-
-The figure~\ref{fig:Mouse2DESpecificSignature1TimeMnimum} summarizes well the combination of temporal and biological analysis because the figure gives for each biological condition the number of genes which are DE at at least one time, the number of specific genes at at least one time and the number of signature at at least one time.
-
-\subsubsubsection{Alluvial graph for DE genes which are signature at at least one time, for each biological condition (case 3, 4 BC)}
-\label{sec:DEAlluvialSignatureMus2}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-2-3DE_AlluvialGraph_Signature1TminPerBC.pdf}
-\caption{Alluvial graph for DE genes which are signature at at least one time for each biological condition.}
-\label{fig:Mouse2AlluSignature1TimeMnimum}
-\end{figure}
-
-The figure~\ref{fig:Mouse2AlluSignature1TimeMnimum} allows to detect genes that are specific only for one biological condition.
 
 \clearpage
 
@@ -2561,7 +1945,7 @@ The figure~\ref{fig:Mouse2AlluSignature1TimeMnimum} allows to detect genes that 
 
 In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_MOUSEsub500} (see the subsection \nameref{sec:dataAntoszewski2022}) in order to explain \textbf{DEplotVolcanoMA()} and \textbf{DEplotHeatmaps()} in \textbf{case 1}.
 
-\subsubsubsection{Volcano and MA plots}\label{sec:DEvolcanoMAMus1}
+\subsubsubsection{Volcano and MA plots (case 1)}\label{sec:DEvolcanoMAMus1}
 
 The following lines of code allow to plot
 
@@ -2573,28 +1957,12 @@ The following lines of code allow to plot
 allowing to separate non DE genes, DE genes below a threshold of log2 fold change and DE genes above a threshold of log2 fold change.
 
 <<VolcanoMAMus1, warning=FALSE, message=FALSE, eval=TRUE>>=
-resVolcanoMAMouse<-DEplotVolcanoMA(Res.DE.analysis=ResDEMus500,
-                                   NbGene.plotted=2,
-                                   SizeLabel=3,
-                                   Display.plots=FALSE,
-                                   Save.plots=FALSE)
+resVolcanoMAMouse <- DEplotVolcanoMA(Res.DE.analysis=ResDEMus500,
+                                     NbGene.plotted=2,
+                                     SizeLabel=3,
+                                     Display.plots=TRUE,
+                                     Save.plots=FALSE)
 @
-
-The two following graph correspond to the volcano and MA plot of the analysis between N1wtT1wt and N1wtT1ko.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_2-4Volcano_N1wtT1wt-N1wtT1ko.pdf}
-\caption{Volcano plot of N1wtT1wt versus N1wtT1ko.}
-\label{fig:VolcanoN1wtT1wtVSN1wtT1ko}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_2-4MA_N1wtT1wt-N1wtT1ko.pdf}
-\caption{Ratio intensity (MA) plot of N1wtT1wt versus N1wtT1ko.}
-\label{fig:MAN1wtT1wtVSN1wtT1ko}
-\end{figure}
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
@@ -2609,34 +1977,21 @@ Write \texttt{?DEplotVolcanoMA} in your console for more information about the f
 
 %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%
-\subsubsubsection{Heatmaps}\label{sec:DEheatmapMus1}
+\subsubsubsection{Heatmaps (case 1)}\label{sec:DEheatmapMus1}
 
 The following lines of code allow to plot a correlation heatmap between samples and a heatmap accross samples and genes for a subset of genes that can be selected by the user.
 
 <<HeatmapsMus1, warning=FALSE, message=FALSE, eval=TRUE>>=
-resplotHeatmapMus<-DEplotHeatmaps(Res.DE.analysis=ResDEMus500,
-                                  ColumnsCriteria=2,#c(2,4),
-                                  Set.Operation="union",
-                                  NbGene.analysis=20,
-                                  SizeLabelRows=5,
-                                  SizeLabelCols=5,
-                                  Display.plots=FALSE,
-                                  Save.plots=FALSE)
+resplotHeatmapMus <- DEplotHeatmaps(Res.DE.analysis=ResDEMus500,
+                                    ColumnsCriteria=2,#c(2,4),
+                                    Set.Operation="union",
+                                    NbGene.analysis=20,
+                                    SizeLabelRows=5,
+                                    SizeLabelCols=5,
+                                    Display.plots=TRUE,
+                                    Save.plots=FALSE)
 @
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_2-4HeatmapCorrelation.pdf}
-\caption{Correlation heatmap}
-\label{fig:Mouse1HeatmapCorrelation}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_2-4HeatmapRLE.pdf}
-\caption{Rle heatmap}
-\label{fig:Mouse1Heatmaprle}
-\end{figure}
 
 For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
 
@@ -2670,7 +2025,7 @@ Write \texttt{?DEplotHeatmaps} in your console for more information about the fu
 
 In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014\_FISSIONsub500wt} (see the subsection \nameref{sec:dataLeong2014}) in order to explain \textbf{DEplotVolcanoMA()} and \textbf{DEplotHeatmaps()} in \textbf{case 2}.
 
-\subsubsubsection{Volcano and MA plots}\label{sec:DEvolcanoMAFission}
+\subsubsubsection{Volcano and MA plots (case 2)}\label{sec:DEvolcanoMAFission}
 
 The following lines of code allow to plot
 
@@ -2683,28 +2038,12 @@ allowing to separate non DE genes, DE genes below a threshold of log2 fold chang
 
 
 <<VolcanoMA_FISSION, warning=FALSE, message=FALSE, eval=TRUE>>=
-resVolcanoMAFission<-DEplotVolcanoMA(Res.DE.analysis=DEyeast500wt,
-                                     NbGene.plotted=2,
-                                     SizeLabel=3,
-                                     Display.plots=FALSE,
-                                     Save.plots=TRUE)
+resVolcanoMAFission <- DEplotVolcanoMA(Res.DE.analysis=DEyeast500wt,
+                                       NbGene.plotted=2,
+                                       SizeLabel=3,
+                                       Display.plots=TRUE,
+                                       Save.plots=TRUE)
 @
-
-The two previous graph correspond to the volcano and MA plot of the analysis between t4 and t0
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-4Volcano_t4-t0.pdf}
-\caption{Volcano plot of t4 versus t0}
-\label{fig:FissionVolcanot4vst0}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-4MA_t4-t0.pdf}
-\caption{Ratio intensity (MA) plot of t4 versus t0}
-\label{fig:FissionMAt4vst0}
-\end{figure}
 
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
@@ -2718,36 +2057,22 @@ If the user wants to display the graph, the user must set \texttt{Display.plots=
 
 Write \texttt{?DEplotVolcanoMA} in your console for more information about the function.
 
-\subsubsubsection{Heatmaps}\label{sec:DEheatmapFission}
+\subsubsubsection{Heatmaps (case 2)}\label{sec:DEheatmapFission}
 
 The following lines of code allow to plot a correlation heatmap between samples and a heatmap across samples and genes for a subset of genes that can be selected by the user.
 
 <<Heatmaps_FISSION, warning=FALSE, message=FALSE, eval=TRUE>>=
-resplotHeatmapFission<-DEplotHeatmaps(Res.DE.analysis=DEyeast500wt,
-                                      ColumnsCriteria=2,
-                                      Set.Operation="union",
-                                      NbGene.analysis=20,
-                                      Color.Group=NULL,
-                                      SizeLabelRows=5,
-                                      SizeLabelCols=5,
-                                      Display.plots=FALSE,
-                                      Save.plots=FALSE)
+resplotHeatmapFission <- DEplotHeatmaps(Res.DE.analysis=DEyeast500wt,
+                                        ColumnsCriteria=2,
+                                        Set.Operation="union",
+                                        NbGene.analysis=20,
+                                        Color.Group=NULL,
+                                        SizeLabelRows=5,
+                                        SizeLabelCols=5,
+                                        Display.plots=TRUE,
+                                        Save.plots=FALSE)
 @
 
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-4HeatmapCorrelation.pdf}
-\caption{Correlation heatmap}
-\label{fig:FissionHeatmapCorrelation}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-4HeatmapRLE.pdf}
-\caption{Rle heatmap}
-\label{fig:FissionHeatmaprle}
-\end{figure}
 
 For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
 
@@ -2782,7 +2107,7 @@ Write \texttt{?DEplotHeatmaps} in your console for more information about the fu
 
 In this section we use the Chronic lymphocytic leukemia (CLL) subdataset \textbf{RawCounts\_Schleiss2021\_CLLsub500} (see Subsection \nameref{sec:dataSchleiss2021}) in order to explain \textbf{DEplotVolcanoMA()} and \textbf{DEplotHeatmaps()} in \textbf{case 3} when there only two biological conditions.
 
-\subsubsubsection{Volcano and MA plots}
+\subsubsubsection{Volcano and MA plots (case 3 two conditions)}
 \label{sec:DEvolcanoMALeuk}
 
 The following lines of code allow to plot
@@ -2803,23 +2128,7 @@ resVolcanoMACLL<-DEplotVolcanoMA(Res.DE.analysis=ResDELeuk500,
                                  Save.plots=FALSE)
 @
 
-The two previous graph correspond to the volcano and MA plot of the analysis between t3 and t0, for the biological condition P.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-4Volcano_t3-t0_P.pdf}
-\caption{Volcano plot of t3 and t0, for the biological condition P}
-\label{fig:LeukVolcanot3vst0P}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-4MA_t3-t0_P.pdf}
-\caption{Ratio intensity (MA) plot of t3 and t0, for the biological condition P}
-\label{fig:LeukMAt3vst0P}
-\end{figure}
-
-If the user wants to save the graphs, the input \texttt{Save.plots} must be
+The graphs are a combination of the results described in subsection \nameref{sec:DEvolcanoMAMus1} and subsection \nameref{sec:sec:DEvolcanoMAFission}. If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
 \begin{itemize}
 \item either \texttt{Save.plots=TRUE}, and the graph will be saved in the same location than the input \texttt{path.result} of the function \Rfunction{DEanalysisGlobal()}.
@@ -2830,7 +2139,7 @@ If the user wants to display the graph, the user must set \texttt{Display.plots=
 
 Write \texttt{?DEplotVolcanoMA} in your console for more information about the function.
 
-\paragraph{Heatmaps}\label{sec:DEheatmapLeuk}
+\paragraph{Heatmaps (case 3 two conditions)}\label{sec:DEheatmapLeuk}
 
 The following lines of code allow to plot a correlation heatmap between samples and a heatmap across samples and genes for a subset of genes that can be selected by the user.
 
@@ -2846,22 +2155,7 @@ resplotHeatmapCLL<-DEplotHeatmaps(Res.DE.analysis=ResDELeuk500,
                                   Save.plots=FALSE)
 @
 
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-4HeatmapCorrelation.pdf}
-\caption{Correlation heatmap}
-\label{fig:LeukHeatmapCorrelation}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-4HeatmapRLE.pdf}
-\caption{Rle heatmap}
-\label{fig:LeukHeatmaprle}
-\end{figure}
-
-For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
+Both graphs are similar to those described in subsection \nameref{sec:DEheatmapFission} and \nameref{sec:DEheatmapMus1}. For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
 
 \begin{enumerate}
 \item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{ResDEMus500\$DE.results}
@@ -2892,10 +2186,9 @@ Write \texttt{?DEplotHeatmaps} in your console for more information about the fu
 \subsubsection{Mouse data 2 (case 3 with more than two biological conditions)}
 \label{sec:DEvolcanoMAheatmapMus2}
 
-
 In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEsub500} (see Subsection \nameref{sec:dataWeger2021}) in order to explain \textbf{DEplotVolcanoMA()} and \textbf{DEplotHeatmaps} in \textbf{case 3} when there are more than two biological conditions.
 
-\subsubsubsection{Volcano and MA plots}
+\subsubsubsection{Volcano and MA plots (case 3 with more than two biological conditions)}
 \label{sec:DEvolcanoMAMus2}
 
 The following lines of code allow to plot
@@ -2916,23 +2209,7 @@ resVolcanoMAMouse2<-DEplotVolcanoMA(Res.DE.analysis=ResDEMusBmCrKoWt500,
                                     Save.plots=FALSE)
 @
 
-The two previous graph correspond to the volcano and MA plot of the analysis between BmWt and BmKo, at time t4.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-4Volcano_BmWt-BmKo_t4.pdf}
-\caption{Volcano plot of BmWt versus BmKo, at time t4}
-\label{fig:Mouse2Volcanot3vst0P}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-4MA_BmWt-BmKo_t4.pdf}
-\caption{Ratio intensity (MA) plot of BmWt versus BmKo, at time t4}
-\label{fig:Mouse2MAt3vst0P}
-\end{figure}
-
-If the user wants to save the graphs, the input \texttt{Save.plots} must be
+The graphs are a combination of the results described in subsection \nameref{sec:DEvolcanoMAMus1} and subsection \nameref{sec:sec:DEvolcanoMAFission}. If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
 \begin{itemize}
 \item either \texttt{Save.plots=TRUE}, and the graph will be saved in the same location than the input \texttt{path.result} of the function \Rfunction{DEanalysisGlobal()}.
@@ -2943,7 +2220,7 @@ If the user wants to display the graph, the user must set \texttt{Display.plots=
 
 Write \texttt{?DEplotVolcanoMA} in your console for more information about the function.
 
-\subsubsubsection{Heatmaps}\label{sec:DEheatmapMus2}
+\subsubsubsection{Heatmaps (case 3 with more than two biological conditions)}\label{sec:DEheatmapMus2}
 
 The following lines of code allow to plot a correlation heatmap between samples and a heatmap across samples and genes for a subset of genes that can be selected by the user.
 
@@ -2960,21 +2237,7 @@ resplotHeatmapMouse2<-DEplotHeatmaps(Res.DE.analysis=ResDEMusBmCrKoWt500,
 @
 
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-4HeatmapCorrelation.pdf}
-\caption{Correlation heatmap}
-\label{fig:Mouse2HeatmapCorrelation}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-4HeatmapRLE.pdf}
-\caption{Rle heatmap}
-\label{fig:Mouse2Heatmaprle}
-\end{figure}
-
-For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
+Both graphs are similar to those described in subsection \nameref{sec:DEheatmapFission} and \nameref{sec:DEheatmapMus1}. For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
 
 \begin{enumerate}
 \item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{ResDEMus500\$DE.results}
@@ -3014,8 +2277,14 @@ In this section we use the mouse subdataset \textbf{RawCounts\_Antoszewski2022\_
 \subsubsubsection{Gene ontology with the R package gprofiler2}
 \label{sec:GOenrichmentMus1Gprofiler2}
 
-The following lines of code realize an enrichment analysis with the R package gprofiler2 for a selection of genes.
-Beware, an internet connection is needed.
+The lines of code below realize an enrichment analysis with the R package gprofiler2 for a selection of genes.
+Beware, an internet connection is needed. The function returns
+%%%%%%%
+\begin{itemize}
+\item a data.frame (output \texttt{resGSEAgprofiler2Mus\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a lollipop graph (see section \nameref{sec:stepsGO}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
+\item A mahattan plot (see section \nameref{sec:stepsGO}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
+\end{itemize}
 
 <<GSEAquickAnalysis_Mus, warning=FALSE, message=FALSE, eval=TRUE>>=
 resGSEAgprofiler2Mus<-GSEAQuickAnalysis(Internect.Connection=FALSE,
@@ -3049,28 +2318,6 @@ The subset of genes is selected as follow
 
 
 If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{Res.DE.analysis\$DE.results}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{Res.DE.analysis\$DE.results} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_2-5LollipopChart.pdf}
-\caption{Lollipop chart giving the most significant gene ontologies}
-\label{fig:Mouse1Lollipop}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse1_2-5ManhattanPlot.pdf}
-\caption{Mahattan plot indicating all genes ontologies}
-\label{fig:Mouse1Manhattan}
-\end{figure}
-
-The function returns
-
-\begin{itemize}
-\item a data.frame (output \texttt{resGSEAgprofiler2Mus\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
-\item a lollipop graph (Figure~\ref{fig:Mouse1Lollipop}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
-\item A mahattan plot (Figure~\ref{fig:Mouse1Manhattan}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
-\end{itemize}
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
@@ -3125,8 +2372,14 @@ In this section we use the fission yeast subdataset \textbf{RawCounts\_Leong2014
 \subsubsubsection{Gene ontology with the R package gprofiler2}
 \label{sec:GOenrichmentFissionGprofiler2}
 
-The following lines of code realize an enrichment analysis with the R package gprofiler2 for a selection of genes.
-Beware, an internet connection is needed.
+The lines of code below realize an enrichment analysis with the R package gprofiler2 for a selection of genes.
+Beware, an internet connection is needed. The function returns
+%%%%%%%%%%%%%
+\begin{itemize}
+\item a data.frame (output \texttt{resGSEAgprofiler2Fission\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a lollipop graph (see section \nameref{sec:stepsGO}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and pathways are sorted into descending order. The x-axis indicates the \(-log10(pvalues)\). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
+\item A Manhattan plot (see section \nameref{sec:stepsGO}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
+\end{itemize}
 
 <<GSEAquickAnalysis_Fission, warning=FALSE, message=FALSE, eval=TRUE>>=
 resGSEAgprofiler2Fission<-GSEAQuickAnalysis(Internect.Connection=FALSE,
@@ -3161,30 +2414,6 @@ The subset of genes is selected as follow
 \end{enumerate}
 
 If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{Res.DE.analysis\$DE.results}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{Res.DE.analysis\$DE.results} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-5LollipopChart.pdf}
-\caption{Lollipop chart giving the most significant gene ontologies}
-\label{fig:FissionLollipop}
-\end{figure}
-%
-
-%
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Fission_2-5ManhattanPlot.pdf}
-\caption{Mahattan plot indicating all genes ontologies}
-\label{fig:FissionManhattan}
-\end{figure}
-
-The function returns
-
-\begin{itemize}
-\item a data.frame (output \texttt{resGSEAgprofiler2Fission\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
-\item a lollipop graph (Figure~\ref{fig:FissionLollipop}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and pathways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
-\item A Manhattan plot (Figure~\ref{fig:FissionManhattan}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
-\end{itemize}
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
@@ -3239,8 +2468,14 @@ In this section we use the Chronic lymphocytic leukemia (CLL) subdataset \textbf
 \subsubsubsection{Gene ontology with the R package gprofiler2}
 \label{sec:GOenrichmentLeukGprofiler2}
 
-The following lines of code realize an enrichment analysis with the R package gprofiler2 for a selection of genes.
-Beware, an internet connection is needed.
+The lines of code below realize an enrichment analysis with the R package gprofiler2 for a selection of genes.
+Beware, an internet connection is needed. The function returns
+%%%%%%%%%%%%%%%%%
+\begin{itemize}
+\item a data.frame (output \texttt{resGSEAgprofiler2Leuk\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a lollipop graph (see section \nameref{sec:stepsGO}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
+\item A manhattan plot (see section \nameref{sec:stepsGO}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
+\end{itemize}
 
 <<GSEAquickAnalysis_CLL, warning=FALSE, message=FALSE, eval=TRUE>>=
 resGSEAgprofiler2Leuk<-GSEAQuickAnalysis(Internect.Connection=FALSE,
@@ -3274,29 +2509,6 @@ The subset of genes is selected as follow
 \end{itemize}
 
 If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{Res.DE.analysis\$DE.results}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{Res.DE.analysis\$DE.results} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight,]{MultiRNAflowImage/Leuk_2-5LollipopChart.pdf}
-\caption{Lollipop chart giving the most significant gene ontologies}
-\label{fig:LeukLollipop}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Leuk_2-5ManhattanPlot.pdf}
-\caption{Mahattan plot indicating all genes ontologies}
-\label{fig:LeukManhattan}
-\end{figure}
-
-The function returns
-
-\begin{itemize}
-\item
-  a data.frame (output \texttt{resGSEAgprofiler2Leuk\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
-\item a lollipop graph (Figure~\ref{fig:LeukLollipop}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
-\item A manhattan plot (Figure~\ref{fig:LeukManhattan}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
-\end{itemize}
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
@@ -3355,8 +2567,14 @@ In this section we use the mouse subdataset \textbf{RawCounts\_Weger2021\_MOUSEs
 \subsubsubsection{Gene ontology with the R package gprofiler2}
 \label{sec:GOenrichmentMus2Gprofiler2}
 
-The following lines of code realize an enrichment analysis with the R package gprofiler2 for a selection of genes.
-Beware, an internet connection is needed.
+The lines of code below realize an enrichment analysis with the R package gprofiler2 for a selection of genes.
+Beware, an internet connection is needed. The function returns
+%%%%%%%%%%%%%%%%%
+\begin{itemize}
+\item a data.frame (output \texttt{resGSEAgprofiler2Leuk\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a lollipop graph (see section \nameref{sec:stepsGO}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
+\item A manhattan plot (see section \nameref{sec:stepsGO}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
+\end{itemize}
 
 
 <<GSEAquickAnalysis_Mouse2, warning=FALSE, message=FALSE, eval=TRUE>>=
@@ -3392,28 +2610,6 @@ The subset of genes is selected as follow
 
 If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{Res.DE.analysis\$DE.results}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{Res.DE.analysis\$DE.results} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
 
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-5LollipopChart.pdf}
-\caption{Lollipop chart giving the most significant gene ontologies}
-\label{fig:Mouse2Lollipop}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth,height=0.75\textheight]{MultiRNAflowImage/Mouse2_2-5ManhattanPlot.pdf}
-\caption{Mahattan plot indicating all genes ontologies}
-\label{fig:Mouse2Manhattan}
-\end{figure}
-
-The function returns
-
-\begin{itemize}
-\item a data.frame (output \texttt{resGSEAgprofiler2Mouse2\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
-\item a lollipop graph (Figure~\ref{fig:Mouse2Lollipop}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
-\item A mahattan plot (Figure~\ref{fig:Mouse2Manhattan}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
-\end{itemize}
-
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
 \begin{itemize}
@@ -3436,7 +2632,6 @@ resGSEApreprocessing<-GSEApreprocessing(Res.DE.analysis=ResDEMusBmCrKoWt500,
                                         Rnk.files=FALSE,
                                         Save.files=TRUE)
 @
-
 
 The subset of genes is selected as follow
 
@@ -3470,6 +2665,8 @@ Write \texttt{?GSEApreprocessing} in your console for more information about the
 
 Here is the output of \Rfunction{sessionInfo()} on the system on which
 this document was compiled.
+
+%%%%
 
 <<sessionInfo, echo=FALSE, results="asis">>=
 utils::toLatex(sessionInfo())
