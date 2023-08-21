@@ -1560,13 +1560,13 @@ Write \texttt{?DEanalysisGlobal} in your console for more information about the 
 The output data.frame \texttt{DE.results} can be observed with the following lines of code,
 
 <<DEresultsMouse1, warning=FALSE, message=FALSE, eval=TRUE>>=
-Res.DE.results.Mus1<-ResDEMus500$DE.results
+Res.DE.results.Mus1 <- SummarizedExperiment::rowData(ResDEMus500)
 @
 
 as the glossary of the column names with
 
 <<GlossaryMouse1, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResGlossary.Mus1<-ResDEMus500$List.Glossary
+ResGlossary.Mus1 <- S4Vectors::metadata(ResDEMus500)$DESeq2obj$List.Glossary
 @
 
 and then write \texttt{Res.DE.results.Mus1} and \texttt{ResGlossary.Mus1} in the R console.
@@ -1670,13 +1670,13 @@ Write \texttt{?DEanalysisGlobal} in your console for more information about the 
 The output data.frame \texttt{DE.results} can be observed with the following lines of code,
 
 <<DEresultsFission, warning=FALSE, message=FALSE, eval=TRUE>>=
-Res.DE.results.Fission<-DEyeast500wt$DE.results
+Res.DE.results.Fission <- SummarizedExperiment::rowData(DEyeast500wt)
 @
 
 as the glossary of the column names with
 
 <<GlossaryFission, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResGlossary.Fission<-DEyeast500wt$List.Glossary
+ResGlossary.Fission <- S4Vectors::metadata(DEyeast500wt)$DESeq2obj$List.Glossary
 @
 
 and then write \texttt{Res.DE.results.Fission} and \texttt{ResGlossary.Fission} in the R console.
@@ -1769,13 +1769,13 @@ Write \texttt{?DEanalysisGlobal} in your console for more information about the 
 The output data.frame \texttt{DE.results} can be observed with the following lines of code,
 
 <<DEresultsLeukemia, warning=FALSE, message=FALSE, eval=TRUE>>=
-Res.DE.results.Leuk<-ResDELeuk500$DE.results
+Res.DE.results.Leuk <- SummarizedExperiment::rowData(ResDELeuk500)
 @
 
 as the glossary of the column names with
 
 <<GlossaryLeukemia, warning=FALSE, message=FALSE, eval=TRUE>>=
-ResGlossary.Leuk<-ResDELeuk500$List.Glossary
+ResGlossary.Leuk <- S4Vectors::metadata(ResDELeuk500)$DESeq2obj$List.Glossary
 @
 
 and then write \texttt{Res.DE.results.Leuk} and \texttt{ResGlossary.Leuk} in the R console.
@@ -1957,7 +1957,7 @@ The following lines of code allow to plot
 allowing to separate non DE genes, DE genes below a threshold of log2 fold change and DE genes above a threshold of log2 fold change.
 
 <<VolcanoMAMus1, warning=FALSE, message=FALSE, eval=TRUE>>=
-resVolcanoMAMouse <- DEplotVolcanoMA(Res.DE.analysis=ResDEMus500,
+resVolcanoMAMouse <- DEplotVolcanoMA(SEresDE=ResDEMus500,
                                      NbGene.plotted=2,
                                      SizeLabel=3,
                                      Display.plots=TRUE,
@@ -1982,7 +1982,7 @@ Write \texttt{?DEplotVolcanoMA} in your console for more information about the f
 The following lines of code allow to plot a correlation heatmap between samples and a heatmap accross samples and genes for a subset of genes that can be selected by the user.
 
 <<HeatmapsMus1, warning=FALSE, message=FALSE, eval=TRUE>>=
-resplotHeatmapMus <- DEplotHeatmaps(Res.DE.analysis=ResDEMus500,
+resplotHeatmapMus <- DEplotHeatmaps(SEresDE=ResDEMus500,
                                     ColumnsCriteria=2,#c(2,4),
                                     Set.Operation="union",
                                     NbGene.analysis=20,
@@ -1996,13 +1996,13 @@ resplotHeatmapMus <- DEplotHeatmaps(Res.DE.analysis=ResDEMus500,
 For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{ResDEMus500\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{rowData(ResDEMus500)}
 \item Then the selected genes will be
 %
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the selected genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the selected genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the selected genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 %
 \item Finally, the subset of genes will be the \texttt{NbGene.analysis} genes, among the selected genes, which have the highest sum of absolute log2 fold change.
@@ -2038,7 +2038,7 @@ allowing to separate non DE genes, DE genes below a threshold of log2 fold chang
 
 
 <<VolcanoMA_FISSION, warning=FALSE, message=FALSE, eval=TRUE>>=
-resVolcanoMAFission <- DEplotVolcanoMA(Res.DE.analysis=DEyeast500wt,
+resVolcanoMAFission <- DEplotVolcanoMA(SEresDE=DEyeast500wt,
                                        NbGene.plotted=2,
                                        SizeLabel=3,
                                        Display.plots=TRUE,
@@ -2062,7 +2062,7 @@ Write \texttt{?DEplotVolcanoMA} in your console for more information about the f
 The following lines of code allow to plot a correlation heatmap between samples and a heatmap across samples and genes for a subset of genes that can be selected by the user.
 
 <<Heatmaps_FISSION, warning=FALSE, message=FALSE, eval=TRUE>>=
-resplotHeatmapFission <- DEplotHeatmaps(Res.DE.analysis=DEyeast500wt,
+resplotHeatmapFission <- DEplotHeatmaps(SEresDE=DEyeast500wt,
                                         ColumnsCriteria=2,
                                         Set.Operation="union",
                                         NbGene.analysis=20,
@@ -2077,13 +2077,13 @@ resplotHeatmapFission <- DEplotHeatmaps(Res.DE.analysis=DEyeast500wt,
 For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{ResDEMus500\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{rowData(DEyeast500wt)}
 \item Then the selected genes will be
 %
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the selected genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the selected genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the selected genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 %
 \item Finally, the subset of genes will be the \texttt{NbGene.analysis} genes, among the selected genes, which have the highest sum of absolute log2 fold change.
@@ -2121,7 +2121,7 @@ allowing to separate non DE genes, DE genes below a threshold of log2 fold chang
 
 
 <<VolcanoMA_CLL, warning=FALSE, message=FALSE, eval=TRUE>>=
-resVolcanoMACLL<-DEplotVolcanoMA(Res.DE.analysis=ResDELeuk500,
+resVolcanoMACLL<-DEplotVolcanoMA(SEresDE=ResDELeuk500,
                                  NbGene.plotted=2,
                                  SizeLabel=3,
                                  Display.plots=FALSE,
@@ -2145,8 +2145,8 @@ The following lines of code allow to plot a correlation heatmap between samples 
 
 
 <<Heatmaps_CCL, warning=FALSE, message=FALSE, eval=TRUE>>=
-resplotHeatmapCLL<-DEplotHeatmaps(Res.DE.analysis=ResDELeuk500,
-                                  ColumnsCriteria=c(12,13),
+resplotHeatmapCLL<-DEplotHeatmaps(SEresDE=ResDELeuk500,
+                                  ColumnsCriteria=c(12, 13),
                                   Set.Operation="union",
                                   NbGene.analysis=20,
                                   SizeLabelRows=5,
@@ -2158,13 +2158,13 @@ resplotHeatmapCLL<-DEplotHeatmaps(Res.DE.analysis=ResDELeuk500,
 Both graphs are similar to those described in subsection \nameref{sec:DEheatmapFission} and \nameref{sec:DEheatmapMus1}. For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{ResDEMus500\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{rowData(ResDELeuk500)}
 \item Then the selected genes will be
 %
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the selected genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the selected genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the selected genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 %
 \item Finally, the subset of genes will be the \texttt{NbGene.analysis} genes, among the selected genes, which have the highest sum of absolute log2 fold change.
@@ -2202,7 +2202,7 @@ allowing to separate non DE genes, DE genes below a threshold of log2 fold chang
 
 
 <<VolcanoMA_Mouse2, warning=FALSE, message=FALSE, eval=TRUE>>=
-resVolcanoMAMouse2<-DEplotVolcanoMA(Res.DE.analysis=ResDEMusBmCrKoWt500,
+resVolcanoMAMouse2<-DEplotVolcanoMA(SEresDE=ResDEMusBmCrKoWt500,
                                     NbGene.plotted=2,
                                     SizeLabel=3,
                                     Display.plots=FALSE,
@@ -2226,7 +2226,7 @@ The following lines of code allow to plot a correlation heatmap between samples 
 
 
 <<Heatmaps_Mouse2, warning=FALSE, message=FALSE, eval=TRUE>>=
-resplotHeatmapMouse2<-DEplotHeatmaps(Res.DE.analysis=ResDEMusBmCrKoWt500,
+resplotHeatmapMouse2<-DEplotHeatmaps(SEresDE=ResDEMusBmCrKoWt500,
                                      ColumnsCriteria=2:5,
                                      Set.Operation="union",
                                      NbGene.analysis=20,
@@ -2240,13 +2240,13 @@ resplotHeatmapMouse2<-DEplotHeatmaps(Res.DE.analysis=ResDEMusBmCrKoWt500,
 Both graphs are similar to those described in subsection \nameref{sec:DEheatmapFission} and \nameref{sec:DEheatmapMus1}. For the rle heatmap (so the heatmap accross samples and subset of genes), the subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{ResDEMus500\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{rowData(ResDEMusBmCrKoWt500)}
 \item Then the selected genes will be
 %
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the selected genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the selected genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the selected genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 %
 \item Finally, the subset of genes will be the \texttt{NbGene.analysis} genes, among the selected genes, which have the highest sum of absolute log2 fold change.
@@ -2281,14 +2281,16 @@ The lines of code below realize an enrichment analysis with the R package gprofi
 Beware, an internet connection is needed. The function returns
 %%%%%%%
 \begin{itemize}
-\item a data.frame (output \texttt{resGSEAgprofiler2Mus\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a data.frame (output
+\texttt{metadata(resGSEAgprofiler2Mus)\$Rgprofiler2\$GSEAresults})
+giving information about all detected gene ontologies the list of associated genes.
 \item a lollipop graph (see section \nameref{sec:stepsGO}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
 \item A mahattan plot (see section \nameref{sec:stepsGO}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
 \end{itemize}
 
 <<GSEAquickAnalysis_Mus, warning=FALSE, message=FALSE, eval=TRUE>>=
 resGSEAgprofiler2Mus<-GSEAQuickAnalysis(Internect.Connection=FALSE,
-                                        Res.DE.analysis=ResDEMus500,
+                                        SEresDE=ResDEMus500,
                                         ColumnsCriteria=2,
                                         ColumnsLog2ordered=NULL,
                                         Set.Operation="union",
@@ -2298,7 +2300,7 @@ resGSEAgprofiler2Mus<-GSEAQuickAnalysis(Internect.Connection=FALSE,
                                         Display.plots=FALSE,
                                         Save.plots=FALSE)
 #
-# head(resGSEAgprofiler2Mus$GSEAresults)
+# head(4Vectors::metadata(resGSEAgprofiler2Mus)$Rgprofiler2$GSEAresults)
 @
 
 As \textbf{GSEAQuickAnalysis()} requires an internet connection, the input \texttt{Internect.Connection} is set by default to \texttt{FALSE}.
@@ -2307,17 +2309,17 @@ Once the user is sure to have an internet connection, the user may set \texttt{I
 The subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{ResDEMus500\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of
+\texttt{rowData(ResDEMus500)}
 \item Then the subset of genes will be
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the subset genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the subset genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the subset genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 \end{enumerate}
 
-
-If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{Res.DE.analysis\$DE.results}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{Res.DE.analysis\$DE.results} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
+If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{rowData(ResDEMus500)}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{rowData(ResDEMus500)} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
@@ -2334,7 +2336,7 @@ Write \texttt{?GSEAQuickAnalysis} in your console for more information about the
 The following lines of code will generate all files, for a selection of genes, in order to use the following software and online tools : GSEA, DAVID, WebGestalt, gProfiler, Panther, ShinyGO, Enrichr and GOrilla.
 
 <<GSEAprepro_Mus1, warning=FALSE, message=FALSE, eval=TRUE>>=
-resGSEApreprocessingFission<-GSEApreprocessing(Res.DE.analysis=ResDEMus500,
+resGSEApreprocessingFission<-GSEApreprocessing(SEresDE=ResDEMus500,
                                                ColumnsCriteria=2,
                                                Set.Operation="union",
                                                Rnk.files=FALSE,
@@ -2344,13 +2346,13 @@ resGSEApreprocessingFission<-GSEApreprocessing(Res.DE.analysis=ResDEMus500,
 The subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{ResDEMus500\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{rowData(ResDEMus500)}
 \item Then the subset of genes will be
 %
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the subset genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the subset genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the subset genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDEMus500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMus500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 %
 \end{enumerate}
@@ -2376,14 +2378,16 @@ The lines of code below realize an enrichment analysis with the R package gprofi
 Beware, an internet connection is needed. The function returns
 %%%%%%%%%%%%%
 \begin{itemize}
-\item a data.frame (output \texttt{resGSEAgprofiler2Fission\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a data.frame (output
+\texttt{metadata(resGSEAgprofiler2Fission)\$Rgprofiler2\$GSEAresults})
+giving information about all detected gene ontologies the list of associated genes.
 \item a lollipop graph (see section \nameref{sec:stepsGO}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and pathways are sorted into descending order. The x-axis indicates the \(-log10(pvalues)\). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
 \item A Manhattan plot (see section \nameref{sec:stepsGO}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
 \end{itemize}
 
 <<GSEAquickAnalysis_Fission, warning=FALSE, message=FALSE, eval=TRUE>>=
 resGSEAgprofiler2Fission<-GSEAQuickAnalysis(Internect.Connection=FALSE,
-                                            Res.DE.analysis=DEyeast500wt,
+                                            SEresDE=DEyeast500wt,
                                             ColumnsCriteria=2,
                                             ColumnsLog2ordered=NULL,
                                             Set.Operation="union",
@@ -2402,18 +2406,18 @@ Once the user is sure to have an internet connection, the user may set \texttt{I
 The subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{DEyeast500wt\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{rowData(DEyeast500wt)}
 \item Then the subset of genes will be
 %
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the subset genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the subset genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the subset genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 %
 \end{enumerate}
 
-If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{Res.DE.analysis\$DE.results}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{Res.DE.analysis\$DE.results} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
+If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{rowData(DEyeast500wt)}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{rowData(DEyeast500wt)} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
@@ -2431,7 +2435,7 @@ The following lines of code will generate all files, for a selection of genes, i
 
 
 <<GSEAprepro_Fission, warning=FALSE, message=FALSE, eval=TRUE>>=
-resGSEApreprocessingFission<-GSEApreprocessing(Res.DE.analysis=DEyeast500wt,
+resGSEApreprocessingFission<-GSEApreprocessing(SEresDE=DEyeast500wt,
                                                ColumnsCriteria=2,
                                                Set.Operation="union",
                                                Rnk.files=FALSE,
@@ -2441,14 +2445,14 @@ resGSEApreprocessingFission<-GSEApreprocessing(Res.DE.analysis=DEyeast500wt,
 The subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{resGSEApreprocessingFission\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{rowData(DEyeast500wt)}
 \item Then the subset of genes will be
 \end{enumerate}
 
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the subset genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the subset genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the subset genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{DEyeast500wt} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(DEyeast500wt)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 
 If the user wants to save the files, the input \texttt{Save.plots} must be
@@ -2472,14 +2476,16 @@ The lines of code below realize an enrichment analysis with the R package gprofi
 Beware, an internet connection is needed. The function returns
 %%%%%%%%%%%%%%%%%
 \begin{itemize}
-\item a data.frame (output \texttt{resGSEAgprofiler2Leuk\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a data.frame (output
+\texttt{metadata(resGSEAgprofiler2Leuk)\$Rgprofiler2\$GSEAresults})
+giving information about all detected gene ontologies the list of associated genes.
 \item a lollipop graph (see section \nameref{sec:stepsGO}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
 \item A manhattan plot (see section \nameref{sec:stepsGO}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
 \end{itemize}
 
 <<GSEAquickAnalysis_CLL, warning=FALSE, message=FALSE, eval=TRUE>>=
 resGSEAgprofiler2Leuk<-GSEAQuickAnalysis(Internect.Connection=FALSE,
-                                         Res.DE.analysis=ResDELeuk500,
+                                         SEresDE=ResDELeuk500,
                                          ColumnsCriteria=c(12,13),
                                          ColumnsLog2ordered=NULL,
                                          Set.Operation="union",
@@ -2498,17 +2504,18 @@ Once the user is sure to have an internet connection, the user may set \texttt{I
 The subset of genes is selected as follow
 
 \begin{enumerate}
-\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{resGSEAgprofiler2Leuk\$DE.results}
+\item the user select one or more binary column with the input \texttt{ColumnsCriteria} which corresponds to the column number of \texttt{rowData(ResDELeuk500)}
 \item Then the subset of genes will be
 \end{enumerate}
 
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the subset genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the subset genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the subset genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 
-If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{Res.DE.analysis\$DE.results}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{Res.DE.analysis\$DE.results} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
+
+If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{rowData(ResDELeuk500)}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{rowData(ResDELeuk500)} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
@@ -2526,7 +2533,7 @@ The following lines of code will generate all files, for a selection of genes, i
 
 
 <<GSEAprepro_CLL, warning=FALSE, message=FALSE, eval=TRUE>>=
-resGSEApreprocessingLeuk<-GSEApreprocessing(Res.DE.analysis=ResDELeuk500,
+resGSEApreprocessingLeuk<-GSEApreprocessing(SEresDE=ResDELeuk500,
                                             ColumnsCriteria=c(12,13),
                                             Set.Operation="union",
                                             Rnk.files=FALSE,
@@ -2541,9 +2548,9 @@ The subset of genes is selected as follow
 \item Then the subset of genes will be
 %
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the subset genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the subset genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the subset genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDELeuk500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDELeuk500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 %
 \end{enumerate}
@@ -2571,7 +2578,9 @@ The lines of code below realize an enrichment analysis with the R package gprofi
 Beware, an internet connection is needed. The function returns
 %%%%%%%%%%%%%%%%%
 \begin{itemize}
-\item a data.frame (output \texttt{resGSEAgprofiler2Leuk\$GSEAresults}) giving information about all detected gene ontologies the list of associated genes.
+\item a data.frame (output
+\texttt{metadata(resGSEAgprofiler2Mouse2)\$Rgprofiler2\$GSEAresults})
+giving information about all detected gene ontologies the list of associated genes.
 \item a lollipop graph (see section \nameref{sec:stepsGO}). The y-axis indicates the \texttt{MaxNumberGO} most significant gene ontologies and pathways associated to the selected DE genes. The gene ontologies and patways are sorted into descending order. The x-axis indicates the -log10(pvalues). The higher is a lollipop the more significant is a gene ontology or pathway. A lollipop is yellow if the pvalues is smaller than 0.05 (significant) and blue otherwise.
 \item A manhattan plot (see section \nameref{sec:stepsGO}) indicating all genes ontologies ordered according to the functional database (G0::BP, G0::CC, G0::MF and KEGG)
 \end{itemize}
@@ -2579,7 +2588,7 @@ Beware, an internet connection is needed. The function returns
 
 <<GSEAquickAnalysis_Mouse2, warning=FALSE, message=FALSE, eval=TRUE>>=
 resGSEAgprofiler2Mouse2<-GSEAQuickAnalysis(Internect.Connection=FALSE,
-                                           Res.DE.analysis=ResDEMusBmCrKoWt500,
+                                           SEresDE=ResDEMusBmCrKoWt500,
                                            ColumnsCriteria=2:5,
                                            ColumnsLog2ordered=NULL,
                                            Set.Operation="union",
@@ -2603,12 +2612,12 @@ The subset of genes is selected as follow
 \end{enumerate}
 
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the subset genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the subset genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the subset genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 
-If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{Res.DE.analysis\$DE.results}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{Res.DE.analysis\$DE.results} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
+If \texttt{ColumnsLog2ordered} is a vector of integers, it corresponds to the columns number of \texttt{rowData(ResDEMusBmCrKoWt500)}, the output of \Rfunction{DEanalysisGlobal()}, which must contains \(log_2\) fold change values. The rows of \texttt{rowData(ResDEMusBmCrKoWt500)} (corresponding to genes) will be decreasingly ordered according to the sum of absolute \(log_2\) fold change (the selected columns must contain \(log_2\) fold change values) before the enrichment analysis. The enrichment analysis will take into account the genes order as the first genes will be considered to have the highest biological importance and the last genes the lowest.
 
 If the user wants to save the graphs, the input \texttt{Save.plots} must be
 
@@ -2626,7 +2635,7 @@ The following lines of code will generate all files, for a selection of genes, i
 
 
 <<GSEAprepro_Mouse2, warning=FALSE, message=FALSE, eval=TRUE>>=
-resGSEApreprocessing<-GSEApreprocessing(Res.DE.analysis=ResDEMusBmCrKoWt500,
+resGSEApreprocessing<-GSEApreprocessing(SEresDE=ResDEMusBmCrKoWt500,
                                         ColumnsCriteria=2:5,
                                         Set.Operation="union",
                                         Rnk.files=FALSE,
@@ -2641,9 +2650,9 @@ The subset of genes is selected as follow
 \end{enumerate}
 
 \begin{itemize}
-\item If \texttt{Set.Operation="union"} then the subset genes are those such that the sum of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="intersect"} then the subset genes are those such that the product of the selected columns in \texttt{Res.DE.analysis} is >0.
-\item If \texttt{Set.Operation="setdiff"} then the subset genes are those such that only one element of the selected columns in \texttt{Res.DE.analysis} is >0.
+\item If \texttt{Set.Operation="union"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that the sum of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="intersect"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that the product of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
+\item If \texttt{Set.Operation="setdiff"} then the rows extracted from the different datasets included in \texttt{ResDEMusBmCrKoWt500} are those such that only one element of the selected columns of \texttt{SummarizedExperiment::rowData(ResDEMusBmCrKoWt500)} by \texttt{ColumnsCriteria} is >0.
 \end{itemize}
 
 If the user wants to save the files, the input \texttt{Save.plots} must be

@@ -48,7 +48,12 @@ For a more complete description of our package and complete outputs with graphs,
 
 The **Mouse dataset 2** [@Weger2021TemporalMouseLiver] is accessible on the Gene Expression Omnibus (GEO) database with the accession number GSE135898.
 
-This dataset contains the temporal transcription profile of 16 mice with Bmal1 and Cry1/2 knocked-down under an ad libitum (AL) or night restricted feeding (RF) regimen. Data were collected at 0, 4h, 8h, 16, 20h and 24h. Therefore, there are six time points and eight biological conditions. As there are only two mice per biological condition, we decided not to take into account the effect of the regimen. The dataset contains temporal expression data of 40327 genes. \newline
+This dataset contains the temporal transcription profile of 16 mice with Bmal1 and Cry1/2 knocked-down under an ad libitum (AL) or night restricted feeding
+(RF) regimen. Data were collected at 0, 4h, 8h, 16, 20h and 24h.
+Therefore, there are six time points and eight biological conditions.
+As there are only two mice per biological condition, we decided not to take
+into account the effect of the regimen.
+The dataset contains temporal expression data of 40327 genes. \newline
 
 To illustrate the use of our package, we take 500 genes, over the global 40327 genes in the original dataset.
 This sub dataset is saved in the file **RawCounts_Weger2021_MOUSEsub500**.
@@ -72,25 +77,41 @@ data("RawCounts_Weger2021_MOUSEsub500")
 
 3. Structure of the dataset (Preamble)
 
-The dataset must be a data.frame containing raw counts data. If it is not the case, the
-functions `DATAnormalization()` and `DEanalysisGlobal()` will stop and print an error. Each
-line should correspond to a gene, each column to a sample, except a particular column that
-may contain strings of characters describing the names of the genes. The first line of the
-data.frame should contain the names of the columns (strings of characters) that must have
-the following structure.
+The dataset must be a data.frame containing raw counts data.
+If it is not the case, the functions `DATAnormalization()` and
+`DEanalysisGlobal()` will stop and print an error.
+Each line should correspond to a gene, each column to a sample,
+except a particular column that may contain strings of characters
+describing the names of the genes.
+The first line of the data.frame should contain the names of the columns
+(strings of characters) that must have the following structure.
 
 ```{r ColnamesDataWeger2021}
 head(colnames(RawCounts_Weger2021_MOUSEsub500), n=5)
 ```
 
-In this example, "Gene" indicates the column which contains the names of the different
-genes. The other column names contain all kind of information about the sample, including
-the biological condition, the time of measurement and the name of the individual (e.g patient, replicate, mouse, yeasts culture...). Other kinds of information can be stored in the column names (such as patient information), but they will not be used by the package. The various information in the column names must be separated by underscores. The order of
-these information is arbitrary but must be the same for all columns. For instance, the sample "BmKo_t0_r1" corresponds to the first replicate (r1) of the biological condition BmKo at time t0 (reference time).
+In this example, "Gene" indicates the column which contains the names of
+the different genes.
+The other column names contain all kind of information about the sample,
+including the biological condition, the time of measurement and the name of
+the individual (e.g patient, replicate, mouse, yeasts culture...).
+Other kinds of information can be stored in the column names
+(such as patient information), but they will not be used by the package.
+The various information in the column names must be separated by underscores.
+The order of these information is arbitrary but must be the same
+for all columns. For instance, the sample "BmKo_t0_r1" corresponds to the first
+replicate (r1) of the biological condition BmKo at time t0 (reference time).
 
-The information located to the left of the first underscore will be considered to be in position 1, the information located between the first underscore and the second one will be considered to be in position 2, and so on. In the previous example, the biological condition is in position 1, the time is in position 2 and the replicate is in position 3.
-In most of the functions of our package, the order of the previous information in the column names will be indicated with the inputs `Group.position`, `Time.position` and `Individual.position`.
-Similarly the input `Column.gene` will indicate the number of the column containing gene names.
+The information located to the left of the first underscore will be considered
+to be in position 1, the information located between the first underscore and
+the second one will be considered to be in position 2, and so on.
+In the previous example, the biological condition is in position 1,
+the time is in position 2 and the replicate is in position 3.
+In most of the functions of our package, the order of the previous information
+in the column names will be indicated with the inputs `Group.position`,
+`Time.position` and `Individual.position`.
+Similarly the input `Column.gene` will indicate the number of
+the column containing gene names.
 
 ## Preprocessing
 
@@ -105,14 +126,24 @@ resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_Weger2021_MOUSEsub500,
 ```
 
 * **Output**: The function realizes the normalization step and returns
-  - A SummarizeExperiment object containing all information about the raw counts data
-  - A DESeqDataSet object to be used by the function `DEanalysisGlobal` for the statistical (supervised) analysis.
+a SummarizeExperiment object containing
+  - all information about the raw counts data
+  - a DESeqDataSet object to be used by the function `DEanalysisGlobal` for the statistical (supervised) analysis.
 * **Input**:
   - The dataset must be RNA-seq raw counts (`RawCounts`)
-  - The argument `Column.gene=1` means that the first column of the dataset contain genes name, `Time.position=2` means that the time of measurements is between the first and the second underscores in the columns names, `Individual.position=3` means that the name of the individual is between the second and the third underscores in the columns names and `Group.position=NULL` means that there is only one biological condition in the dataset. Similarly, `Time.position=NULL` would mean that there is only one time of measurement for each individual and `Column.gene=NULL` would mean that there is no column containing gene names.
+  - The argument `Column.gene=1` means that the first column of the dataset
+  contain genes name, `Time.position=2` means that the time of measurements
+  is between the first and the second underscores in the columns names,
+  `Individual.position=3` means that the name of the individual is between
+  the second and the third underscores in the columns names and
+  `Group.position=NULL` means that there is only one biological condition
+  in the dataset. Similarly, `Time.position=NULL` would mean that
+  there is only one time of measurement for each individual and
+  `Column.gene=NULL` would mean that there is no column containing gene names.
 * **Other**:
   - Write `?DATAprepSE` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
   
 ## Exploratory data analysis
 
@@ -128,17 +159,23 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              path.result=NULL)
 ```
 
-* **Output**: The function realizes the normalization step and returns
-  - A normalized data
-  - A boxplot (if `Plot.Boxplot=TRUE`) showing the distribution of the normalized expression (`Normalization="vst"` means that the vst method is used) of genes for each sample.
+* **Output**: The function realizes the normalization step and 
+  - returns the same SummarizedExperiment class object `resDATAprepSE` but with
+  the normalized data
+  - plots a boxplot (if `Plot.Boxplot=TRUE`) showing the distribution of
+  the normalized expression (`Normalization="vst"` means that the vst method
+  is used) of genes for each sample.
 * **Input**:
   - The results of the function `DATAprepSE()`.
   - In order to display the output graph, set `Plot.Boxplot=TRUE`.
-  - If `Colored.By.Factors=TRUE`, the color of the boxplots would be different for different biological conditions.
+  - If `Colored.By.Factors=TRUE`, the color of the boxplots would be different
+  for different biological conditions.
   - In order to save the different results in a folder, select a folder path in `path.result`.
 * **Other**:
-  - Write `?DATAnormalization` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
+  - Write `?DATAnormalization` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
 
 
 6. Principal component analysis (PCA) with `PCAanalysis()`
@@ -159,27 +196,46 @@ resPCA <- PCAanalysis(SEresNorm=resNorm,
                       path.result=NULL)
 ```
 
-* **Output**: When samples belong to different biological conditions and different time points, the previous lines of code return
-  - The results of the function `PCA()` of the package `FactoMineR`.
-  - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if `D3.mouvement=FALSE`) where samples are colored with different colors for different biological conditions. Furthermore, lines are drawn between each pair of consecutive points for each sample (if `Mean.Accross.Time=FALSE`, otherwise it will be only between means).
+* **Output**: When samples belong to different biological conditions and
+different time points, the previous lines of code return
+  - the same SummarizedExperiment class object `resNorm` but with
+  the results of the function `PCA()` of the package `FactoMineR`.
+  - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window
+  (only if `D3.mouvement=FALSE`) where samples are colored with different colors
+  for different biological conditions. Furthermore, lines are drawn
+  between each pair of consecutive points for each sample
+  (if `Mean.Accross.Time=FALSE`, otherwise it will be only between means).
   - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a
-rgl window (only if `D3.mouvement=FALSE`) for each biological condition, where samples
-are colored with different colors for different time points. Furthermore, lines are drawn
-between each pair of consecutive points for each sample (if `Mean.Accross.Time=FALSE`,
-otherwise it will be only between means).
+  rgl window (only if `D3.mouvement=FALSE`) for each biological condition,
+  where samples are colored with different colors for different time points.
+  Furthermore, lines are drawn between each pair of consecutive points
+  for each sample (if `Mean.Accross.Time=FALSE`, otherwise it will be only
+  between means).
   - The same graphs describe above but without lines.
 * **Input**:
-  - The results of the function `DATAprepSE()`.
-  - We recommend the use of the normalized data (`DATAnorm=TRUE`) for the PCA analysis.
-  - By default (if `Color.Group=NULL`), a color will be automatically applied for each biological condition. If you want to change the colors, read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
-  - If you want to delete, for instance, the genes ’ENSMUSG00000025921’ and ’ENSMUSG00000026113’ (respectively the second and sixth gene) and/or delete the samples 'BmKo\_t2\_r1' and 'BmKo\_t5\_r2', set
-    - `gene.deletion=c("ENSMUSG00000025921", "ENSMUSG00000026113")` and/or `sample.deletion=c("BmKo_t2_r1", "BmKo_t5_r2")`
-    - `gene.deletion=c(2,6)` and/or `sample.deletion=c(3,13)`. The integers in `gene.deletion` and `sample.deletion` represent respectively the row numbers and the column numbers of `ExprData` where the selected genes and samples are located.
+  - The results of the function `DATAnormalization()`.
+  - We recommend the use of the normalized data (`DATAnorm=TRUE`) for the PCA
+  analysis.
+  - By default (if `Color.Group=NULL`), a color will be automatically applied
+  for each biological condition. If you want to change the colors,
+  read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - If you want to delete, for instance, the genes ’ENSMUSG00000025921’ and
+  ’ENSMUSG00000026113’ (respectively the second and sixth gene) and/or delete
+  the samples 'BmKo\_t2\_r1' and 'BmKo\_t5\_r2', set
+    - `gene.deletion=c("ENSMUSG00000025921", "ENSMUSG00000026113")` and/or
+    `sample.deletion=c("BmKo_t2_r1", "BmKo_t5_r2")`
+    - `gene.deletion=c(2,6)` and/or `sample.deletion=c(3,13)`.
+    The integers in `gene.deletion` and `sample.deletion` represent
+    respectively the row numbers and the column numbers of `ExprData`
+    where the selected genes and samples are located.
   - In order to display the different output graph, set `Plot.PCA=TRUE`.
-  - In order to save the different results in a folder, select a folder path in `path.result`.
+  - In order to save the different results in a folder,
+  select a folder path in `path.result`.
 * **Other**:
-  - Write `?PCAanalysis` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
+  - Write `?PCAanalysis` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
 
 
 7. Hierarchical Clustering on Principle Components (HCPC) with `HCPCanalysis()`
@@ -200,19 +256,26 @@ resHCPC <- HCPCanalysis(SEresNorm=resNorm,
 ```
 
 * **Output**:
-  - The results of the function `HCPCanalysis()` of the package `FactoMineR`
+  - the same SummarizedExperiment class object `resNorm` but with
+  the results of the function `HCPCanalysis()` of the package `FactoMineR`
   - A dendrogram to illustrate how each cluster is composed
-  - A graph indicating by color for each sample, its cluster, the biological condition and the time point associated to the sample.
-  - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window (only if `D3.mouvement=FALSE`). These PCA graphs are identical to the outputs of `PCAanalysis()` with all samples but samples are colored with different colors for different clusters.
+  - A graph indicating by color for each sample, its cluster,
+  the biological condition and the time point associated to the sample.
+  - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window
+  (only if `D3.mouvement=FALSE`). These PCA graphs are identical to the outputs
+  of `PCAanalysis()` with all samples but samples are colored with different
+  colors for different clusters.
 * **Input**:
-  - The results of the function `DATAprepSE()`.
+  - The results of the function `DATAnormalization()`.
   - We recommend the use of the normalized data (`DATAnorm=TRUE`) for the HCPC analysis.
   - In order to display the different output graph, set `Plot.HCPC=TRUE`.
   - In order to save the different results in a folder, select a folder path in `path.result`.
 * **Other**:
   - The optimal number of clusters is automatically computed by the R function `HCPC()`.
-  - Write `?HCPCanalysis` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
+  - Write `?HCPCanalysis` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
 
 
 8. Temporal clustering analysis with `MFUZZanalysis()`.
@@ -229,19 +292,33 @@ resMFUZZ <- MFUZZanalysis(SEresNorm=resNorm,
 ```
 
 * **Output**:
-  - The summary of the results of the function `mfuzz()`
-  - The number of clusters automatically computed (if `DataNumberCluster=NULL`). If `Method="hcpc"`, the function plots the scaled within-cluster inertia, but if `Method="kmeans"`, the function plots the scaled within-cluster inertia. As the number of genes can be very high, we recommend to select `Method="hcpc"` which is by default.
-  - the output graph from the function `mfuzz()` which represents the most common temporal behavior among all genes for the biological condition ‘BmKo’.
+  - the same SummarizedExperiment class object `resNorm` but with
+    + The summary of the results of the function `mfuzz()`
+    + The number of clusters automatically computed
+    (if `DataNumberCluster=NULL`). If `Method="hcpc"`, the function plots
+    the scaled within-cluster inertia, but if `Method="kmeans"`,
+    the function plots the scaled within-cluster inertia.
+    As the number of genes can be very high, we recommend to select
+    `Method="hcpc"` which is by default.
+  - the output graph from the function `mfuzz()` which represents the most
+  common temporal behavior among all genes for the biological condition ‘BmKo’.
 * **Input**:
-  - The results of the function `DATAprepSE()`.
-  - We recommend the use of the normalized data (`DATAnorm=TRUE`) for the clustering analysis.
-  - For each cluster, genes with membership values below the threshold `Membership` (numeric value between 0 and 1) will not be displayed. The membership values correspond to the probability of gene to belong to each cluster.
-  - All genes where their standard deviations are smaller than the threshold `Min.std` (numeric positive value) will be excluded.
+  - The results of the function `DATAnormalization()`.
+  - We recommend the use of the normalized data (`DATAnorm=TRUE`)
+  for the clustering analysis.
+  - For each cluster, genes with membership values below the threshold
+  `Membership` (numeric value between 0 and 1) will not be displayed.
+  The membership values correspond to the probability of gene to belong
+  to each cluster.
+  - All genes where their standard deviations are smaller than the threshold
+  `Min.std` (numeric positive value) will be excluded.
   - In order to display the different output graph, set `Plot.Mfuzz=TRUE`.
   - In order to save the different results in a folder, select a folder path in `path.result`.
 * **Other**:
-  - Write `?MFUZZanalysis` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
+  - Write `?MFUZZanalysis` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled "MultiRNAflow_vignette-knitr.pdf".
 
 
 9. Plot temporal expression with with `DATAplotExpressionGenes()`
@@ -255,25 +332,34 @@ resEXPR <- DATAplotExpressionGenes(SEresNorm=resNorm,
                                    path.result=NULL)
 ```
 
-* **Output**: A graph plotting for each biological condition: the evolution of the 17th gene expression of the three replicates across time and the evolution of the mean and the standard deviation of the 17th gene expression across time. The color of the different lines are different for different biological conditions.
+* **Output**: A graph plotting for each biological condition:
+the evolution of the 17th gene expression of the three replicates across time
+and the evolution of the mean and the standard deviation of the 17th gene
+expression across time. The color of the different lines are different
+for different biological conditions.
 * **Input**:
-  - The results of the function `DATAprepSE()`.
+  - The results of the function `DATAnormalization()`.
   - We recommend the use of the normalized data (`DATAnorm=TRUE`).
-  - If the user wants to select several genes, for instance the 97th, the 192th, the 194th and the 494th, he needs to set `Vector.row.gene=c(97,192,194,494)`.
-  - By default (if `Color.Group=NULL`), a color will be automatically applied for each biological condition. If you want to change the colors, read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - If the user wants to select several genes, for instance the 97th, the 192th,
+  the 194th and the 494th, he needs to set `Vector.row.gene=c(97,192,194,494)`.
+  - By default (if `Color.Group=NULL`), a color will be automatically applied
+  for each biological condition. If you want to change the colors,
+  read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
   - In order to display the different output graph, set `Plot.Expression=TRUE`.
-  - In order to save the different results in a folder, select a folder path in `path.result`.
+  - In order to save the different results in a folder,
+  select a folder path in `path.result`.
 * **Other**:
-  - Write `?DATAplotExpressionGenes` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
-  
-
+  - Write `?DATAplotExpressionGenes` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
 
 ## Supervised statistical analysis
 
 10. Differential Expresion (DE) analysis with `DEanalysisGlobal()`
 
-For the speed of the algorithm, we will take only three biological conditions and three times
+For the speed of the algorithm, we will take only three biological conditions
+and three times
 
 ```{r SubMusBmCrKoWt}
 Sub3bc3T <- RawCounts_Weger2021_MOUSEsub500
@@ -303,13 +389,32 @@ resDE <- DEanalysisGlobal(SEres=resSEsub,
   - The results of the function `DESeq()`
   - a data.frame (output `Results`) which contains
     - gene names
-    - pvalues, log2 fold change and DE genes between each pairs of biological conditions for each fixed time.
-    - pvalues, log2 fold change and DE genes between each time versus the reference time t0 for each biological condition.
-    - Temporal pattern (succession of 0 and 1) for each biological condition. The positions of 1 in one of these two columns, indicate the set of times ti such that the gene is DE between ti and the reference time t0, for the biological condition associated to the given column.
-    - Specific genes for each biological condition at each time. A 1 in one of these columns means the gene is specific to the biological condition at a fixed time associated to the given column. 0 otherwise. A gene is called specific to a given biological condition BC1 at a time ti, if the gene is DE between BC1 and any other biological conditions at time ti, but not DE between any pair of other biological conditions at time ti.
-    - Signature genes the signatures genes for each biological condition at each time. A 1 in one of these columns means the gene is signature gene to the biological condition at a fixed time associated to the given column. 0 otherwise. A gene is called signature of a biological condition BC1 at a given time ti, if the gene is specific to the biological condition BC1 at time ti and DE between ti versus the reference time t0 for the biological condition BC1.
+    - pvalues, log2 fold change and DE genes between each pairs of
+    biological conditions for each fixed time.
+    - pvalues, log2 fold change and DE genes between each time versus the
+    reference time t0 for each biological condition.
+    - Temporal pattern (succession of 0 and 1) for each biological condition.
+    The positions of 1 in one of these two columns, indicate the set of times ti
+    such that the gene is DE between ti and the reference time t0,
+    for the biological condition associated to the given column.
+    - Specific genes for each biological condition at each time.
+    A 1 in one of these columns means the gene is specific to the biological
+    condition at a fixed time associated to the given column. 0 otherwise.
+    A gene is called specific to a given biological condition BC1 at a time ti,
+    if the gene is DE between BC1 and any other biological conditions
+    at time ti, but not DE between any pair of other biological conditions
+    at time ti.
+    - Signature genes the signatures genes for each biological condition
+    at each time. A 1 in one of these columns means the gene is signature gene
+    to the biological condition at a fixed time associated to the given column.
+    0 otherwise. A gene is called signature of a biological condition BC1
+    at a given time ti, if the gene is specific to the biological condition BC1
+    at time ti and DE between ti versus the reference time t0
+    for the biological condition BC1.
   - the following plots from the temporal statistical analysis
-    - a barplot which gives the number of DE genes between ti and the reference time t0, for each time ti (except the reference time t0) and biological condition.
+    - a barplot which gives the number of DE genes between ti and the reference
+    time t0, for each time ti (except the reference time t0) and
+    biological condition.
     - alluvial graphs of DE genes, one per biological condition.
     - $N_{bc}$ graphs showing the number of DE genes as a function of time
    for each temporal group, one per biological condition. By temporal group,
@@ -338,38 +443,50 @@ resDE <- DEanalysisGlobal(SEres=resSEsub,
     - an alluvial graph of genes which are signature at least one time
    (see `DEplotAlluvial()`).
 * **Input**:
-  - A gene is considered as DE if the pvalue associated to the gene is inferior to `pval.min` (numeric value between 0 and 1) and if the absolute log fold change associated to the gene is superior to `log.FC.min` (numeric positive value).
+  - A gene is considered as DE if the pvalue associated to the gene is inferior
+  to `pval.min` (numeric value between 0 and 1) and if the absolute
+  log fold change associated to the gene is superior to `log.FC.min`
+  (numeric positive value).
   - In order to display the different output graph, set `Plot.DE.graph=TRUE`.
-  - In order to save the different results in a folder, select a folder path in `path.result`.
-  - Set `RawCounts=RawCounts_Weger2021_MOUSEsub500` in order to use the complete dataset.
+  - In order to save the different results in a folder,
+  select a folder path in `path.result`.
+  - Set `RawCounts=RawCounts_Weger2021_MOUSEsub500` in order to use
+  the complete dataset.
 * **Other**:
-  - Write `?DEanalysisGlobal` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - Write `?DEanalysisGlobal` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
   
 
 11. Volcano and ratio intensity (MA) plots with `DEplotVolcanoMA()`
 
 ```{r VolcanoMA_Mouse2, eval=TRUE, echo=TRUE}
-resMAvolcano <- DEplotVolcanoMA(Res.DE.analysis=resDE,
+resMAvolcano <- DEplotVolcanoMA(SEresDE=resDE,
                                 NbGene.plotted=2,
                                 SizeLabel=3,
                                 Display.plots=FALSE,
-                                Save.plots=TRUE)
+                                Save.plots=FALSE)
 ```
 
-* **Output**: The function returns Volcano plots and MA plots from the results of our function `DEanalysisGlobal()`.
+* **Output**: The function returns Volcano plots and MA plots from the results
+of our function `DEanalysisGlobal()`.
 * **Input**:
   - In order to display the different output graph, set `Display.plots=TRUE`.
-  - In order to save the different results in a folder, set `Save.plots=TRUE` and and a folder path in the input `path.result` in the function `DEanalysisGlobal()`.
+  - In order to save the different results in a folder, set `Save.plots=TRUE`
+  and and a folder path in the input `path.result`
+  in the function `DEanalysisGlobal()`.
 * **Other**:
-  - Write `?DEplotVolcanoMA` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - Write `?DEplotVolcanoMA` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
 
 
 12. Heatmaps with `DEplotHeatmaps()`
 
 ```{r Heatmaps_Mouse2, eval=TRUE, echo=TRUE}
-resHEAT <- DEplotHeatmaps(Res.DE.analysis=resDE,
+resHEAT <- DEplotHeatmaps(SEresDE=resDE,
                           ColumnsCriteria=2,
                           Set.Operation="union",
                           NbGene.analysis=20,
@@ -380,21 +497,30 @@ resHEAT <- DEplotHeatmaps(Res.DE.analysis=resDE,
 ```
 
 
-* **Output**: The function returns two heatmaps: one heatmap of gene expressions between samples and selected genes; and a correlation heatmap between samples.
+* **Output**: The function returns two heatmaps: one heatmap of gene expressions
+between samples and selected genes; and a correlation heatmap between samples.
 * **Input**:
-  - If `Set.Operation="union"` then the rows (so genes) extracted from `Res.DE.analysis$DE.results` are those such that the sum of the selected columns in `Res.DE.analysis` is >0. For example, the rows extracted from `Res.DE.analysis$DE.results` will be those DE at least at one time.
+  - If `Set.Operation="union"` then the rows extracted from the different
+  datasets included in `SEresDE` are those such that the sum of the selected
+  columns of `SummarizedExperiment::rowData(SEresDE)` by `ColumnsCriteria`
+  is >0. For example, the selected genes can be those DE at least at t1 or t2
+  (versus the reference time t0).
   - In order to display the different output graph, set `Display.plots=TRUE`.
-  - In order to save the different results in a folder, set `Save.plots=TRUE` and and a folder path in the input `path.result` in the function `DEanalysisGlobal()`.
+  - In order to save the different results in a folder, set `Save.plots=TRUE`
+  and and a folder path in the input `path.result`
+  in the function `DEanalysisGlobal()`.
 * **Other**:
-  - Write `?DEplotHeatmaps` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - Write `?DEplotHeatmaps` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
 
 
 13. GO enrichment analysis with `GSEAQuickAnalysis()` and `GSEApreprocessing()`
 
 ```{r GSEAquickAnalysis_Mouse2, eval=TRUE}
 resRgprofiler2 <- GSEAQuickAnalysis(Internect.Connection=FALSE,
-                                    Res.DE.analysis=resDE,
+                                    SEresDE=resDE,
                                     ColumnsCriteria=2,
                                     ColumnsLog2ordered=NULL,
                                     Set.Operation="union",
@@ -405,21 +531,31 @@ resRgprofiler2 <- GSEAQuickAnalysis(Internect.Connection=FALSE,
                                     Save.plots=TRUE)
 ```
 
-* **Output**: The function realizes, from the outputs of `DEanalysisGlobal()`, an enrichment analysis (GSEA) of a subset of genes with the R package `gprofiler2`.
+* **Output**: The function realizes, from the outputs of `DEanalysisGlobal()`,
+an enrichment analysis (GSEA) of a subset of genes with the R package
+`gprofiler2`.
   - A data.frame which contains the outputs of `gprofiler2::gost()`
   - A Manhattan plot showing all GO names according to their pvalue.
   - A lollipop graph showing the `MaxNumberGO` most important GO.
 * **Input**:
-  - If `Set.Operation="union"` then the rows (so genes) extracted from `Res.DE.analysis$DE.results` are those such that the sum of the selected columns in Res.DE.analysis is >0. For example, the rows extracted from `Res.DE.analysis$DE.results` will be those DE at least at one time.
+  - If `Set.Operation="union"` then the rows extracted from the different
+  datasets included in `SEresDE` are those such that the sum of the selected
+  columns of `SummarizedExperiment::rowData(SEresDE)` by `ColumnsCriteria`
+  is >0. For example, the selected genes can be those DE at least at t1 or t2
+  (versus the reference time t0).
   - In order to display the different output graph, set `Display.plots=TRUE`.
-  - In order to save the different results in a folder, set `Save.plots=TRUE` and and a folder path in the input `path.result` in the function `DEanalysisGlobal()`.
+  - In order to save the different results in a folder, set `Save.plots=TRUE`
+  and a folder path in the input `path.result`
+  in the function `DEanalysisGlobal()`.
 * **Other**:
-  - Write `?GSEAQuickAnalysis` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - Write `?GSEAQuickAnalysis` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
 
 
 ```{r GSEAprepro_Mouse2, eval=TRUE}
-resGSEApreprocess <- GSEApreprocessing(Res.DE.analysis=resDE,
+resGSEApreprocess <- GSEApreprocessing(SEresDE=resDE,
                                        ColumnsCriteria=2,
                                        Set.Operation="union",
                                        Rnk.files=FALSE,
@@ -427,13 +563,24 @@ resGSEApreprocess <- GSEApreprocessing(Res.DE.analysis=resDE,
 ```
 
 * **Output**: 
-  - A vector of character containing gene names specified by `ColumnsCriteria` and `Set.Operation`.
+  - A vector of character containing gene names specified by `ColumnsCriteria`
+  and `Set.Operation`.
   - A vector of character containing all gene names
-  - And, in case where `Save.files=TRUE` and the path.result of `DEanalysisGlobal()` is not NULL, specific files designed to be used as input for the following online tools and software : GSEA, DAVID, WebGestalt, gProfiler, Panther, ShinyGO, Enrichr, GOrilla
-* **Input**: If `Set.Operation="union"` then the rows (so genes) extracted from `Res.DE.analysis$DE.results` are those such that the sum of the selected columns in Res.DE.analysis is >0. For example, the rows extracted from `Res.DE.analysis$DE.results` will be those DE at least at one time.
+  - And, in case where `Save.files=TRUE` and the path.result of
+  `DEanalysisGlobal()` is not NULL, specific files designed to be used as input
+  for the following online tools and software : GSEA, DAVID, WebGestalt,
+  gProfiler, Panther, ShinyGO, Enrichr, GOrilla
+* **Input**: If `Set.Operation="union"` then the rows extracted from the
+different datasets included in `SEresDE` are those such that the sum of
+the selected columns of `SummarizedExperiment::rowData(SEresDE)`
+by `ColumnsCriteria` is >0.
+For example, the selected genes can be those DE at least at t1 or t2
+(versus the reference time t0).
 * **Other**:
-  - Write `?GSEApreprocessing` in your console for more information about the function.
-  - For a more complete description of the function and package, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+  - Write `?GSEApreprocessing` in your console for more information
+  about the function.
+  - For a more complete description of the function and package,
+  the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
 
 
 # SessionInfo
