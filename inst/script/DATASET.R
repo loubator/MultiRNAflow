@@ -66,15 +66,17 @@ DEresMus<-DEanalysisGlobal(SEres=resDATAprepSEmus1,
                            path.result=NULL,
                            Name.folder.DE=NULL)
 
+mus1DEres <- SummarizedExperiment::rowData(DEresMus)
 #-----------------------------------------------------------------------------#
-Id.Spe.Mus<-sort(unique(c(RdSel(which(DEresMus$DE.results$Specific.genes_N1haT1ko>0),111),
-                          RdSel(which(DEresMus$DE.results$Specific.genes_N1haT1wt>0),20),
-                          RdSel(which(DEresMus$DE.results$Specific.genes_N1wtT1ko>0),80),
-                          RdSel(which(DEresMus$DE.results$Specific.genes_N1wtT1wt>0),90),
-                          RdSel(which(DEresMus$DE.results$DE.1pair.of.Group.minimum>0),60))))# 356
+Id.Spe.Mus<-sort(unique(c(RdSel(which(mus1DEres$Specific.genes_N1haT1ko>0),111),
+                          RdSel(which(mus1DEres$Specific.genes_N1haT1wt>0),20),
+                          RdSel(which(mus1DEres$Specific.genes_N1wtT1ko>0),80),
+                          RdSel(which(mus1DEres$Specific.genes_N1wtT1wt>0),90),
+                          RdSel(which(mus1DEres$DE.1pair.of.Group.minimum>0),
+                                60))))# 357
 #
 IdNoDE.Mus<-RdSel(setdiff(c(1:39017),
-                          which(DEresMus$DE.results$DE.1pair.of.Group.minimum>0)),
+                          which(mus1DEres$DE.1pair.of.Group.minimum>0)),
                   500-length(Id.Spe.Mus))
 IdMus500<-sort(c(Id.Spe.Mus, IdNoDE.Mus))
 RawCounts_Antoszewski2022_MOUSEsub500<-CountDat_Mus_Antoszewski2022[IdMus500,]
@@ -83,7 +85,7 @@ RawCounts_Antoszewski2022_MOUSEsub500<-CountDat_Mus_Antoszewski2022[IdMus500,]
 # usethis::use_r("RawCounts_Antoszewski2022_MOUSEsub500")
 #
 
-# Id.T1.wtVSko<-sort(c(which(DEresMus$DE.results$DE.per.pair.group..N1wtT1wt..N1wtT1ko.>0)[1:30],
+# Id.T1.wtVSko<-sort(c(which(mus1DEres$DE.per.pair.group..N1wtT1wt..N1wtT1ko.>0)[1:30],
 #                      IdNoDE.Mus[1:20]))
 # colname.T1.wtVSko<-c(1:4, 11:13)
 # CountDat_Mus_Antoszewski2022_sub50Tcf1<-CountDat_Mus_Antoszewski2022[Id.T1.wtVSko,
@@ -140,21 +142,23 @@ DEresYeastWt<-DEanalysisGlobal(SEres=resDATAprepSEfission,
                                path.result=NULL,
                                Name.folder.DE=NULL)
 
+fissionDEres <- SummarizedExperiment::rowData(DEresYeastWt)
+
 #-----------------------------------------------------------------------------#
-DEtimePattern<-DEresYeastWt$DE.results$DE.Temporal.Pattern
+DEtimePattern<-fissionDEres$DE.Temporal.Pattern
 WTfissionPeak<-sort(c(RdSel(grep(".00001",DEtimePattern,fixed=TRUE), "max"),
                       RdSel(grep(".0001",DEtimePattern,fixed=TRUE), "max"),
                       RdSel(grep(".001",DEtimePattern,fixed=TRUE),90),
                       RdSel(grep(".01",DEtimePattern,fixed=TRUE),100),
                       RdSel(grep(".01",DEtimePattern,fixed=TRUE),95)))# 313
 #
-WTfission1tmin<-which(DEresYeastWt$DE.results$DE.1time.minimum==1)
+WTfission1tmin<-which(fissionDEres$DE.1time.minimum==1)
 # WTfission1tmin.NoPeak<-unique(WTfission1tmin[!WTfission1tmin%in%WTfissionPeak])# union(setdiff(a,b),setdiff(a,b))
 WTfission1tmin.NoPeak.f<-RdSel(WTfission1tmin[-intersect(WTfission1tmin,WTfissionPeak)],
                                400-length(WTfissionPeak))
 #
 DEfissionWt<-sort(unique(c(WTfissionPeak, WTfission1tmin.NoPeak.f)))
-noDEfissionWt<-RdSel(which(DEresYeastWt$DE.results$DE.1time.minimum==0),
+noDEfissionWt<-RdSel(which(fissionDEres$DE.1time.minimum==0),
                      500-length(DEfissionWt))
 #-----------------------------------------------------------------------------#
 fission500genes<-sort(unique(c(DEfissionWt, noDEfissionWt)))
@@ -222,17 +226,15 @@ DEresCLL<-DEanalysisGlobal(SEres=resDATAprepSEleuk,
                            LRT.supp.info=FALSE,
                            path.result=NULL,
                            Name.folder.DE=NULL)
-#---------------------------------------------------------------------------------------#
-PatDE_NP<-DEresCLL$DE.results$Pattern.DE_NP
-PatDE_P<-DEresCLL$DE.results$Pattern.DE_P
-#
-# NPlog2fcTime<-apply(DEresCLL$Global[,c(8,11,14,17,20,23,26,29)],1,function(x) sum(abs(x)))
-# Plog2fcTime<-apply(DEresCLL$Global[,c(34,37,40,43,46,49,52,55)],1,function(x) sum(abs(x)))
-# sum(ceiling(c(10,100,200,1,3,50)*(100/364)))
-# sum(ceiling(table(PatDE_NP)[-1]*(200/sum(table(PatDE_NP)[-1]))))
-# sum(ceiling(table(PatDE_NP)[-1]*(200/sum(table(PatDE_NP)[-1]))))
+
+leukDEres <- SummarizedExperiment::rowData(DEresCLL)
+
+#-----------------------------------------------------------------------------#
+PatDE_NP<-leukDEres$Pattern.DE_NP
+PatDE_P<-leukDEres$Pattern.DE_P
+
 set.seed(1994)
-#
+
 NPcll<-sort(c(RdSel(grep(".00000001",PatDE_NP,fixed=TRUE),30),
               RdSel(grep(".0000001",PatDE_NP,fixed=TRUE),25),
               RdSel(grep(".000001",PatDE_NP,fixed=TRUE),30),
@@ -250,20 +252,21 @@ Pcll<-sort(c(RdSel(grep(".00000001",PatDE_P,fixed=TRUE),30),
              RdSel(grep(".01",PatDE_P,fixed=TRUE),55),
              RdSel(grep(".1",PatDE_P,fixed=TRUE),20)))# 325
 #
-SignatureNP<-which(apply(DEresCLL$DE.results[,2:9],1,sum)>0)# 609
-SignatureP<-which(apply(DEresCLL$DE.results[,10:17],1,sum)>0)# 568
+SignatureNP<-which(apply(leukDEres[,2:9],1,sum)>0)# 609
+SignatureP<-which(apply(leukDEres[,10:17],1,sum)>0)# 568
 #
-Spe.P.NP.1tmin<-which(DEresCLL$DE.results$Specific.genes_NP_1t.min>0)# 2121
+Spe.P.NP.1tmin<-which(leukDEres$Specific.genes_NP_1t.min>0)# 2121
 ##setdiff(NPcll,Pcll),
 DEgeneCLL<-sort(unique(c(NPcll[-which(NPcll%in%intersect(NPcll,Pcll))],
                          RdSel(SignatureNP, 50), RdSel(SignatureP, 70),
                          RdSel(Spe.P.NP.1tmin, 80))))#452
 #
-DE1tmin_NP<-which(DEresCLL$DE.results$DE.1time.minimum_NP>0)
-DE1tmin_P<-which(DEresCLL$DE.results$DE.1time.minimum_P>0)
+DE1tmin_NP<-which(leukDEres$DE.1time.minimum_NP>0)
+DE1tmin_P<-which(leukDEres$DE.1time.minimum_P>0)
 noDEgeneCLL<-setdiff(c(1:25369),
                      sort(unique(c(DE1tmin_NP, DE1tmin_P, Spe.P.NP.1tmin))))
 noDEgeneCLL<-RdSel(noDEgeneCLL,500-length(DEgeneCLL))
+
 #-----------------------------------------------------------------------------#
 cll500genes<-sort(c(DEgeneCLL, noDEgeneCLL))
 RawCounts_Schleiss2021_CLLsub500<-RawCounts_Schleiss2021_CLL[cll500genes,]
@@ -285,8 +288,8 @@ Datageo<-read.table(file=dat.geo, header=TRUE, sep="\t", dec=",", row.names=1)
 # sort(colnames(Datageo))
 # Beware, the first column corresponds to "Bmal1_KO1_AL_RNA_zt04"
 
-Datageo2<-Datageo[-which(is.na(Datageo),arr.ind = TRUE)[,1],]
-#
+Datageo2 <- Datageo[-which(is.na(Datageo), arr.ind = TRUE)[, 1],]
+
 cl0<-c("Bmal1_KO1_AL_RNA_zt04", colnames(Datageo)[-96])
 cl1<-gsub("CRY_KO_1", "CRY_KO1", x=cl0, fixed = TRUE)
 cl2<-gsub("_KO", "_KO_", x=cl1, fixed = TRUE)
@@ -318,12 +321,11 @@ if(Alim.delete==TRUE){
                             Colnames.matMus[4,],
                             paste("r",rep(1:16,each=6),sep=""),sep="_")
 }# if(Alim.delete==TRUE)
-#
 # Colnames.matMus[2,]
-#
+
 SumDatageo2<-apply(Datageo2[,-1], MARGIN=1, sum)
 varDatageo2<-apply(Datageo2[,-1], MARGIN=1, var)
-#which(is.na(Datageo2),arr.ind = TRUE)
+# which(is.na(Datageo2),arr.ind = TRUE)
 # Union.inter=which(SumDatageo2>100)#14986
 # Union.inter=which(SumDatageo2>0)#26452
 Union.inter<-intersect(which(SumDatageo2>20), which(varDatageo2>10))#12495
@@ -340,83 +342,87 @@ resDATAprepSEmus2 <- DATAprepSE(RawCounts=Datageo3,#Datageo.f,# Datageo.Ncoln.3
                                 Time.position=2,
                                 Individual.position=3)
 
-ResGSE135898<-DEanalysisGlobal(SEres=resDATAprepSEmus2,
-                               log.FC.min=1,
-                               pval.min=0.05,
-                               pval.vect.t=NULL,
-                               LRT.supp.info=FALSE,
-                               path.result=NULL,#Path.save.GSE135898,
-                               Name.folder.DE=NULL)
+ResGSE135898 <- DEanalysisGlobal(SEres=resDATAprepSEmus2,
+                                 log.FC.min=1,
+                                 pval.min=0.05,
+                                 pval.vect.t=NULL,
+                                 LRT.supp.info=FALSE,
+                                 path.result=NULL,#Path.save.GSE135898,
+                                 Name.folder.DE=NULL)
+
+mus2DEres <- SummarizedExperiment::rowData(ResGSE135898)
+
+#-----------------------------------------------------------------------------#
 # The original dataset has 25369 genes but we kept only 500 genes
 # in order to increase the speed of each function in our algorithm.
-PatDE_BmKo<-ResGSE135898$DE.results$Pattern.DE_BmKo
-PatDE_BmWt<-ResGSE135898$DE.results$Pattern.DE_BmWt
-PatDE_CrKo<-ResGSE135898$DE.results$Pattern.DE_CrKo
-PatDE_CrWt<-ResGSE135898$DE.results$Pattern.DE_CrWt
-#
+PatDE_BmKo <- mus2DEres$Pattern.DE_BmKo
+PatDE_BmWt <- mus2DEres$Pattern.DE_BmWt
+PatDE_CrKo <- mus2DEres$Pattern.DE_CrKo
+PatDE_CrWt <- mus2DEres$Pattern.DE_CrWt
+
 set.seed(1994)
-#
-MusBmKo<-sort(c(grep(".00001",PatDE_BmKo,fixed=TRUE),
-                grep(".0001",PatDE_BmKo,fixed=TRUE),
-                RdSel(grep(".001",PatDE_BmKo,fixed=TRUE),30),
-                RdSel(grep(".01",PatDE_BmKo,fixed=TRUE),15),
-                RdSel(grep(".1",PatDE_BmKo,fixed=TRUE),8))) # 63
-#
-MusBmWt<-sort(c(grep(".00001",PatDE_BmWt,fixed=TRUE),
-                RdSel(grep(".0001",PatDE_BmWt,fixed=TRUE),60),
-                RdSel(grep(".001",PatDE_BmWt,fixed=TRUE),130),
-                RdSel(grep(".01",PatDE_BmWt,fixed=TRUE),155),
-                grep(".1",PatDE_BmWt,fixed=TRUE))) # 355
-#
-MusCrKo<-sort(c(grep(".00001",PatDE_CrKo,fixed=TRUE),
-                grep(".0001",PatDE_CrKo,fixed=TRUE),
-                grep(".001",PatDE_CrKo,fixed=TRUE),
-                grep(".01",PatDE_CrKo,fixed=TRUE),
-                grep(".1",PatDE_CrKo,fixed=TRUE))) # 48
-#
-MusCrWt<-sort(c(grep(".00001",PatDE_CrWt,fixed=TRUE),
-                RdSel(grep(".0001",PatDE_CrWt,fixed=TRUE),35),
-                RdSel(grep(".001",PatDE_CrWt,fixed=TRUE),145),
-                RdSel(grep(".01",PatDE_CrWt,fixed=TRUE),150),
-                grep(".1",PatDE_CrWt,fixed=TRUE))) # 367
-#
-SignatureBmKo<-which(apply(ResGSE135898$DE.results[,2:6],1,sum)>0)# 39
-SignatureBmWt<-which(apply(ResGSE135898$DE.results[,7:11],1,sum)>0)# 4
-SignatureCrKo<-which(apply(ResGSE135898$DE.results[,12:16],1,sum)>0)# 11
-SignatureCrWt<-which(apply(ResGSE135898$DE.results[,17:21],1,sum)>0)# 20
-#
-Spe.BmKo.1tmin<-which(ResGSE135898$DE.results$Specific.genes_BmKo_1t.min>0)# 611
-Spe.BmWt.1tmin<-which(ResGSE135898$DE.results$Specific.genes_BmWt_1t.min>0)# 7
-Spe.CrKo.1tmin<-which(ResGSE135898$DE.results$Specific.genes_CrKo_1t.min>0)# 203
-Spe.CrWt.1tmin<-which(ResGSE135898$DE.results$Specific.genes_CrWt_1t.min>0)# 33
-#
-DEMus.Sel<-sort(unique(c(setdiff(setdiff(setdiff(MusBmKo,MusBmWt),MusCrKo),
-                                 MusCrWt),
-                         RdSel(SignatureBmKo,20),
-                         SignatureBmWt, SignatureCrKo, SignatureCrWt,
-                         RdSel(Spe.BmKo.1tmin,230),
-                         Spe.BmWt.1tmin,
-                         RdSel(Spe.CrKo.1tmin,100),
-                         RdSel(Spe.CrWt.1tmin,15))))# 413
-#
-DE1tmin_BmKo<-which(ResGSE135898$DE.results$DE.1time.minimum_BmKo>0)
-DE1tmin_BmWt<-which(ResGSE135898$DE.results$DE.1time.minimum_BmWt>0)
-DE1tmin_CrKo<-which(ResGSE135898$DE.results$DE.1time.minimum_CrKo>0)
-DE1tmin_CrWt<-which(ResGSE135898$DE.results$DE.1time.minimum_CrWt>0)
-#
-NoDEMus<-setdiff(c(1:nrow(ResGSE135898$DE.results)),
-                 sort(unique(c(DE1tmin_BmKo, DE1tmin_BmWt,
-                               DE1tmin_CrKo, DE1tmin_CrWt,
-                               Spe.BmKo.1tmin, Spe.BmWt.1tmin,
-                               Spe.CrKo.1tmin, Spe.CrWt.1tmin))))
-DEMus.NoSel<-NoDEMus[sort(sample(x=1:length(NoDEMus),
-                                 size=500-length(DEMus.Sel)))]
+
+MusBmKo <- sort(c(grep(".00001",PatDE_BmKo,fixed=TRUE),
+                  grep(".0001",PatDE_BmKo,fixed=TRUE),
+                  RdSel(grep(".001",PatDE_BmKo,fixed=TRUE),30),
+                  RdSel(grep(".01",PatDE_BmKo,fixed=TRUE),15),
+                  RdSel(grep(".1",PatDE_BmKo,fixed=TRUE),8))) # 63
+
+MusBmWt <- sort(c(grep(".00001",PatDE_BmWt,fixed=TRUE),
+                  RdSel(grep(".0001",PatDE_BmWt,fixed=TRUE),60),
+                  RdSel(grep(".001",PatDE_BmWt,fixed=TRUE),130),
+                  RdSel(grep(".01",PatDE_BmWt,fixed=TRUE),155),
+                  grep(".1",PatDE_BmWt,fixed=TRUE))) # 355
+
+MusCrKo <- sort(c(grep(".00001",PatDE_CrKo,fixed=TRUE),
+                  grep(".0001",PatDE_CrKo,fixed=TRUE),
+                  grep(".001",PatDE_CrKo,fixed=TRUE),
+                  grep(".01",PatDE_CrKo,fixed=TRUE),
+                  grep(".1",PatDE_CrKo,fixed=TRUE))) # 48
+
+MusCrWt <- sort(c(grep(".00001",PatDE_CrWt,fixed=TRUE),
+                  RdSel(grep(".0001",PatDE_CrWt,fixed=TRUE),35),
+                  RdSel(grep(".001",PatDE_CrWt,fixed=TRUE),145),
+                  RdSel(grep(".01",PatDE_CrWt,fixed=TRUE),150),
+                  grep(".1",PatDE_CrWt,fixed=TRUE))) # 367
+
+SignatureBmKo <- which(apply(mus2DEres[,2:6],1,sum)>0)# 39
+SignatureBmWt <- which(apply(mus2DEres[,7:11],1,sum)>0)# 4
+SignatureCrKo <- which(apply(mus2DEres[,12:16],1,sum)>0)# 11
+SignatureCrWt <- which(apply(mus2DEres[,17:21],1,sum)>0)# 20
+
+Spe.BmKo.1tmin <- which(mus2DEres$Specific.genes_BmKo_1t.min>0)# 611
+Spe.BmWt.1tmin <- which(mus2DEres$Specific.genes_BmWt_1t.min>0)# 7
+Spe.CrKo.1tmin <- which(mus2DEres$Specific.genes_CrKo_1t.min>0)# 203
+Spe.CrWt.1tmin <- which(mus2DEres$Specific.genes_CrWt_1t.min>0)# 33
+
+DEMus.Sel <- sort(unique(c(setdiff(setdiff(setdiff(MusBmKo,MusBmWt), MusCrKo),
+                                   MusCrWt),
+                           RdSel(SignatureBmKo, 20),
+                           SignatureBmWt, SignatureCrKo, SignatureCrWt,
+                           RdSel(Spe.BmKo.1tmin, 230),
+                           Spe.BmWt.1tmin,
+                           RdSel(Spe.CrKo.1tmin, 100),
+                           RdSel(Spe.CrWt.1tmin, 15))))# 413
+
+DE1tmin_BmKo <- which(mus2DEres$DE.1time.minimum_BmKo>0)
+DE1tmin_BmWt <- which(mus2DEres$DE.1time.minimum_BmWt>0)
+DE1tmin_CrKo <- which(mus2DEres$DE.1time.minimum_CrKo>0)
+DE1tmin_CrWt <- which(mus2DEres$DE.1time.minimum_CrWt>0)
+
+NoDEMus <- setdiff(seq_len(nrow(mus2DEres)),
+                   sort(unique(c(DE1tmin_BmKo, DE1tmin_BmWt,
+                                 DE1tmin_CrKo, DE1tmin_CrWt,
+                                 Spe.BmKo.1tmin, Spe.BmWt.1tmin,
+                                 Spe.CrKo.1tmin, Spe.CrWt.1tmin))))
+DEMus.NoSel <- NoDEMus[sort(sample(x=seq_len(length(NoDEMus)),
+                                   size=500-length(DEMus.Sel)))]
 #-----------------------------------------------------------------------------#
-MusBmCrKoWt<-sort(c(DEMus.Sel, DEMus.NoSel))
+MusBmCrKoWt <- sort(c(DEMus.Sel, DEMus.NoSel))
 # id.Colnames.Mus<-c(1, 1+order(rep(seq(0,90,6),each=6)
 # +rep(c(2,3,1,4,5,6),times=16)))
-id.Colnames.Mus<-1:ncol(Datageo3)
-RawCounts_Weger2021_MOUSEsub500<-Datageo3[MusBmCrKoWt, id.Colnames.Mus]
+id.Colnames.Mus <- seq_len(ncol(Datageo3))
+RawCounts_Weger2021_MOUSEsub500 <- Datageo3[MusBmCrKoWt, id.Colnames.Mus]
 #
 # usethis::use_data(RawCounts_Weger2021_MOUSEsub500, overwrite = TRUE)
 # usethis::use_r("RawCounts_Weger2021_MOUSEsub500")
@@ -485,26 +491,71 @@ resDEMUS2<-DEanalysisGlobal(SEres=resSEmus2500,
                             Plot.DE.graph =FALSE,
                             path.result=NULL,
                             Name.folder.DE=NULL)
+
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+## names(metadata(resDEMus1)$DESeq2obj)
+resDEmus1SUB <- resDEMus1
+colDatamus1 <- SummarizedExperiment::colData(resDEMus1)[, c(1, 2)]
+RLEmus1 <- SummarizedExperiment::assays(resDEMus1)##$rle
+DESeq2mus1 <- S4Vectors::metadata(resDEMus1)$DESeq2obj[c(4, 5, 6, 7)] ## 2
+metaDEmus1 <- S4Vectors::metadata(resDEMus1)[-c(1, 2)]
+
+SummarizedExperiment::colData(resDEmus1SUB) <- colDatamus1
+SummarizedExperiment::assays(resDEmus1SUB) <- RLEmus1 ##list(rle=RLEmus1)
+S4Vectors::metadata(resDEmus1SUB) <- metaDEmus1
+S4Vectors::metadata(resDEmus1SUB)$DESeq2obj <- DESeq2mus1
+
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+## names(metadata(resDEFission)$DESeq2obj)
+resDEfissionSUB <- resDEFission
+colDatafission <- SummarizedExperiment::colData(resDEFission)[, c(1, 2)]
+RLEfission <- SummarizedExperiment::assays(resDEFission)##$rle
+DESeq2fission <- S4Vectors::metadata(resDEFission)$DESeq2obj[c(4, 5, 6, 7)]
+metaDEfission <- S4Vectors::metadata(resDEFission)[-c(1, 2)]
+
+SummarizedExperiment::colData(resDEfissionSUB) <- colDatafission
+SummarizedExperiment::assays(resDEfissionSUB) <- RLEfission##list(rle=RLEfission)
+S4Vectors::metadata(resDEfissionSUB) <- metaDEfission
+S4Vectors::metadata(resDEfissionSUB)$DESeq2obj <- DESeq2fission
+
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+## names(metadata(resDELeuk)$DESeq2obj)
+resDELeukSUB <- resDELeuk
+colDataLeuk <- SummarizedExperiment::colData(resDELeuk)[, c(1,2,3)]
+RLEleuk <- SummarizedExperiment::assays(resDELeuk)##$rle
+DESeq2leuk <- S4Vectors::metadata(resDELeuk)$DESeq2obj[c(4, 5, 6, 7)]
+metaDEleuk <- S4Vectors::metadata(resDELeuk)[-c(1, 2)]
+
+SummarizedExperiment::colData(resDELeukSUB) <- colDataLeuk
+SummarizedExperiment::assays(resDELeukSUB) <- RLEleuk##list(rle=RLEleuk)
+S4Vectors::metadata(resDELeukSUB) <- metaDEleuk
+S4Vectors::metadata(resDELeukSUB)$DESeq2obj <- DESeq2leuk
+
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+## names(metadata(resDELeukSUB)$DESeq2obj)
+# resDEmus2SUB <- resDEMUS2
+# colDatamus2 <- SummarizedExperiment::colData(resDEMUS2)[, c(1,2,3)]
+# RLEmus2 <- SummarizedExperiment::assays(resDEMUS2)$rle
+# DESeq2mus2 <- S4Vectors::metadata(resDEMUS2)$DESeq2obj[c(5, 6, 7)]
+# metaDEmus2 <- S4Vectors::metadata(resDEMUS2)[-c(1, 2, 3)]
 #
+# SummarizedExperiment::colData(resDEmus2SUB) <- colDatamus2
+# SummarizedExperiment::assays(resDEmus2SUB) <- list(rle=RLEmus2)
+# S4Vectors::metadata(resDEmus2SUB) <- metaDEmus2
+# S4Vectors::metadata(resDEmus2SUB)$DESeq2obj <- DESeq2mus2
+
 #-----------------------------------------------------------------------------#
-# List.Datas, Path.result, Folder.result
-resDEMus1F<-within(resDEMus1, rm(List.Glossary, ## Summary.Inputs,
-                                 DESeq.dds))
-##List.Plots.DE.Analysis,
-resDEFissionF<-within(resDEFission, rm(List.Glossary, ## Summary.Inputs,
-                                       DESeq.dds))
-##List.Plots.DE.Analysis,
-resDELeukF<-within(resDELeuk, rm(List.Glossary, ## Summary.Inputs,
-                                 DESeq.dds))
-##List.Plots.DE.Analysis,
-resDEMUS2F<-within(resDEMUS2, rm(List.Glossary, ##Summary.Inputs,
-                                 DESeq.dds))
-###List.Plots.DE.Analysis,
 #-----------------------------------------------------------------------------#
-Results_DEanalysis_sub500<-list(DE_Antoszewski2022_MOUSEsub500=resDEMus1F,
-                                DE_Leong2014_FISSIONsub500wt=resDEFissionF,
-                                DE_Schleiss2021_CLLsub500=resDELeukF)
-## DE_Weger2021_MOUSEsub500=resDEMUS2F
+Results_DEanalysis_sub500<-list(DE_Antoszewski2022_MOUSEsub500=resDEmus1SUB,
+                                DE_Leong2014_FISSIONsub500wt=resDEfissionSUB,
+                                DE_Schleiss2021_CLLsub500=resDELeukSUB)
+## DE_Weger2021_MOUSEsub500=resDEmus2SUB
 
 # usethis::use_data(Results_DEanalysis_sub500, overwrite=TRUE)
 # usethis::use_r("Results_DEanalysis_sub500") # pour creer une fonction
