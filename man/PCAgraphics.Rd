@@ -126,9 +126,10 @@ If \code{Name.file.pca} is a character, \code{Name.file.pca} will be added
 at the beginning of all names of the saved graphs.}
 }
 \value{
-The function returns the outputs from the function
-\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}
-and several 2D and 3D PCA graphs depending
+The function returns the same SummarizedExperiment class object
+\code{SEresNorm} with the outputs from the function
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}},
+and plots several 2D and 3D PCA graphs depending
 on the experimental design (if \code{Plot.PCA=TRUE})
 \itemize{
 \item When samples belong only to different biological conditions,

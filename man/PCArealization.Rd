@@ -44,7 +44,7 @@ of the PCA from the data set as input \code{RawCounts} of our function
 If \code{sample.deletion=NULL} all samples will be used
 in the construction of the PCA.}
 
-\item{Supp.del.sample}{\code{TRUE} or \code{FALSE}.
+\item{Supp.del.sample}{\code{TRUE} or \code{FALSE}. \code{FALSE} by default.
 If \code{FALSE}, the samples selected with \code{sample.deletion} will
 be deleted.
 If \code{TRUE}, the samples selected with \code{sample.deletion} will
@@ -53,7 +53,8 @@ These individuals are called supplementary individuals in
 \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 }
 \value{
-The function returns the output of the
+The function returns the same SummarizedExperiment class object
+\code{SEresNorm} but with the output of the
 \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}
 function (see
 \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}).
@@ -83,17 +84,17 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              Plot.Boxplot=FALSE,
                              Colored.By.Factors=FALSE)
 ##-------------------------------------------------------------------------#
-resPCAex<-PCArealization(SEresNorm=resNorm,
-                         DATAnorm=TRUE,
-                         gene.deletion=c(3,5),
-                         sample.deletion=c("G1_t0_Ind2","G1_t1_Ind3"),
-                         Supp.del.sample=FALSE)
+resPCAex <- PCArealization(SEresNorm=resNorm,
+                           DATAnorm=TRUE,
+                           gene.deletion=c(3,5),
+                           sample.deletion=c("G1_t0_Ind2","G1_t1_Ind3"),
+                           Supp.del.sample=FALSE)
 ##-------------------------------------------------------------------------#
-resPCAex<-PCArealization(SEresNorm=resNorm,
-                         DATAnorm=TRUE,
-                         gene.deletion=c("Gene3","Gene5"),
-                         sample.deletion=c(3,8),
-                         Supp.del.sample=TRUE)
+resPCAex2 <- PCArealization(SEresNorm=resNorm,
+                            DATAnorm=TRUE,
+                            gene.deletion=c("Gene3","Gene5"),
+                            sample.deletion=c(3,8),
+                            Supp.del.sample=TRUE)
 }
 \seealso{
 The \code{\link[=PCArealization]{PCArealization()}} function

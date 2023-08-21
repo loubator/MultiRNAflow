@@ -26,7 +26,8 @@ Each corresponds to a method of normalization proposed by \code{DESeq2} (see
 \code{\link[DESeq2:rlog]{DESeq2::rlog()}} for "rlog" and
 \code{\link[DESeq2:vst]{DESeq2::vst()}} for "vst").}
 
-\item{Blind.rlog.vst}{\code{TRUE} or \code{FALSE}. See input 'blind' in
+\item{Blind.rlog.vst}{\code{TRUE} or \code{FALSE}. \code{FALSE} by default.
+See input 'blind' in
 \code{\link[DESeq2:rlog]{DESeq2::rlog()}}.
 It is recommended to set \code{Blind.rlog.vst=FALSE}
 for downstream analysis.}
@@ -37,6 +38,7 @@ If \code{Plot.Boxplot=TRUE}, the function
 called and boxplots will be plotted. Otherwise, no boxplots will be plotted.}
 
 \item{Colored.By.Factors}{\code{TRUE} or \code{FALSE}.
+\code{FALSE} by default.
 If \code{TRUE}, boxplots will be colored with different colors for different
 time measurements (if data were collected at different time points).
 Otherwise, boxplots will be colored with different colors for different
@@ -44,6 +46,7 @@ biological conditions.}
 
 \item{Color.Group}{\code{NULL} or a data.frame with \eqn{N_{bc}} rows and
 two columns where \eqn{N_{bc}} is the number of biological conditions.
+\code{NULL} by default.
 If \code{Color.Group} is a data.frame, the first column must contain
 the name of each biological condition and the second column must contain
 the colors associated to each biological condition.
@@ -52,12 +55,13 @@ color for each biological condition.
 If samples belong to different time points only,
 \code{Color.Group} will not be used.}
 
-\item{Plot.genes}{\code{TRUE} or \code{FALSE}.
+\item{Plot.genes}{\code{TRUE} or \code{FALSE}. \code{FALSE} by default.
 If \code{TRUE}, points representing gene expressions
 (normalized or raw counts) will be plotted for each sample.
 Otherwise, only boxplots will be plotted.}
 
-\item{path.result}{Character or \code{NULL}. Path to save all results.
+\item{path.result}{Character or \code{NULL}. \code{NULL} by default.
+Path to save all results.
 If \code{path.result} contains a sub folder entitled
 "1_Normalization_\code{Name.folder.norm}"
 all results will be saved in the sub folder
@@ -67,20 +71,16 @@ will be created in \code{path.result} and all results will be saved in
 "1_Normalization_\code{Name.folder.norm}".
 If NULL, the results will not be saved in a folder. NULL as default.}
 
-\item{Name.folder.norm}{Character or \code{NULL}.
+\item{Name.folder.norm}{Character or \code{NULL}. \code{NULL} by default.
 If \code{Name.folder.norm} is a character,
 the folder name which will contain the results will be
 "1_Normalization_\code{Name.folder.norm}".
 Otherwise, the folder name will be "1_Normalization".}
 }
 \value{
-The function returns
-\itemize{
-\item a normalized count data.frame
-\item A SummarizedExperiment object identical as \code{SEres} but with
-the normalized data included (\code{SEresNorm}).
+The function returns a SummarizedExperiment object identical as
+\code{SEres} but with the normalized count data included (\code{SEresNorm})
 and plots a boxplot (if \code{Plot.Boxplot=TRUE}).
-}
 }
 \description{
 From raw counts, this function realizes one of
@@ -111,8 +111,6 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              Normalization="rle",
                              Plot.Boxplot=TRUE,
                              Colored.By.Factors=TRUE)
-##
-## print(resNorm$NormalizedBoxplot)
 }
 \seealso{
 The \code{\link[=DATAnormalization]{DATAnormalization()}}

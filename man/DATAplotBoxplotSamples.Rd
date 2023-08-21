@@ -20,10 +20,12 @@ DATAplotBoxplotSamples(
 \code{\link[=DATAnormalization]{DATAnormalization()}}.}
 
 \item{Log2.transformation}{\code{TRUE} or \code{FALSE}.
+\code{TRUE} by default.
 If \code{TRUE}, each numeric value \eqn{x} in \code{ExprData} will become
 \eqn{log_2(x+1)} (see \code{Details}).}
 
 \item{Colored.By.Factors}{\code{TRUE} or \code{FALSE}.
+\code{FALSE} by default.
 If \code{TRUE}, boxplots will be colored with different colors for different
 time measurements (if data were collected at different time points).
 Otherwise, boxplots will be colored with different colors for
@@ -31,6 +33,7 @@ different biological conditions.}
 
 \item{Color.Group}{\code{NULL} or a data.frame with \eqn{N_{bc}} rows and
 two columns where \eqn{N_{bc}} is the number of biological conditions.
+\code{NULL} by default.
 If \code{Color.Group} is a data.frame, the first column must contain
 the name of each biological condition and the second column must contain
 the colors associated to each biological condition.
@@ -39,11 +42,11 @@ color for each biological condition.
 If samples belong to different time points only,
 \code{Color.Group} will not be used.}
 
-\item{Plot.genes}{\code{TRUE} or \code{FALSE}.
+\item{Plot.genes}{\code{TRUE} or \code{FALSE}. \code{FALSE} by default.
 If \code{TRUE}, points representing gene expression
 (normalized or raw counts) will be added for each sample.}
 
-\item{y.label}{\code{NULL} or a character. \code{NULL} as default.
+\item{y.label}{\code{NULL} or a character. \code{NULL} by default.
 If \code{y.label} is a character, it will be the y label of the graph.
 If \code{y.label=NULL}, the label will be either "log2(Gene expression +1)"
 (if \code{Log2.transformation=TRUE}) or "Gene expression"

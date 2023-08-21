@@ -5,7 +5,7 @@
 \alias{Results_DEanalysis_sub500}
 \title{DE results of three dataset}
 \format{
-A list of 3 lists.
+A list of 3 SummarizedExperiment class object
 }
 \usage{
 data(Results_DEanalysis_sub500)
@@ -26,9 +26,14 @@ RawCounts_Leong2014_FISSIONsub500wt and
 RawCounts_Schleiss2021_CLLsub500
 }
 \details{
-Each list in Results_DEanalysis_sub500 contains the outputs
-"Summary.Inputs", "DE.results" and "List.Glossary" of
-\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
+Each list in Results_DEanalysis_sub500 contains only the necessary outputs
+of \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}},
+needed for the functions:
+\code{\link[=DEplotVolcanoMA]{DEplotVolcanoMA()}},
+\code{\link[=DEplotHeatmaps]{DEplotHeatmaps()}},
+\code{\link[=GSEApreprocessing]{GSEApreprocessing()}},
+and
+\code{\link[=GSEAQuickAnalysis]{GSEAQuickAnalysis()}},
 for each of the following raw counts :
 RawCounts_Weger2021_MOUSEsub500,
 RawCounts_Leong2014_FISSIONsub500wt and

@@ -5,7 +5,7 @@
 \title{Volcano and MA graphs}
 \usage{
 DEplotVolcanoMA(
-  Res.DE.analysis,
+  SEresDE,
   NbGene.plotted = 2,
   SizeLabel = 3,
   Display.plots = TRUE,
@@ -13,7 +13,7 @@ DEplotVolcanoMA(
 )
 }
 \arguments{
-\item{Res.DE.analysis}{A list. Output from
+\item{SEresDE}{A SummarizedExperiment class object. Output from
 \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
 (see \code{Examples}).}
 
@@ -82,23 +82,34 @@ each pair of biological conditions, for all fixed time point.
 }
 }
 \examples{
-data(Results_DEanalysis_sub500)
-## Results of DEanalysisGlobal() with the dataset of Antoszewski
-res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
+## data importation
+data(RawCounts_Antoszewski2022_MOUSEsub500)
+## No time points. We take only two groups for the speed of the example
+dataT1wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200), seq_len(7)]
 
-resVolcanoMA<-DEplotVolcanoMA(res.all,
-                              NbGene.plotted=5,
-                              Display.plots=TRUE,
-                              Save.plots=FALSE)
+## Preprocessing with Results of DEanalysisGlobal()
+resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
+                            Column.gene=1,
+                            Group.position=1,
+                            Time.position=NULL,
+                            Individual.position=2)
+##-------------------------------------------------------------------------#
+## DE analysis
+resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
+                              pval.min=0.05,
+                              pval.vect.t=NULL,
+                              log.FC.min=1,
+                              LRT.supp.info=FALSE,
+                              Plot.DE.graph=FALSE,
+                              path.result=NULL,
+                              Name.folder.DE=NULL)
 
 ##-------------------------------------------------------------------------#
-## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-## data(RawCounts_Antoszewski2022_MOUSEsub500)
-## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-##                           Column.gene=1, Group.position=1,
-##                           Time.position=NULL, Individual.position=2,
-##                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
-##                           path.result=NULL, Name.folder.DE=NULL)
+## Volcano MA
+resVolcanoMA <- DEplotVolcanoMA(SEresDE=resDET1wt,
+                                NbGene.plotted=5,
+                                Display.plots=TRUE,
+                                Save.plots=FALSE)
 }
 \seealso{
 The function calls the output of

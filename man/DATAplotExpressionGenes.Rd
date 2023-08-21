@@ -18,10 +18,10 @@ DATAplotExpressionGenes(
 \item{SEresNorm}{Results of the function
 \code{\link[=DATAnormalization]{DATAnormalization()}}.}
 
-\item{Vector.row.gene}{Vector of integer indicating the rows of the genes
-to be plotted.}
+\item{Vector.row.gene}{Vector of non negative integers indicating
+the rows of the genes to be plotted.}
 
-\item{DATAnorm}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+\item{DATAnorm}{\code{TRUE} or \code{FALSE}. \code{TRUE} by default.
 \code{TRUE} means the function plots gene normalized expression profiles.
 \code{FALSE} means the function plots gene raw expression profiles.}
 
@@ -33,13 +33,14 @@ the colors associated to each biological condition.
 If \code{Color.Group=NULL}, the function will automatically attribute
 a color for each biological condition.
 If samples belong to different time points only,
-\code{Color.Group} will not be used.}
+\code{Color.Group} will not be used. \code{NULL} by default.}
 
-\item{Plot.Expression}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+\item{Plot.Expression}{\code{TRUE} or \code{FALSE}. \code{TRUE} by default.
 If \code{TRUE}, the graph will be plotted.
 Otherwise no graph will be plotted.}
 
-\item{path.result}{Character or \code{NULL}. Path to save all results.
+\item{path.result}{Character or \code{NULL}. \code{NULL} by default.
+Path to save all results.
 If \code{path.result} contains a sub folder entitled
 "1_UnsupervisedAnalysis_\code{Name.folder.profile}" and a sub sub folder,
 "1-5_ProfileExpression_\code{Name.folder.profile}"
@@ -54,7 +55,7 @@ will be created in \code{path.result} and all results will be saved in
 1-5_ProfileExpression_\code{Name.folder.profile}".
 If NULL, the results will not be saved in a folder. NULL as default.}
 
-\item{Name.folder.profile}{Character or \code{NULL}.
+\item{Name.folder.profile}{Character or \code{NULL}. \code{NULL} by default.
 If \code{Name.folder.profile} is a character, the folder and
 sub folder names which will contain the PCA graphs will respectively be
 "1_UnsupervisedAnalysis_\code{Name.folder.profile}" and

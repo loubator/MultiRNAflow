@@ -48,7 +48,8 @@ a color for each biological condition.}
 }
 \value{
 The function will plot a facet grid barplot.
-The function is called by our function \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}
+The function is called by our function
+\code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}
 in order to plot the number of specific (up- or down-regulated) DE genes
 per biological condition for each time points.
 }
@@ -90,7 +91,10 @@ DEplotBarplotFacetGrid(Data=Melt.Dat.2,
 \seealso{
 The function
 \itemize{
-\item is called by the function \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}
-\item calls the R functions \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} and \code{\link[ggplot2:geom_bar]{ggplot2::geom_bar()}}.
+\item is called by the function
+\code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}
+\item calls the R functions
+\code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} and
+\code{\link[ggplot2:geom_bar]{ggplot2::geom_bar()}}.
 }
 }

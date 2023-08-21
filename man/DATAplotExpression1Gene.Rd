@@ -9,7 +9,7 @@ DATAplotExpression1Gene(SEres, row.gene = 1, Color.Group = NULL)
 \arguments{
 \item{SEres}{Results of either our R function
 \code{\link[=DATAprepSE]{DATAprepSE()}},
-either our R function
+or our R function
 \code{\link[=DATAnormalization]{DATAnormalization()}}.}
 
 \item{row.gene}{Non negative integer indicating the row of the gene

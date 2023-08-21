@@ -16,8 +16,10 @@ DEanalysisGlobal(
 )
 }
 \arguments{
-\item{SEres}{Results of the function
-\code{\link[=DATAprepSE]{DATAprepSE()}}.}
+\item{SEres}{Results of either our R function
+\code{\link[=DATAprepSE]{DATAprepSE()}},
+or our R function
+\code{\link[=DATAnormalization]{DATAnormalization()}}.}
 
 \item{pval.min}{Numeric value between 0 and 1. A gene will be considered as
 differentially expressed (DE) between two biological conditions if
@@ -68,9 +70,10 @@ contain all results will be "DEanalysis_\code{Name.folder.DE}".
 Otherwise, the folder name will be "DEanalysis".}
 }
 \value{
-The function \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
-returns first the raw counts and
-the rle normalized data automatically realized by
+The different results which are not plots are saved in the
+SummarizedExperiment class object \code{SEres}. The function
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} returns
+first the raw counts and the rle normalized data automatically realized by
 \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}
 (output \code{RLEdata}). Then
 \itemize{
@@ -296,13 +299,16 @@ or samples belonging to different time measurements
 and different biological conditions.
 }
 \details{
-All results are built from the results of the function
-\code{\link[=DATAprepSE]{DATAprepSE()}}.
+All results are built from the results of either our R function
+\code{\link[=DATAprepSE]{DATAprepSE()}},
+or our R function
+\code{\link[=DATAnormalization]{DATAnormalization()}}.
 }
 \examples{
 data(RawCounts_Antoszewski2022_MOUSEsub500)
 ## No time points. We take only two groups for the speed of the example
-RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
+RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200),
+                                                        seq_len(7)]
 ##-------------------------------------------------------------------------#
 ## Preprocessing
 resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
@@ -311,7 +317,7 @@ resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
                             Time.position=NULL,
                             Individual.position=2)
 ##-------------------------------------------------------------------------#
-##
+## DE analysis
 resDE <- DEanalysisGlobal(SEres=resDATAprepSE,
                           pval.min=0.05,
                           pval.vect.t=NULL,

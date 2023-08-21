@@ -9,7 +9,7 @@ MFUZZclustersNumber(
   SEresNorm,
   DATAnorm = TRUE,
   Method = "hcpc",
-  Max.clust,
+  Max.clust = 3,
   Min.std = 0.1,
   Plot.Cluster = TRUE,
   path.result = NULL
@@ -143,6 +143,8 @@ graphics::matplot(t(rbind(DATAclustSIM[, 1:3], DATAclustSIM[, 4:6],
 
 ##-------------------------------------------------------------------------#
 ## Preprocessing step
+DATAclustSIM <- data.frame(DATAclustSIM)
+
 resDATAprepSE <- DATAprepSE(RawCounts=DATAclustSIM,
                             Column.gene=NULL,
                             Group.position=1,

@@ -15,8 +15,10 @@ PCApreprocessing(SEresNorm, DATAnorm = TRUE)
 \code{FALSE} means the function uses the raw counts data.}
 }
 \value{
-A reshape of the originally dataset which corresponds to
-a data.frame with (\eqn{N_g+k}) columns and \eqn{N_s} rows, where
+The function returns a SummarizedExperiment class object containing
+information and a reshape of the originally dataset for the PCA analysis.
+The reshaped dataset which corresponds to a data.frame with
+(\eqn{N_g+k}) columns and \eqn{N_s} rows, where
 \eqn{N_g} is the number of genes, \eqn{N_s} is the number of samples and
 \itemize{
 \item \eqn{k=1} if samples belong to different biological condition or
@@ -33,8 +35,9 @@ The other \eqn{N_g} columns form a sub data.frame which is a transpose of
 the data.frame composed of the \eqn{N_s} numeric columns of \code{ExprData}.
 }
 \description{
-The function generates a dataset reshaped from the original
-dataset, to be used by the function
+The function generates a SummarizedExperiment class object
+containing the dataset reshaped from the original dataset,
+to be used by the function
 \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}},
 which performs the Principal Component Analysis (PCA).
 This function is called by the function

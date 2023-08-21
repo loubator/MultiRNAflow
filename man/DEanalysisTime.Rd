@@ -22,8 +22,8 @@ DEanalysisTime(
 \item{pval.min}{Numeric value between 0 and 1. A gene will be considered as
 differentially expressed (DE) between two biological conditions if
 its Benjamini-Hochberg adjusted p-value
-(see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below the threshold pval.min.
-Default value is 0.05}
+(see \code{\link[stats:p.adjust]{stats::p.adjust()}})
+is below the threshold pval.min. Default value is 0.05}
 
 \item{pval.vect.t}{\code{NULL} or vector of dimension \eqn{T-1} filled with
 numeric values between 0 and 1, with \eqn{T} the number of time
@@ -103,7 +103,8 @@ the reference time t0.
 \examples{
 data(RawCounts_Leong2014_FISSIONsub500wt)
 ## We take only the first three time for the speed of the example
-RawCounts_Fission_3t<-RawCounts_Leong2014_FISSIONsub500wt[,1:10]
+RawCounts_Fission_3t<-RawCounts_Leong2014_FISSIONsub500wt[seq_len(200),
+                                                          seq_len(10)]
 
 ## Preprocessing step
 resDATAprepSEfission <- DATAprepSE(RawCounts=RawCounts_Fission_3t,
@@ -112,9 +113,11 @@ resDATAprepSEfission <- DATAprepSE(RawCounts=RawCounts_Fission_3t,
                                    Time.position=2,
                                    Individual.position=3)
 
+DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEfission)$DESeq2obj
+DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
+
 ##-------------------------------------------------------------------------#
-dds.DE.T<-DESeq2::DESeq(resDATAprepSEfission$DESeq2.obj,
-                        quiet=TRUE, betaPrior=FALSE)
+dds.DE.T<-DESeq2::DESeq(DESeq2obj, quiet=TRUE, betaPrior=FALSE)
 ##
 res.T<-DEanalysisTime(DESeq.result=dds.DE.T,
                       pval.min=0.05,

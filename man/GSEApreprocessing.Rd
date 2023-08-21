@@ -5,7 +5,7 @@
 \title{GSEA preprocessing for official software and online tools.}
 \usage{
 GSEApreprocessing(
-  Res.DE.analysis,
+  SEresDE,
   ColumnsCriteria,
   Set.Operation,
   Rnk.files = TRUE,
@@ -13,15 +13,15 @@ GSEApreprocessing(
 )
 }
 \arguments{
-\item{Res.DE.analysis}{A list corresponding to the output from
-\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} (see \code{Examples}).}
+\item{SEresDE}{A SummarizedExperiment class object. Output from
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
+(see \code{Examples}).}
 
-\item{ColumnsCriteria}{A vector of integers where each integer indicates a
-column of \code{Res.DE.analysis$DE.results}.
+\item{ColumnsCriteria}{A vector of integers where each integer indicates
+a column of  \code{SummarizedExperiment::rowData(SEresDE)}.
 These columns should either contain only binary values, or may contain other
-numerical value, in which case extracted rows from
-\code{Res.DE.analysis$DE.results} will be those with >0 values
-(see \code{Details}).}
+numerical value, in which case extracted outputs from \code{SEresDE}
+will be those with >0 values (see \code{Details}).}
 
 \item{Set.Operation}{A character. The user must choose between "union"
 (default), "intersect", "setdiff" (see \code{Details}).}
@@ -72,42 +72,57 @@ specific files designed to be used as input for several online online tools
 and software given in the section \code{Value}.
 }
 \details{
+We have the following three cases:
 \itemize{
-\item If \code{Set.Operation="union"} then the rows (so genes) extracted from
-\code{Res.DE.analysis$DE.results} are those such that the sum of
-the selected columns in \code{Res.DE.analysis} is >0.
-For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-will be those DE at least at one time.
+\item If \code{Set.Operation="union"} then the rows extracted from
+the different datasets included in \code{SEresDE}
+are those such that the sum of the selected columns of
+\code{SummarizedExperiment::rowData(SEresDE)}
+by \code{ColumnsCriteria} is >0.
+For example, the selected genes can be those DE at least at t1 or t2
+(versus the reference time t0).
 \item If \code{Set.Operation="intersect"} then the rows extracted from
-\code{Res.DE.analysis$DE.results} are those such that the product of
-the selected columns in \code{Res.DE.analysis$DE.results} is >0.
-For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-will be those DE at all time ti (except the reference time t0).
-\item If \code{Set.Operation="setdiff"} then the rows extracted from data are
-those such that only one element of the selected columns in
-\code{Res.DE.analysis$DE.results} is >0.
-For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-will be those DE at only one time ti (except the reference time t0).
+the different datasets included in \code{SEresDE}
+are those such that the product of the selected columns of
+\code{SummarizedExperiment::rowData(SEresDE)}
+by \code{ColumnsCriteria} is >0.
+For example, the selected genes can be those DE at times t1 and t2
+(versus the reference time t0).
+\item If \code{Set.Operation="setdiff"} then the rows extracted from
+the different datasets included in \code{SEresDE}
+are those such that only one element of the selected columns of
+\code{SummarizedExperiment::rowData(SEresDE)}
+by \code{ColumnsCriteria} is >0.
+For example, the selected genes can be those DE at times t1 only and
+at times t2 only (versus the reference time t0).
 }
 }
 \examples{
-data(Results_DEanalysis_sub500)
-## Results of DEanalysisGlobal() with the dataset of Antoszewski
-res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
-##
-resGp<-GSEApreprocessing(Res.DE.analysis=res.all,
+data(RawCounts_Antoszewski2022_MOUSEsub500)
+## No time points. We take only two groups for the speed of the example
+RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[, seq_len(7)]
+##-------------------------------------------------------------------------#
+## Preprocessing
+resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
+                            Column.gene=1,
+                            Group.position=1,
+                            Time.position=NULL,
+                            Individual.position=2)
+##-------------------------------------------------------------------------#
+## DE analysis
+resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
+                              pval.min=0.05,
+                              pval.vect.t=NULL,
+                              log.FC.min=1,
+                              LRT.supp.info=FALSE,
+                              Plot.DE.graph=TRUE,
+                              path.result=NULL,
+                              Name.folder.DE=NULL)
+
+##-------------------------------------------------------------------------#
+resGp<-GSEApreprocessing(SEresDE=resDET1wt,
                          ColumnsCriteria=2,
                          Set.Operation="union",
                          Rnk.files=TRUE,
                          Save.files=FALSE)
-##
-##-------------------------------------------------------------------------#
-## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-## data(RawCounts_Antoszewski2022_MOUSEsub500)
-## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-##                           Column.gene=1, Group.position=1,
-##                           Time.position=NULL, Individual.position=2,
-##                           pval.min=0.05, log.FC.min=1,
-##                           LRT.supp.info=FALSE,
-##                           path.result=NULL, Name.folder.DE=NULL)
 }

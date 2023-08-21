@@ -141,8 +141,9 @@ Otherwise, the folder and sub folder names will respectively be
 "1_UnsupervisedAnalysis" and "1-2_PCAanalysis".}
 }
 \value{
-The function returns the outputs from the function
-\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}
+The function returns the same SummarizedExperiment class object
+\code{SEresNorm} with the outputs from the function
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}},
 and several 2D and 3D PCA graphs depending on the experimental design
 (if \code{Plot.PCA=TRUE})
 \itemize{

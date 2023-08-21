@@ -35,7 +35,8 @@ then the gene is not selected even if is considered as DE.
 Default value is 1. If \code{log.FC.min=0}, all DE genes will be kept.}
 }
 \value{
-The function returns
+The function returns the same DESeqDataSet class object
+\code{DESeq.result} with the following results:
 \itemize{
 \item a data.frame (output \code{Results}) which contains
 \itemize{
@@ -97,17 +98,21 @@ of the function
 ## Data
 data(RawCounts_Antoszewski2022_MOUSEsub500)
 ## No time points. We take only two groups for the speed of the example
-RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
+RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200),
+                                                      seq_len(7)]
 
 ## Preprocessing step
-resDATAprepSEmus2<- DATAprepSE(RawCounts=RawCounts_T1Wt,
+resDATAprepSEmus1<- DATAprepSE(RawCounts=RawCounts_T1Wt,
                                Column.gene=1,
                                Group.position=1,
                                Time.position=NULL,
                                Individual.position=2)
 
+DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEmus1)$DESeq2obj
+DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
+
 ##------------------------------------------------------------------------#
-dds.DE.G<-DESeq2::DESeq(resDATAprepSEmus2$DESeq2.obj)
+dds.DE.G<-DESeq2::DESeq(DESeq2obj)
 
 res.sum.G<-DEresultGroup(DESeq.result=dds.DE.G,
                          LRT.supp.info=FALSE,

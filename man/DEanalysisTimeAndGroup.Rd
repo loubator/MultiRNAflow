@@ -17,13 +17,14 @@ DEanalysisTimeAndGroup(
 )
 }
 \arguments{
-\item{DESeq.result}{Output from the function \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}.}
+\item{DESeq.result}{Output from the function
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}.}
 
 \item{LRT.supp.info}{\code{TRUE} or \code{FALSE}.
 If \code{TRUE}, the algorithm realizes another statistical test in order
 to detect if, among all biological conditions and/or times, at least one has
-a different behavior than the others
-(see the input \code{test} in \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}).}
+a different behavior than the others (see the input \code{test} in
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}).}
 
 \item{log.FC.min}{Non negative numeric value.
 If the log2 fold change between biological conditions or times has an
@@ -33,14 +34,17 @@ If \code{log.FC.min=0}, all DE genes will be kept.}
 
 \item{pval.min}{Numeric value between 0 and 1. A gene will be considered as
 differentially expressed (DE) between two biological conditions
-if its Benjamini-Hochberg adjusted p-value (see \code{\link[stats:p.adjust]{stats::p.adjust()}})
+if its Benjamini-Hochberg adjusted p-value
+(see \code{\link[stats:p.adjust]{stats::p.adjust()}})
 is below the threshold \code{pval.min}. Default value is 0.05}
 
-\item{pval.vect.t}{\code{NULL} or vector of dimension \eqn{T-1} filled with
-numeric values between 0 and 1, with \eqn{T} the number of time measurements.
+\item{pval.vect.t}{\code{NULL} or vector of dimension \eqn{T-1}
+filled with numeric values between 0 and 1,
+with \eqn{T} the number of time measurements.
 A gene will be considered as differentially expressed (DE) between the
 time ti and the reference time t0 if its Benjamini-Hochberg adjusted p-value
-(see \code{\link[stats:p.adjust]{stats::p.adjust()}}) is below the i-th threshold of \code{pval.vect.t}.
+(see \code{\link[stats:p.adjust]{stats::p.adjust()}})
+is below the i-th threshold of \code{pval.vect.t}.
 If NULL, \code{pval.vect.t} will be vector of dimension \eqn{T-1} filled
 with \code{pval.min}.}
 
@@ -135,8 +139,10 @@ condition associated to the given column. 0 otherwise.
 \itemize{
 \item a barplot which gives the number of DE genes between ti and the
 reference time t0, for each time ti (except the reference time t0) and
-biological condition (see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
-\item \eqn{N_{bc}} alluvial graphs of DE genes (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}),
+biological condition
+(see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
+\item \eqn{N_{bc}} alluvial graphs of DE genes
+(see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}),
 one per biological condition.
 \item \eqn{N_{bc}} graphs showing the number of DE genes as a function of time
 for each temporal group, one per biological condition. By temporal group,
@@ -172,8 +178,9 @@ for each biological condition.
 }
 }
 \description{
-The function realizes from the \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}} output
-the analysis of :
+The function realizes from the
+\code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}
+output the analysis of :
 \itemize{
 \item DE genes between all pairs of biological conditions for each fixed time.
 \item DE genes between all times ti and the reference time t0for each
@@ -185,17 +192,20 @@ data(RawCounts_Schleiss2021_CLLsub500)
 ## We take only the first three times (both group) for the speed of
 ## the example
 Index3t<-c(2:4,11:13,20:22, 29:31,38:40,47:49)
-RawCounts_P_NP_3t<-RawCounts_Schleiss2021_CLLsub500[,c(1,Index3t)]
+RawCounts_3t<-RawCounts_Schleiss2021_CLLsub500[seq_len(200), c(1,Index3t)]
 
 ## Preprocessing step
-resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_P_NP_3t,
+resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_3t,
                                 Column.gene=1,
                                 Group.position=2,
                                 Time.position=4,
                                 Individual.position=3)
 
+DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEleuk)$DESeq2obj
+DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
+
 ##------------------------------------------------------------------------#
-dds.DE<-DESeq2::DESeq(resDATAprepSEleuk$DESeq2.obj)
+dds.DE<-DESeq2::DESeq(DESeq2obj)
 ##
 res.G.T<-DEanalysisTimeAndGroup(DESeq.result=dds.DE,
                                 LRT.supp.info=FALSE,

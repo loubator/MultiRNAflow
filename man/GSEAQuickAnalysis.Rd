@@ -6,7 +6,7 @@
 \usage{
 GSEAQuickAnalysis(
   Internect.Connection = FALSE,
-  Res.DE.analysis,
+  SEresDE,
   ColumnsCriteria = 1,
   ColumnsLog2ordered = NULL,
   Set.Operation = "union",
@@ -19,20 +19,19 @@ GSEAQuickAnalysis(
 }
 \arguments{
 \item{Internect.Connection}{\code{TRUE} or \code{FALSE}.
-\code{FALSE} as default.
-If \code{TRUE}, the function realizes an enrichment analysis.
-If \code{FALSE}, the function returns a message indicating that
-the user must have an internet connection.}
+\code{FALSE} by default. If the user is sure to have an internet connection,
+the user must set \code{Internect.Connection=TRUE}, otherwise, the algorithm
+will not run.}
 
-\item{Res.DE.analysis}{A list corresponding to the output of
-\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.}
+\item{SEresDE}{A SummarizedExperiment class object. Output from
+\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}
+(see \code{Examples}).}
 
 \item{ColumnsCriteria}{A vector of integers where each integer indicates
-a column of \code{Res.DE.analysis$DE.results} to be selected for
-GSEA analysis. These columns should either contain only binary values,
-or may contain other numerical value, in which case extracted rows
-from \code{Res.DE.analysis$DE.results} will be those with >0 values
-(see \code{Details}).}
+a column of  \code{SummarizedExperiment::rowData(SEresDE)}.
+These columns should either contain only binary values, or may contain other
+numerical value, in which case extracted outputs from \code{SEresDE}
+will be those with >0 values (see \code{Details}).}
 
 \item{ColumnsLog2ordered}{\code{NULL} or a vector of integers.
 If \code{ColumnsLog2ordered} is a vector of integers, it corresponds to
@@ -86,8 +85,8 @@ The function returns
 \itemize{
 \item a data.frame which contains the outputs of
 \code{\link[gprofiler2:gost]{gprofiler2::gost()}}
-\item a Manhattan plot showing all GO names according to their pvalue.
-\item A lollipop graph showing the \code{MaxNumberGO} most important GO.
+\item a Manhattan plot showing all GO names according to their pvalue
+\item a lollipop graph showing the \code{MaxNumberGO} most important GO.
 }
 }
 \description{
@@ -108,51 +107,68 @@ and the last genes the lowest.
 See the input \code{ordered_query} of
 \code{\link[gprofiler2:gost]{gprofiler2::gost()}}
 and the vignette of \code{gprofiler2} for more details.
+
+We have the following three cases:
 \itemize{
-\item If \code{Set.Operation="union"} then the rows (so genes) extracted from
-\code{Res.DE.analysis$DE.results} are those such that the sum of
-the selected columns in \code{Res.DE.analysis} is >0.
-For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-will be those DE at least at one time.
+\item If \code{Set.Operation="union"} then the rows extracted from
+the different datasets included in \code{SEresDE}
+are those such that the sum of the selected columns of
+\code{SummarizedExperiment::rowData(SEresDE)}
+by \code{ColumnsCriteria} is >0.
+For example, the selected genes can be those DE at least at t1 or t2
+(versus the reference time t0).
 \item If \code{Set.Operation="intersect"} then the rows extracted from
-\code{Res.DE.analysis$DE.results} are those such that the product of
-the selected columns in \code{Res.DE.analysis$DE.results} is >0.
-For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-will be those DE at all time ti (except the reference time t0).
-\item If \code{Set.Operation="setdiff"} then the rows extracted from data
-are those such that only one element of the selected columns in
-\code{Res.DE.analysis$DE.results} is >0.
-For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-will be those DE at only one time ti (except the reference time t0).
+the different datasets included in \code{SEresDE}
+are those such that the product of the selected columns of
+\code{SummarizedExperiment::rowData(SEresDE)}
+by \code{ColumnsCriteria} is >0.
+For example, the selected genes can be those DE at times t1 and t2
+(versus the reference time t0).
+\item If \code{Set.Operation="setdiff"} then the rows extracted from
+the different datasets included in \code{SEresDE}
+are those such that only one element of the selected columns of
+\code{SummarizedExperiment::rowData(SEresDE)}
+by \code{ColumnsCriteria} is >0.
+For example, the selected genes can be those DE at times t1 only and
+at times t2 only (versus the reference time t0).
 }
 }
 \examples{
-data(Results_DEanalysis_sub500)
-## Results of DEanalysisGlobal() with the dataset of Antoszewski
-res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
+## data importation
+data(RawCounts_Antoszewski2022_MOUSEsub500)
+## No time points. We take only two groups for the speed of the example
+dataT1wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200), seq_len(7)]
+
+## Preprocessing with Results of DEanalysisGlobal()
+resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
+                            Column.gene=1,
+                            Group.position=1,
+                            Time.position=NULL,
+                            Individual.position=2)
 
 ##-------------------------------------------------------------------------#
-## Internet is needed in order to run the following lines of code
-## resGpA<-GSEAQuickAnalysis(Internect.Connection=FALSE,
-##                           Res.DE.analysis=res.all,
-##                           ColumnsCriteria=2,
-##                           ColumnsLog2ordered=NULL,
-##                           Set.Operation="union",
-##                           Organism="mmusculus",
-##                           MaxNumberGO=20,
-##                           Background=FALSE,
-##                           Display.plots=TRUE,
-##                           Save.plots=FALSE)
-##-------------------------------------------------------------------------#
-
-##-------------------------------------------------------------------------#
-## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-## data(RawCounts_Antoszewski2022_MOUSEsub500)
-## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-##                           Column.gene=1, Group.position=1,
-##                           Time.position=NULL, Individual.position=2,
-##                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
-##                           path.result=NULL, Name.folder.DE=NULL)
+## Internet is needed in order to run the following lines of code because
+## gprofileR2 needs an internet connection
+## DE analysis
+# resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
+#                               pval.min=0.05,
+#                               pval.vect.t=NULL,
+#                               log.FC.min=1,
+#                               LRT.supp.info=FALSE,
+#                               Plot.DE.graph=FALSE,
+#                               path.result=NULL,
+#                               Name.folder.DE=NULL)
+#########
+# resGs<-GSEAQuickAnalysis(Internect.Connection=TRUE,
+#                          SEresDE=resDET1wt,
+#                          ColumnsCriteria=3,
+#                          ColumnsLog2ordered=NULL,
+#                          Set.Operation="union",
+#                          Organism="mmusculus",
+#                          MaxNumberGO=20,
+#                          Background=FALSE,
+#                          Display.plots=TRUE,
+#                          Save.plots=FALSE)
 }
 \seealso{
 The function uses the R package \code{gprofiler2}

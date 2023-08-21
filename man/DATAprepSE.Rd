@@ -15,7 +15,7 @@ DATAprepSE(
 )
 }
 \arguments{
-\item{RawCounts}{Data.frame with \eqn{N_g} rows and (\eqn{N_{s+k}}) columns,
+\item{RawCounts}{Data.frame with \eqn{N_g} rows and (\eqn{N_{s}+k}) columns,
 where \eqn{N_g} is the number of genes,
 \eqn{N_s} is the number of samples and
 \eqn{k=1} if a column is used to specify gene names, or \eqn{k=0} otherwise.
@@ -74,14 +74,15 @@ The column name must be "ID".
 }}
 }
 \value{
-The function returns the \code{DESeq2} object for DE analysis and
-the raw counts data (a matrix of non-negative integers).
+The function returns a SummarizedExperiment object containing
+all information for exploratory (unsupervised) analysis and
+DE statistical analysis.
 }
 \description{
-This function creates automatically
+This function creates automatically  a SummarizedExperiment (SE) object
+from raw counts data to store
 \itemize{
-\item a SummarizedExperiment (SE) object from raw counts data to store all
-information for exploratory (unsupervised) analysis using the R function
+\item information for exploratory (unsupervised) analysis using the R function
 \code{\link[SummarizedExperiment:RangedSummarizedExperiment-class]{SummarizedExperiment::SummarizedExperiment()}}
 \item a DESeq2 object from raw counts data in order to store all information
 for statistical (supervised) analysis using the R function
@@ -139,7 +140,6 @@ resDATAprepSE <- DATAprepSE(RawCounts=RawCountEx,
                             Individual.position=2)
 ##
 ## colDataEx <- data.frame(Group=BCex, Time=TimeEx, ID=PATex)
-## print(resDATAprepSE)
 }
 \seealso{
 The \code{\link[=DATAprepSE]{DATAprepSE()}} function

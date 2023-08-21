@@ -134,6 +134,8 @@ graphics::matplot(t(rbind(DATAclustSIM[, 1:3], DATAclustSIM[, 4:6],
 
 ##-------------------------------------------------------------------------#
 ## Preprocessing step
+DATAclustSIM <- data.frame(DATAclustSIM)
+
 resDATAprepSE <- DATAprepSE(RawCounts=DATAclustSIM,
                             Column.gene=NULL,
                             Group.position=1,
