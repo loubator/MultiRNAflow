@@ -32,4 +32,13 @@ Suggestions and remarks from a bioconductor team member
 * More unit tests (now 45 unit tests in 25 files)
 * add the R file `MultiRNAflow-package.R` for man folder
 
+# Changes in versions: 0.99.9
+
+Suggestions and remarks from a bioconductor team member
+
+* modification of outputs in order to replace list ouputs by SE class object
+* Vignette (`Running_analysis_with_MultiRNAflow.Rmd`)
+  - modification because ouputs modification 
+* More unit tests (now 197 unit tests in 31 files), coverage = 60/100
+
 
