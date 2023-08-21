@@ -34,7 +34,7 @@
 #' [DATAprepSE()].
 #' If \code{sample.deletion=NULL} all samples will be used
 #' in the construction of the PCA.
-#' @param Supp.del.sample \code{TRUE} or \code{FALSE}.
+#' @param Supp.del.sample \code{TRUE} or \code{FALSE}. \code{FALSE} by default.
 #' If \code{FALSE}, the samples selected with \code{sample.deletion} will
 #' be deleted.
 #' If \code{TRUE}, the samples selected with \code{sample.deletion} will
@@ -53,7 +53,8 @@
 #' with
 #' [FactoMineR::PCA()].
 #'
-#' @return The function returns the output of the
+#' @return The function returns the same SummarizedExperiment class object
+#' \code{SEresNorm} but with the output of the
 #' [FactoMineR::PCA()]
 #' function (see
 #' [FactoMineR::PCA()]).
@@ -79,17 +80,17 @@
 #'                              Plot.Boxplot=FALSE,
 #'                              Colored.By.Factors=FALSE)
 #' ##-------------------------------------------------------------------------#
-#' resPCAex<-PCArealization(SEresNorm=resNorm,
-#'                          DATAnorm=TRUE,
-#'                          gene.deletion=c(3,5),
-#'                          sample.deletion=c("G1_t0_Ind2","G1_t1_Ind3"),
-#'                          Supp.del.sample=FALSE)
+#' resPCAex <- PCArealization(SEresNorm=resNorm,
+#'                            DATAnorm=TRUE,
+#'                            gene.deletion=c(3,5),
+#'                            sample.deletion=c("G1_t0_Ind2","G1_t1_Ind3"),
+#'                            Supp.del.sample=FALSE)
 #' ##-------------------------------------------------------------------------#
-#' resPCAex<-PCArealization(SEresNorm=resNorm,
-#'                          DATAnorm=TRUE,
-#'                          gene.deletion=c("Gene3","Gene5"),
-#'                          sample.deletion=c(3,8),
-#'                          Supp.del.sample=TRUE)
+#' resPCAex2 <- PCArealization(SEresNorm=resNorm,
+#'                             DATAnorm=TRUE,
+#'                             gene.deletion=c("Gene3","Gene5"),
+#'                             sample.deletion=c(3,8),
+#'                             Supp.del.sample=TRUE)
 
 PCArealization <- function(SEresNorm,
                            DATAnorm=TRUE,
@@ -98,8 +99,15 @@ PCArealization <- function(SEresNorm,
                            Supp.del.sample=FALSE) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    resPCAprepro <- PCApreprocessing(SEresNorm=SEresNorm,
-                                     DATAnorm=DATAnorm)
+    ## Check
+    if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample)) {
+        stop("'Supp.del.sample' must be TRUE or FALSE.")
+    }## if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample))
+
+    #------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    SEresPCAprepro <- PCApreprocessing(SEresNorm=SEresNorm,
+                                       DATAnorm=DATAnorm)
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -107,12 +115,15 @@ PCArealization <- function(SEresNorm,
     ## be plotted as "supplementray", e.g. not used in the built of the axes
     ## of the PCA
 
-    colG <- S4Vectors::metadata(SEresNorm$SEobj)$colGene
-    RAWcolN <- S4Vectors::metadata(SEresNorm$SEobj)$RAWcolnames
+    colG <- S4Vectors::metadata(SEresPCAprepro)$colGene
+    RAWcolN <- S4Vectors::metadata(SEresPCAprepro)$RAWcolnames
 
     ## Default PCA: sample.deletion == NULL
-    data.pca <- resPCAprepro$data.to.pca
-    ListFactors.F <- resPCAprepro$List.Factors
+    data.pca <- S4Vectors::metadata(SEresPCAprepro)$PCA$data.to.pca
+    ListFactors.F <- S4Vectors::metadata(SEresPCAprepro)$PCA$List.Factors
+    NBquali <- S4Vectors::metadata(SEresPCAprepro)$PCA$nb.quali.var
+
+    IDquali <- seq_len(NBquali)
     Supp.del.sample.f <- NULL
 
     if (!is.null(sample.deletion)) {
@@ -156,8 +167,16 @@ PCArealization <- function(SEresNorm,
             GeneDel.f <- gene.deletion
         } else {
             GeneDel.f <- which(colnames(data.pca)%in%gene.deletion)
+
+            if (length(GeneDel.f) != length(gene.deletion)) {
+                NOhereG <- paste(which(!gene.deletion%in%colnames(data.pca)),
+                                 collapse=",")
+                Err_gene <- paste("The genes", NOhereG,
+                                  "selected are not present in your dataset.")
+                stop(Err_gene)
+            }
         }## if(is.numeric(gene.deletion))
-        data.pca.f <- data.pca[,-GeneDel.f]
+        data.pca.f <- data.pca[, -GeneDel.f]
     } else {
         data.pca.f <- data.pca
     }## if(!is.null(gene.deletion))
@@ -166,12 +185,15 @@ PCArealization <- function(SEresNorm,
     ##------------------------------------------------------------------------#
     res.pca <- FactoMineR::PCA(X=data.pca.f,
                                graph=FALSE,
-                               quali.sup=seq_len(resPCAprepro$nb.quali.var),
+                               quali.sup=IDquali,
                                ind.sup=Supp.del.sample.f)
 
+    SEresPCA <- SEresPCAprepro
+    S4Vectors::metadata(SEresPCA)$PCA <- list(res.pca=res.pca,
+                                              nb.quali.var=NBquali,
+                                              List.Factors=ListFactors.F)
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Output
-    return(list(res.pca=res.pca,
-                List.Factors=ListFactors.F))
+    return(SEobj=SEresPCA)
 }## PCArealization()

@@ -17,60 +17,114 @@
 #' The column names are as follow
 #'  \describe{
 #'            \item{Genes}{Symbol gene name.}
-#'            \item{CLL_P_r1_t0}{The sample is the first replica (r1) of the biological condition control (P) at time t0 (0h)}
-#'            \item{CLL_P_r1_t1}{The sample is the first replica (r1) of the biological condition control (P) at time t1 (1h)}
-#'            \item{CLL_P_r1_t2}{The sample is the first replica (r1) of the biological condition control (P) at time t2 (1h30)}
-#'            \item{CLL_P_r1_t3}{The sample is the first replica (r1) of the biological condition control (P) at time t3 (3h30)}
-#'            \item{CLL_P_r1_t4}{The sample is the first replica (r1) of the biological condition control (P) at time t4 (6h30)}
-#'            \item{CLL_P_r1_t5}{The sample is the first replica (r1) of the biological condition control (P) at time t5 (12h)}
-#'            \item{CLL_P_r1_t6}{The sample is the first replica (r1) of the biological condition control (P) at time t6 (24h)}
-#'            \item{CLL_P_r1_t7}{The sample is the first replica (r1) of the biological condition control (P) at time t7 (48h)}
-#'            \item{CLL_P_r1_t8}{The sample is the first replica (r1) of the biological condition control (P) at time t8 (96h)}
-#'            \item{CLL_P_r2_t0}{The sample is the second replica (r2) of the biological condition control (P) at time t0 (0h)}
-#'            \item{CLL_P_r2_t1}{The sample is the second replica (r2) of the biological condition control (P) at time t1 (1h)}
-#'            \item{CLL_P_r2_t2}{The sample is the second replica (r2) of the biological condition control (P) at time t2 (1h30)}
-#'            \item{CLL_P_r2_t3}{The sample is the second replica (r2) of the biological condition control (P) at time t3 (3h30)}
-#'            \item{CLL_P_r2_t4}{The sample is the second replica (r2) of the biological condition control (P) at time t4 (6h30)}
-#'            \item{CLL_P_r2_t5}{The sample is the second replica (r2) of the biological condition control (P) at time t5 (12h)}
-#'            \item{CLL_P_r2_t6}{The sample is the second replica (r2) of the biological condition control (P) at time t6 (24h)}
-#'            \item{CLL_P_r2_t7}{The sample is the second replica (r2) of the biological condition control (P) at time t7 (48h)}
-#'            \item{CLL_P_r2_t8}{The sample is the second replica (r2) of the biological condition control (P) at time t8 (96h)}
-#'            \item{CLL_P_r3_t0}{The sample is the third replica (r3) of the biological condition control (P) at time t0 (0h)}
-#'            \item{CLL_P_r3_t1}{The sample is the third replica (r3) of the biological condition control (P) at time t1 (1h)}
-#'            \item{CLL_P_r3_t2}{The sample is the third replica (r3) of the biological condition control (P) at time t2 (1h30)}
-#'            \item{CLL_P_r3_t3}{The sample is the third replica (r3) of the biological condition control (P) at time t3 (3h30)}
-#'            \item{CLL_P_r3_t4}{The sample is the third replica (r3) of the biological condition control (P) at time t4 (6h30)}
-#'            \item{CLL_P_r3_t5}{The sample is the third replica (r3) of the biological condition control (P) at time t5 (12h)}
-#'            \item{CLL_P_r3_t6}{The sample is the third replica (r3) of the biological condition control (P) at time t6 (24h)}
-#'            \item{CLL_P_r3_t7}{The sample is the third replica (r3) of the biological condition control (P) at time t7 (48h)}
-#'            \item{CLL_P_r3_t8}{The sample is the third replica (r3) of the biological condition control (P) at time t8 (96h)}
-#'            \item{CLL_NP_r4_t0}{The sample is the first replica (r4) of the biological condition control (NP) at time t0 (0h)}
-#'            \item{CLL_NP_r4_t1}{The sample is the first replica (r4) of the biological condition control (NP) at time t1 (1h)}
-#'            \item{CLL_NP_r4_t2}{The sample is the first replica (r4) of the biological condition control (NP) at time t2 (1h30)}
-#'            \item{CLL_NP_r4_t3}{The sample is the first replica (r4) of the biological condition control (NP) at time t3 (3h30)}
-#'            \item{CLL_NP_r4_t4}{The sample is the first replica (r4) of the biological condition control (NP) at time t4 (6h30)}
-#'            \item{CLL_NP_r4_t5}{The sample is the first replica (r4) of the biological condition control (NP) at time t5 (12h)}
-#'            \item{CLL_NP_r4_t6}{The sample is the first replica (r4) of the biological condition control (NP) at time t6 (24h)}
-#'            \item{CLL_NP_r4_t7}{The sample is the first replica (r4) of the biological condition control (NP) at time t7 (48h)}
-#'            \item{CLL_NP_r4_t8}{The sample is the first replica (r4) of the biological condition control (NP) at time t8 (96h)}
-#'            \item{CLL_NP_r5_t0}{The sample is the second replica (r5) of the biological condition control (NP) at time t0 (0h)}
-#'            \item{CLL_NP_r5_t1}{The sample is the second replica (r5) of the biological condition control (NP) at time t1 (1h)}
-#'            \item{CLL_NP_r5_t2}{The sample is the second replica (r5) of the biological condition control (NP) at time t2 (1h30)}
-#'            \item{CLL_NP_r5_t3}{The sample is the second replica (r5) of the biological condition control (NP) at time t3 (3h30)}
-#'            \item{CLL_NP_r5_t4}{The sample is the second replica (r5) of the biological condition control (NP) at time t4 (6h30)}
-#'            \item{CLL_NP_r5_t5}{The sample is the second replica (r5) of the biological condition control (NP) at time t5 (12h)}
-#'            \item{CLL_NP_r5_t6}{The sample is the second replica (r5) of the biological condition control (NP) at time t6 (24h)}
-#'            \item{CLL_NP_r5_t7}{The sample is the second replica (r5) of the biological condition control (NP) at time t7 (48h)}
-#'            \item{CLL_NP_r5_t8}{The sample is the second replica (r5) of the biological condition control (NP) at time t8 (96h)}
-#'            \item{CLL_NP_r6_t0}{The sample is the third replica (r6) of the biological condition control (NP) at time t0 (0h)}
-#'            \item{CLL_NP_r6_t1}{The sample is the third replica (r6) of the biological condition control (NP) at time t1 (1h)}
-#'            \item{CLL_NP_r6_t2}{The sample is the third replica (r6) of the biological condition control (NP) at time t2 (1h30)}
-#'            \item{CLL_NP_r6_t3}{The sample is the third replica (r6) of the biological condition control (NP) at time t3 (3h30)}
-#'            \item{CLL_NP_r6_t4}{The sample is the third replica (r6) of the biological condition control (NP) at time t4 (6h30)}
-#'            \item{CLL_NP_r6_t5}{The sample is the third replica (r6) of the biological condition control (NP) at time t5 (12h)}
-#'            \item{CLL_NP_r6_t6}{The sample is the third replica (r6) of the biological condition control (NP) at time t6 (24h)}
-#'            \item{CLL_NP_r6_t7}{The sample is the third replica (r6) of the biological condition control (NP) at time t7 (48h)}
-#'            \item{CLL_NP_r6_t8}{The sample is the third replica (r6) of the biological condition control (NP) at time t8 (96h)}
+#'            \item{CLL_P_r1_t0}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t0 (0h)}
+#'            \item{CLL_P_r1_t1}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t1 (1h)}
+#'            \item{CLL_P_r1_t2}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t2 (1h30)}
+#'            \item{CLL_P_r1_t3}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t3 (3h30)}
+#'            \item{CLL_P_r1_t4}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t4 (6h30)}
+#'            \item{CLL_P_r1_t5}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t5 (12h)}
+#'            \item{CLL_P_r1_t6}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t6 (24h)}
+#'            \item{CLL_P_r1_t7}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t7 (48h)}
+#'            \item{CLL_P_r1_t8}{The sample is the first replica (r1)
+#'            of the biological condition control (P) at time t8 (96h)}
+#'            \item{CLL_P_r2_t0}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t0 (0h)}
+#'            \item{CLL_P_r2_t1}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t1 (1h)}
+#'            \item{CLL_P_r2_t2}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t2 (1h30)}
+#'            \item{CLL_P_r2_t3}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t3 (3h30)}
+#'            \item{CLL_P_r2_t4}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t4 (6h30)}
+#'            \item{CLL_P_r2_t5}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t5 (12h)}
+#'            \item{CLL_P_r2_t6}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t6 (24h)}
+#'            \item{CLL_P_r2_t7}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t7 (48h)}
+#'            \item{CLL_P_r2_t8}{The sample is the second replica (r2)
+#'            of the biological condition control (P) at time t8 (96h)}
+#'            \item{CLL_P_r3_t0}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t0 (0h)}
+#'            \item{CLL_P_r3_t1}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t1 (1h)}
+#'            \item{CLL_P_r3_t2}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t2 (1h30)}
+#'            \item{CLL_P_r3_t3}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t3 (3h30)}
+#'            \item{CLL_P_r3_t4}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t4 (6h30)}
+#'            \item{CLL_P_r3_t5}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t5 (12h)}
+#'            \item{CLL_P_r3_t6}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t6 (24h)}
+#'            \item{CLL_P_r3_t7}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t7 (48h)}
+#'            \item{CLL_P_r3_t8}{The sample is the third replica (r3)
+#'            of the biological condition control (P) at time t8 (96h)}
+#'            \item{CLL_NP_r4_t0}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t0 (0h)}
+#'            \item{CLL_NP_r4_t1}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t1 (1h)}
+#'            \item{CLL_NP_r4_t2}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t2 (1h30)}
+#'            \item{CLL_NP_r4_t3}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t3 (3h30)}
+#'            \item{CLL_NP_r4_t4}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t4 (6h30)}
+#'            \item{CLL_NP_r4_t5}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t5 (12h)}
+#'            \item{CLL_NP_r4_t6}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t6 (24h)}
+#'            \item{CLL_NP_r4_t7}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t7 (48h)}
+#'            \item{CLL_NP_r4_t8}{The sample is the first replica (r4)
+#'            of the biological condition control (NP) at time t8 (96h)}
+#'            \item{CLL_NP_r5_t0}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t0 (0h)}
+#'            \item{CLL_NP_r5_t1}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t1 (1h)}
+#'            \item{CLL_NP_r5_t2}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t2 (1h30)}
+#'            \item{CLL_NP_r5_t3}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t3 (3h30)}
+#'            \item{CLL_NP_r5_t4}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t4 (6h30)}
+#'            \item{CLL_NP_r5_t5}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t5 (12h)}
+#'            \item{CLL_NP_r5_t6}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t6 (24h)}
+#'            \item{CLL_NP_r5_t7}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t7 (48h)}
+#'            \item{CLL_NP_r5_t8}{The sample is the second replica (r5)
+#'            of the biological condition control (NP) at time t8 (96h)}
+#'            \item{CLL_NP_r6_t0}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t0 (0h)}
+#'            \item{CLL_NP_r6_t1}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t1 (1h)}
+#'            \item{CLL_NP_r6_t2}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t2 (1h30)}
+#'            \item{CLL_NP_r6_t3}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t3 (3h30)}
+#'            \item{CLL_NP_r6_t4}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t4 (6h30)}
+#'            \item{CLL_NP_r6_t5}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t5 (12h)}
+#'            \item{CLL_NP_r6_t6}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t6 (24h)}
+#'            \item{CLL_NP_r6_t7}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t7 (48h)}
+#'            \item{CLL_NP_r6_t8}{The sample is the third replica (r6)
+#'            of the biological condition control (NP) at time t8 (96h)}
 #'  }
 #'
 #' @details

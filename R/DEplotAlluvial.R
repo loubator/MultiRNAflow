@@ -260,7 +260,7 @@ DEplotAlluvial<-function(table.DE.time,
                             fill=ggplot2::guide_legend(title="Temporal group",
                                                        title.position="left"))+
             ggplot2::geom_line(ggplot2::aes(color=as.character(Category)),
-                               size=1) +
+                               linewidth=1) +
             ggplot2::geom_point(ggplot2::aes(color=as.character(Category)),
                                 size=2) +
             ggplot2::geom_area(aes(fill=as.character(Category),

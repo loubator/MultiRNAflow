@@ -2,9 +2,9 @@
 #' (Main Function)
 #'
 #' @description
-#' This function creates automatically
-#' * a SummarizedExperiment (SE) object from raw counts data to store all
-#' information for exploratory (unsupervised) analysis using the R function
+#' This function creates automatically  a SummarizedExperiment (SE) object
+#' from raw counts data to store
+#' * information for exploratory (unsupervised) analysis using the R function
 #' [SummarizedExperiment::SummarizedExperiment()]
 #' * a DESeq2 object from raw counts data in order to store all information
 #' for statistical (supervised) analysis using the R function
@@ -38,7 +38,7 @@
 #' underscores in the sample name, the user can build the data.frame
 #' \code{colData} describing the samples.
 #'
-#' @param RawCounts Data.frame with \eqn{N_g} rows and (\eqn{N_{s+k}}) columns,
+#' @param RawCounts Data.frame with \eqn{N_g} rows and (\eqn{N_{s}+k}) columns,
 #' where \eqn{N_g} is the number of genes,
 #' \eqn{N_s} is the number of samples and
 #' \eqn{k=1} if a column is used to specify gene names, or \eqn{k=0} otherwise.
@@ -89,8 +89,9 @@
 #'  * The second column must contain the individual name for each sample.
 #'  The column name must be "ID".
 #'
-#' @return The function returns the \code{DESeq2} object for DE analysis and
-#' the raw counts data (a matrix of non-negative integers).
+#' @return The function returns a SummarizedExperiment object containing
+#' all information for exploratory (unsupervised) analysis and
+#' DE statistical analysis.
 #'
 #' @seealso The [DATAprepSE()] function
 #' * is used by the following functions of our package :
@@ -129,7 +130,6 @@
 #'                             Individual.position=2)
 #' ##
 #' ## colDataEx <- data.frame(Group=BCex, Time=TimeEx, ID=PATex)
-#' ## print(resDATAprepSE)
 
 DATAprepSE <- function(RawCounts,
                        Column.gene,
@@ -147,9 +147,44 @@ DATAprepSE <- function(RawCounts,
     }## if(is.null(Time.position) & is.null(Group.position) & is.null(colData))
 
     ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
     ## Check 2
-    if (!is.null(colData)) {
-        colData<-data.frame(colData)
+    if (is.null(colData)) {
+        ## Every sample must have an indidual name
+        if (is.null(Individual.position)) {
+            stop("Every sample must have an indidual name (name or number).")
+        } else {
+            if(floor(Individual.position) != Individual.position){
+                stop("'Individual.position' must be an integer.")
+            }## if(floor(Individual.position) != Individual.position)
+        }## if(is.null(Individual.position))
+
+        if (!is.null(Column.gene)) {
+            if (floor(Column.gene) != Column.gene){
+                stop("'Column.gene' must be an integer.")
+            }## if (floor(Column.gene) != Column.gene)
+        }## if (!is.null(Column.gene))
+
+        if (!is.null(Group.position)) {
+            if (floor(Group.position) != Group.position){
+                stop("'Group.position' must be an integer.")
+            }## if (floor(Group.position) != Group.position)
+        }## if (!is.null(Group.position))
+
+        if (!is.null(Time.position)) {
+            if (floor(Time.position) != Time.position){
+                stop("'Time.position' must be an integer.")
+            }## if (floor(Time.position) != Time.position)
+        }## if (!is.null(Time.position))
+
+        if (!is.data.frame(RawCounts)) {
+            stop("'RawCounts' must be a matrix of class data.frame.")
+        }## if (!is.data.frame(RawCounts))
+    } else {
+        if (!is.data.frame(colData)) {
+            stop("'colData' must be a matrix of class data.frame.")
+        }## if (!is.data.frame(colData))
+        colData <- data.frame(colData)
 
         if (ncol(colData) == 1 | ncol(colData) > 3) {
             stop("'colData' must have two or three coulumns")
@@ -180,6 +215,7 @@ DATAprepSE <- function(RawCounts,
     }## if (!is.null(colData))
 
     ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
     ## Pre-processing
     if (!is.null(colData)) {
         dataColToFct <- data.frame(RawCounts)[c(1, 2),]
@@ -188,6 +224,16 @@ DATAprepSE <- function(RawCounts,
         if (nrow(colData) == ncol(RawCounts)) {
             colnames(dataColToFct) <- colData1v
         } else {
+
+            if (nrow(colData) != ncol(RawCounts)-1) {
+                Err_nrowcolData <- paste("The number of rows of 'colData'",
+                                         "must be equal to the number of",
+                                         "samples (numbers of column (Nc) of",
+                                         "'RawCounts' if 'Column.gene==NULL',",
+                                         "Nc - 1 otherwise).")
+                stop(Err_nrowcolData)
+            }
+
             ColNameColToFct <- c(colData1v, NA)
             SeqGeneFct <- seq(Column.gene, nrow(colData))
             ColNameColToFct[SeqGeneFct + 1] <- ColNameColToFct[SeqGeneFct]
@@ -209,7 +255,7 @@ DATAprepSE <- function(RawCounts,
         }## if (c("Time")%in%colnames(colData))
 
         Iposition <- ncol(colData)
-        ##
+
     } else {
         dataColToFct <- RawCounts
         Gposition <- Group.position
@@ -252,11 +298,10 @@ DATAprepSE <- function(RawCounts,
 
     ##------------------------------------------------------------------------#
     ## Biological conditions and time absent
-    if (is.null(Vect.group) & is.null(Vect.time)) {
-        colData.DESeq2 <- NULL
-        design.DESeq2 <- stats::as.formula(~ 1)
-    }## if(is.null(Vect.group) & is.null(Vect.time))
-
+    ## if (is.null(Vect.group) & is.null(Vect.time)) {
+    ##     colData.DESeq2 <- NULL
+    ##     design.DESeq2 <- stats::as.formula(~ 1)
+    ## }## if(is.null(Vect.group) & is.null(Vect.time))
     ##------------------------------------------------------------------------#
     ## Data with only expression
     if (is.null(Column.gene)) {
@@ -272,32 +317,46 @@ DATAprepSE <- function(RawCounts,
     colnames(mat.Data) <- res.Factors$Final.Name
 
     ##------------------------------------------------------------------------#
-    ## Creation of Deseq2 and SummarizedExperiment object
+    ## Preparation of SummarizedExperiment object
     dds <- DESeq2::DESeqDataSetFromMatrix(countData=mat.Data,
                                           colData=colData.DESeq2,
                                           design=design.DESeq2)
 
-    SEobj <- SEobjFUN(mat.Data, data.frame(colData.DESeq2, ID=Vect.id))
+    colDataSE <- cbind(data.frame(colData.DESeq2, ID=factor(Vect.id)),
+                       res.Factors$Data.code.names)
 
-    SEformula <- stats::reformulate(as.character(design.DESeq2)[-1],
-                                    response="counts")
-    S4Vectors::metadata(SEobj)$formula <- SEformula ## design.DESeq2
-    S4Vectors::metadata(SEobj)$colGene <- Column.gene
+
+    SEformula <- design.DESeq2
+    # SEformula <- stats::reformulate(as.character(design.DESeq2)[-1],
+    #                                 response="counts")
+    colINFOnb <- ncol(colData.DESeq2) + 1
+    nameINFO <- seq(from=colINFOnb+1, to=colINFOnb+2, by=1)
+    listColDataINFO <- list(colINFOfactors=seq_len(colINFOnb),
+                            colINFOname=nameINFO)
+
+    ##------------------------------------------------------------------------#
+    ## Creation of SummarizedExperiment object ## design.DESeq2
+    SEobj <- SEobjFUN(mat.Data, colDataSE)
+
     S4Vectors::metadata(SEobj)$RAWcolnames <- colnames(RawCounts)
+    S4Vectors::metadata(SEobj)$colGene <- Column.gene
+    S4Vectors::metadata(SEobj)$colDataINFO <- listColDataINFO
+    S4Vectors::metadata(SEobj)$DESeq2obj <- list(formula=SEformula,
+                                                 DESeq2preproceesing=dds)
+    S4Vectors::metadata(SEobj)$SEidentification <- c("SEstep")
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Outputs ## Data.Expression=mat.Data,
-    return(list(DESeq2.obj=dds,
-                SEobj=SEobj,
-                Data.code.names=res.Factors$Data.code.names,
-                Factors.Info=data.frame(colData.DESeq2, Samples=Vect.id),
-                SEidentification=c("SEstep")))
+    ## Factors.Info=data.frame(colData.DESeq2, Samples=Vect.id)
+    ## Data.code.names=res.Factors$Data.code.names,
+    return(SEobj=SEobj)
 }## DATAprepSE()
 
-SEobjFUN <- function(x, y) {
+SEobjFUN <- function(x, y, z=NULL) {
     rSE <- SummarizedExperiment::SummarizedExperiment(assays=list(counts=x),
-                                                      colData=y)
+                                                      colData=y,
+                                                      rowData=z)
     return(resSE=rSE)
-}## SEobj
+}## SEobjFUN()
 

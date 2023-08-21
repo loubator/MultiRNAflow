@@ -31,16 +31,21 @@
 #' a color for each biological condition.
 #'
 #' @return The function will plot a facet grid barplot.
-#' The function is called by our function [DEanalysisTimeAndGroup()]
+#' The function is called by our function
+#' [DEanalysisTimeAndGroup()]
 #' in order to plot the number of specific (up- or down-regulated) DE genes
 #' per biological condition for each time points.
 #'
 #' @seealso The function
-#' * is called by the function [DEanalysisTimeAndGroup()]
-#' * calls the R functions [ggplot2::facet_grid()] and [ggplot2::geom_bar()].
+#' * is called by the function
+#' [DEanalysisTimeAndGroup()]
+#' * calls the R functions
+#' [ggplot2::facet_grid()] and
+#' [ggplot2::geom_bar()].
 #'
-#' @importFrom ggplot2 ggplot aes_string facet_grid geom_bar element_blank
-#' theme element_rect element_text
+#' @importFrom rlang syms
+#' @importFrom ggplot2 ggplot facet_grid geom_bar element_blank theme
+#' element_rect element_text
 #' @importFrom stats as.formula
 #'
 #' @export
@@ -76,12 +81,12 @@
 #'                        Value.col=4,
 #'                        Color.Legend=NULL)
 
-DEplotBarplotFacetGrid<-function(Data,
-                                 Abs.col,
-                                 Legend.col,
-                                 Facet.col,
-                                 Value.col,
-                                 Color.Legend=NULL){
+DEplotBarplotFacetGrid <- function(Data,
+                                   Abs.col,
+                                   Legend.col,
+                                   Facet.col,
+                                   Value.col,
+                                   Color.Legend=NULL) {
     ##------------------------------------------------------------------------#
     ## Data preprocessing for graph if 'Abs.col!=Legend.col'
     if(Abs.col!=Legend.col){
@@ -95,34 +100,41 @@ DEplotBarplotFacetGrid<-function(Data,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Graph
-    q.dodged<-ggplot2::ggplot(Data, fill=Data[,Legend.col],
-                              ggplot2::aes_string(colnames(Data)[Abs.col],
-                                                  colnames(Data)[Value.col]))+
-        ggplot2::facet_grid(stats::as.formula(paste(". ~",
-                                                    colnames(Data)[Facet.col])))+
+    xeval <- eval(rlang::syms(colnames(Data)[Abs.col])[[1]], Data)
+    yeval <- eval(rlang::syms(colnames(Data)[Value.col])[[1]], Data)
+    colq <- "dark grey"
+    formulaCH <- paste(". ~", colnames(Data)[Facet.col])
+
+    ##------------------------------------------------------------------------#
+    q.dodged<-ggplot2::ggplot(Data, fill=Data[, Legend.col],
+                              ggplot2::aes(xeval, yeval))+
+        ggplot2::facet_grid(stats::as.formula(formulaCH))+
         ggplot2::xlab("") + ggplot2::ylab("Number of genes") +
-        ggplot2::theme(panel.background=ggplot2::element_rect(colour="dark grey"))+
-        ggplot2::theme(strip.text.x=ggplot2::element_text(size=22, face="bold"),
-                       strip.background=ggplot2::element_rect(colour="dark grey"))
+        ggplot2::theme(panel.background=ggplot2::element_rect(colour=colq))+
+        ggplot2::theme(strip.text.x=ggplot2::element_text(size=22,face="bold"),
+                       strip.background=ggplot2::element_rect(colour=colq))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    if(Abs.col!=Legend.col){
+    if (Abs.col != Legend.col) {
+        fbn <- colnames(Data)[Legend.col]
+        fillBarlot <- eval(rlang::syms(colnames(Data)[Legend.col])[[1]], Data)
         q.dodged<-q.dodged+
-            ggplot2::geom_bar(ggplot2::aes_string(fill=colnames(Data)[Legend.col]),
+            ggplot2::geom_bar(ggplot2::aes(fill=fillBarlot),
                               stat="identity", color="black")+
-            ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45))
-        #
-        if(!is.null(Color.Legend)){
+            ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45)) +
+            ggplot2::guides(fill=guide_legend(title=fbn))
+
+        if (!is.null(Color.Legend)) {
             q.dodged<-q.dodged+
-                ggplot2::scale_fill_manual(values=as.character(Color.Legend[,2]))
-        }# if(!is.null(Color.Legend))
-    }else{
+                ggplot2::scale_fill_manual(values=as.character(Color.Legend[,
+                                                                            2]))
+        }## if(!is.null(Color.Legend))
+    } else {
         q.dodged<-q.dodged+
             ggplot2::geom_bar(fill="#E69F00", color="black", stat="identity")+
             ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))
-    }# if(Abs.col!=Legend.col)
+    }## if(Abs.col!=Legend.col)
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#

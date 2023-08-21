@@ -95,9 +95,10 @@
 #' If \code{Name.file.pca} is a character, \code{Name.file.pca} will be added
 #' at the beginning of all names of the saved graphs.
 #'
-#' @return The function returns the outputs from the function
-#' [FactoMineR::PCA()]
-#' and several 2D and 3D PCA graphs depending
+#' @return The function returns the same SummarizedExperiment class object
+#' \code{SEresNorm} with the outputs from the function
+#' [FactoMineR::PCA()],
+#' and plots several 2D and 3D PCA graphs depending
 #' on the experimental design (if \code{Plot.PCA=TRUE})
 #' * When samples belong only to different biological conditions,
 #' the function returns a 2D and two 3D PCA graphs.
@@ -141,6 +142,7 @@
 #' and calls our function
 #' [PCArealization()].
 #'
+#' @importFrom S4Vectors metadata
 #' @importFrom scales hue_pal
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom stats aggregate
@@ -198,20 +200,113 @@ PCAgraphics <- function(SEresNorm,
                         Name.file.pca=NULL) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
+    ## Check TRUE, FALSE
+    if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample)) {
+        stop("'Supp.del.sample' must be TRUE or FALSE.")
+    }## if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample))
+
+    if (!isTRUE(Plot.PCA) & !isFALSE(Plot.PCA)) {
+        stop("'Plot.PCA' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.PCA) & !isFALSE(Plot.PCA))
+
+    if (!isTRUE(Mean.Accross.Time) & !isFALSE(Mean.Accross.Time)) {
+        stop("'Mean.Accross.Time' must be TRUE or FALSE.")
+    }## if (!isTRUE(Mean.Accross.Time) & !isFALSE(Mean.Accross.Time))
+
+    if (!isTRUE(D3.mouvement) & !isFALSE(D3.mouvement)) {
+        stop("'D3.mouvement' must be TRUE or FALSE.")
+    }## if (!isTRUE(D3.mouvement) & !isFALSE(D3.mouvement))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check numeric
+    if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon)) {
+        Err_a <- "'Phi', 'Theta' and 'epsilon' must be positive numeric values"
+        stop(Err_a)
+        if (min(c(Phi, Theta, epsilon))<0) {
+            stop(Err_a)
+        }## if (min(c(Phi, Theta, epsilon))<0)
+    }## if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon))
+
+    if (!is.numeric(Cex.point) | !is.numeric(Cex.label)) {
+        stop("'Cex.point' and 'Cex.label' must be positive numeric values")
+        if (min(c(Cex.point, Cex.label))<0) {
+            stop("'Cex.point' and 'Cex.label' must be positive numeric values")
+        }## if (min(c(Phi, Theta, epsilon))<0)
+    }## if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check deletion
+    if (!is.null(gene.deletion)) {
+        if (!is.character(gene.deletion)) {
+            if (!is.numeric(gene.deletion)) {
+                Err_delint <- paste("'gene.deletion' must be either NULL",
+                                    "either character or",
+                                    "non negative integers.")
+                stop(Err_delint)
+            } else {
+                if (sum(abs(floor(gene.deletion) - gene.deletion)) !=0) {
+                    stop(Err_delint)
+                }## if (floor(gene.deletion) != gene.deletion)
+                if (min(gene.deletion) <= 0) {
+                    stop(Err_delint)
+                }## if (min(gene.deletion) <= 0)
+            }## if (!is.numeric(gene.deletion))
+        }## if (!is.character(gene.deletion))
+    }## if (!is.null(gene.deletion))
+
+    ## Check deletion
+    if (!is.null(sample.deletion)) {
+        if (!is.character(sample.deletion)) {
+            if (!is.numeric(sample.deletion)) {
+                Err_delint <- paste("'sample.deletion' must be either NULL",
+                                    "either character or",
+                                    "non negative integers.")
+                stop(Err_delint)
+            } else{
+                if (sum(abs(floor(sample.deletion) - sample.deletion)) !=0) {
+                    stop(Err_delint)
+                }## if (floor(sample.deletion) != sample.deletion)
+                if (min(sample.deletion) <= 0) {
+                    stop(Err_delint)
+                }## if (min(sample.deletion) <= 0)
+            }## if (!is.numeric(sample.deletion))
+        }## if (!is.character(sample.deletion))
+    }## if (!is.null(sample.deletion))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check deletion
+    if (!is.null(path.result)) {
+        if (!is.character(path.result)) {
+            stop("'path.result' must be NULL or a character.")
+        }## if (!is.character(path.result))
+    }## if (!is.null(path.result))
+
+    if (!is.null(Name.file.pca)) {
+        if (!is.character(Name.file.pca)) {
+            stop("'Name.file.pca' must be NULL or a character.")
+        }## if (!is.character(Name.file.pca))
+    }## if (!is.null(Name.file.pca))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
     ## PCA
-    resPCA <- PCArealization(SEresNorm=SEresNorm,
-                             DATAnorm=DATAnorm,
-                             sample.deletion=sample.deletion,
-                             gene.deletion=gene.deletion,
-                             Supp.del.sample=Supp.del.sample)
+    SEresPCA <- PCArealization(SEresNorm=SEresNorm,
+                               DATAnorm=DATAnorm,
+                               sample.deletion=sample.deletion,
+                               gene.deletion=gene.deletion,
+                               Supp.del.sample=Supp.del.sample)
 
-    Vector.time <- resPCA$List.Factors$Vector.time
-    Vector.group <- resPCA$List.Factors$Vector.group
+    listFCTRS <- S4Vectors::metadata(SEresPCA)$PCA$List.Factors
+    res.PCA <- S4Vectors::metadata(SEresPCA)$PCA$res.pca
 
-    Vector.patient <- resPCA$List.Factors$Vector.patient
+    Vector.time <- listFCTRS$Vector.time
+    Vector.group <- listFCTRS$Vector.group
+    Vector.patient <- listFCTRS$Vector.patient
     LvlsPAT <- levels(factor(Vector.patient))
 
-    res.PCA <- resPCA$res.pca
     PCAqualiSup <- res.PCA$call$quali.sup$quali.sup
     coordPCAind <- res.PCA$ind$coord
 
@@ -645,7 +740,6 @@ PCAgraphics <- function(SEresNorm,
             ##----------------------------------------------------------------#
             if (!is.null(path.result)) {
                 TitlePCA3Dlk <- paste0(Name.file.pca.f, "_PCAlink3D.pdf")
-                file.path(path.result, TitlePCA3Dlk)
 
                 grDevices::pdf(file=file.path(path.result, TitlePCA3Dlk),
                                width=11, height=8)
@@ -896,7 +990,7 @@ PCAgraphics <- function(SEresNorm,
                                                  round(res.PCA$eig[, 2][2],
                                                        digits=2),
                                                  "%)"))
-                    #
+
                     plot3D::text3D(coordPCAind[coord.smpl, 1],
                                    coordPCAind[coord.smpl, 3],
                                    coordPCAind[coord.smpl, 2],
@@ -1090,7 +1184,6 @@ PCAgraphics <- function(SEresNorm,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Output
-    return(list(res.pca=res.PCA,
-                List.plot.PCA=NULL))
+    ## Output ## list(res.pca=res.PCA, List.plot.PCA=NULL)
+    return(SEobj=SEresPCA)
 }## PCAgraphics()

@@ -5,34 +5,38 @@
 #' specific files designed to be used as input for several online online tools
 #' and software given in the section \code{Value}.
 #'
-#' @details
-#' * If \code{Set.Operation="union"} then the rows (so genes) extracted from
-#' \code{Res.DE.analysis$DE.results} are those such that the sum of
-#' the selected columns in \code{Res.DE.analysis} is >0.
-#' For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-#' will be those DE at least at one time.
-#'
+#' @details We have the following three cases:
+#' * If \code{Set.Operation="union"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that the sum of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at least at t1 or t2
+#' (versus the reference time t0).
 #' * If \code{Set.Operation="intersect"} then the rows extracted from
-#' \code{Res.DE.analysis$DE.results} are those such that the product of
-#' the selected columns in \code{Res.DE.analysis$DE.results} is >0.
-#' For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-#' will be those DE at all time ti (except the reference time t0).
+#' the different datasets included in \code{SEresDE}
+#' are those such that the product of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at times t1 and t2
+#' (versus the reference time t0).
+#' * If \code{Set.Operation="setdiff"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that only one element of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at times t1 only and
+#' at times t2 only (versus the reference time t0).
 #'
-#' * If \code{Set.Operation="setdiff"} then the rows extracted from data are
-#' those such that only one element of the selected columns in
-#' \code{Res.DE.analysis$DE.results} is >0.
-#' For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-#' will be those DE at only one time ti (except the reference time t0).
 #'
-#'
-#' @param Res.DE.analysis A list corresponding to the output from
-#' [DEanalysisGlobal()] (see \code{Examples}).
-#' @param ColumnsCriteria A vector of integers where each integer indicates a
-#' column of \code{Res.DE.analysis$DE.results}.
+#' @param SEresDE A SummarizedExperiment class object. Output from
+#' [DEanalysisGlobal()]
+#' (see \code{Examples}).
+#' @param ColumnsCriteria A vector of integers where each integer indicates
+#' a column of  \code{SummarizedExperiment::rowData(SEresDE)}.
 #' These columns should either contain only binary values, or may contain other
-#' numerical value, in which case extracted rows from
-#' \code{Res.DE.analysis$DE.results} will be those with >0 values
-#' (see \code{Details}).
+#' numerical value, in which case extracted outputs from \code{SEresDE}
+#' will be those with >0 values (see \code{Details}).
 #' @param Set.Operation A character. The user must choose between "union"
 #' (default), "intersect", "setdiff" (see \code{Details}).
 #' @param Rnk.files \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
@@ -70,73 +74,103 @@
 #'
 #' @export
 #'
+#' @importFrom SummarizedExperiment assays rownames
+#' @importFrom S4Vectors metadata
 #' @importFrom stats aggregate
 #' @importFrom utils write.table
 #'
 #' @examples
-#' data(Results_DEanalysis_sub500)
-#' ## Results of DEanalysisGlobal() with the dataset of Antoszewski
-#' res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
-#' ##
-#' resGp<-GSEApreprocessing(Res.DE.analysis=res.all,
+#' data(RawCounts_Antoszewski2022_MOUSEsub500)
+#' ## No time points. We take only two groups for the speed of the example
+#' RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[, seq_len(7)]
+#' ##-------------------------------------------------------------------------#
+#' ## Preprocessing
+#' resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
+#'                             Column.gene=1,
+#'                             Group.position=1,
+#'                             Time.position=NULL,
+#'                             Individual.position=2)
+#' ##-------------------------------------------------------------------------#
+#' ## DE analysis
+#' resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
+#'                               pval.min=0.05,
+#'                               pval.vect.t=NULL,
+#'                               log.FC.min=1,
+#'                               LRT.supp.info=FALSE,
+#'                               Plot.DE.graph=TRUE,
+#'                               path.result=NULL,
+#'                               Name.folder.DE=NULL)
+#'
+#' ##-------------------------------------------------------------------------#
+#' resGp<-GSEApreprocessing(SEresDE=resDET1wt,
 #'                          ColumnsCriteria=2,
 #'                          Set.Operation="union",
 #'                          Rnk.files=TRUE,
 #'                          Save.files=FALSE)
-#' ##
-#' ##-------------------------------------------------------------------------#
-#' ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-#' ## data(RawCounts_Antoszewski2022_MOUSEsub500)
-#' ## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#' ##                           Column.gene=1, Group.position=1,
-#' ##                           Time.position=NULL, Individual.position=2,
-#' ##                           pval.min=0.05, log.FC.min=1,
-#' ##                           LRT.supp.info=FALSE,
-#' ##                           path.result=NULL, Name.folder.DE=NULL)
 
-GSEApreprocessing<-function(Res.DE.analysis,
-                            ColumnsCriteria,
-                            Set.Operation,
-                            Rnk.files=TRUE,
-                            Save.files=FALSE){
+GSEApreprocessing <- function(SEresDE,
+                              ColumnsCriteria,
+                              Set.Operation,
+                              Rnk.files=TRUE,
+                              Save.files=FALSE) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    if(!is.list(Res.DE.analysis) & !is(Res.DE.analysis, 'DESeqDataSet')){
-        stop("Res.DE.analysis must be a list or a 'DESeqDataSet' object")
-    }## if(!is.list(Res.DE.analysis) & !is(classDeseq2, 'DESeqDataSet'))
+    ## Check 1
+    ## DATAprepSE
+    Err_SE <- paste0("'SEresDE' mut be the results of the function ",
+                     "'DEanalysisGlobal()'.")
+
+    ## DATAprepSE
+    if (!is(SEresDE, "SummarizedExperiment")) {
+        stop(Err_SE)
+    } else {
+        DESeq2objList <- S4Vectors::metadata(SEresDE)$DESeq2obj
+        codeDEres <-DESeq2objList$SEidentification <-"SEresultsDE"
+
+        if (is.null(codeDEres)) {
+            stop(Err_SE)
+        }## if (is.null(codeDEres))
+
+        if (codeDEres != "SEresultsDE") {
+            stop(Err_SE)
+        }## if (codeDEres != SEresultsDE))
+    }## if (!is(SEresDE, "SummarizedExperiment"))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## RLE normalized data
-    scaled.data<-round(Res.DE.analysis$RLEdata[,-1], digits=3)
+    ## Preprocessing
+    scaled.data <- round(SummarizedExperiment::assays(SEresDE)$rle, digits=3)
+    NameAllG <- as.character(SummarizedExperiment::rownames(SEresDE))
+    resPATH <- S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME
+    resInputs <- S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Selection of DE gene
-    ReDEsel<-DEanalysisSubData(Data=data.frame(scaled.data),
-                               Res.DE.analysis=Res.DE.analysis,
+    ReDEsel<-DEanalysisSubData(SEresDE=SEresDE,
                                ColumnsCriteria=ColumnsCriteria,
                                Set.Operation=Set.Operation)
-    Norm.dat<-ReDEsel$SubData
-    NameAllG<-Res.DE.analysis$RLEdata$Gene
-    Name.G<-NameAllG[ReDEsel$RowsSelected]
-    row.names(Norm.dat)<-Name.G
+
+    # Norm.dat<-ReDEsel$SubData
+    Name.G <- as.character(SummarizedExperiment::rownames(ReDEsel))
+    Norm.dat <- round(SummarizedExperiment::assays(ReDEsel)$rle, digits=3)
+    row.names(Norm.dat) <- Name.G
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    if(isTRUE(Save.files) & !is.null(Res.DE.analysis$Path.result)){
+    if(isTRUE(Save.files) & !is.null(resPATH$Path.result)){
 
         if(Save.files==TRUE){
-            path.result<-Res.DE.analysis$Path.result
+            path.result<-resPATH$Path.result
         }else{
             path.result<-Save.files
         }## if(Save.files==TRUE)
 
-        if(!is.null(Res.DE.analysis$Folder.result)){
-            SufixDE<-paste0("_", Res.DE.analysis$Folder.result)
+        if(!is.null(resPATH$Folder.result)){
+            SufixDE<-paste0("_", resPATH$Folder.result)
         }else{
             SufixDE<-NULL
-        }## if(is.null(Res.DE.analysis$Folder.result)==FALSE)
+        }## if(is.null(resPATH$Folder.result)==FALSE)
 
         if(Save.files==TRUE){
             SuppPlotFolder<-paste0("2-5_Enrichment_analysis", SufixDE)
@@ -203,16 +237,16 @@ GSEApreprocessing<-function(Res.DE.analysis,
 
         ##--------------------------------------------------------------------#
         ##--------------------------------------------------------------------#
-        if(ncol(Res.DE.analysis$Summary.Inputs$FactorsInfo)==3){
+        if(ncol(resInputs$FactorsInfo)==3){
             TnumFct<-gsub("t", "", gsub("T", "",
-                                        Res.DE.analysis$Summary.Inputs$FactorsInfo[,2],
+                                        resInputs$FactorsInfo[,2],
                                         fixed=TRUE))
-            FactorBoxplt<-as.factor(paste(Res.DE.analysis$Summary.Inputs$FactorsInfo[,1],
+            FactorBoxplt<-as.factor(paste(resInputs$FactorsInfo[,1],
                                           paste0("t", TnumFct),
                                           sep="."))
         }else{
-            FactorBoxplt<-as.factor(Res.DE.analysis$Summary.Inputs$FactorsInfo[,1])
-        }## if(ncol(Res.DE.analysis$Summary.Inputs$FactorsInfo)==3)
+            FactorBoxplt<-as.factor(resInputs$FactorsInfo[,1])
+        }## if(ncol(resInputs$FactorsInfo)==3)
 
         ##--------------------------------------------------------------------#
         IndexOrder<-order(as.character(FactorBoxplt))

@@ -124,10 +124,12 @@
 #' will take as input the output of
 #' [PCArealization()].
 #'
+#' @importFrom SummarizedExperiment colData
+#' @importFrom S4Vectors metadata
+#' @importFrom FactoMineR HCPC
 #' @importFrom scales hue_pal
 #' @importFrom ggsci pal_jco
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom FactoMineR HCPC
 #' @importFrom factoextra fviz_dend fviz_cluster
 #' @importFrom graphics legend
 #' @importFrom plot3D scatter3D text3D
@@ -182,17 +184,26 @@ HCPCanalysis <- function(SEresNorm,
                          Name.folder.hcpc=NULL) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Check
-    ## DATAprepSE
-    Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
-                     "'DATAnormalization().'")
-    if (is.null(SEresNorm$SEidentification)) {
-        stop(Err_SE)
-    } else {
-        if (SEresNorm$SEidentification != "SEresNormalization") {
-            stop(Err_SE)
-        }## if (SEresNorm$SEidentification != "SEresNormalization")
-    }## if ((is.null(SEresNorm$SEidentification))
+    ## Check deletion
+    if (!is.null(path.result)) {
+        if (!is.character(path.result)) {
+            stop("'path.result' must be NULL or a character.")
+        }## if (!is.character(path.result))
+    }## if (!is.null(path.result))
+
+    if (!is.null(Name.folder.hcpc)) {
+        if (!is.character(Name.folder.hcpc)) {
+            stop("'Name.folder.hcpc' must be NULL or a character.")
+        }## if (!is.character(Name.folder.hcpc))
+    }## if (!is.null(Name.folder.hcpc))
+
+    if (!isTRUE(D3.mouvement) & !isFALSE(D3.mouvement)) {
+        stop("'D3.mouvement' must be TRUE or FALSE.")
+    }## if (!isTRUE(D3.mouvement) & !isFALSE(D3.mouvement))
+
+    if (!isTRUE(Plot.HCPC) & !isFALSE(Plot.HCPC)) {
+        stop("'Plot.HCPC' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.HCPC) & !isFALSE(Plot.HCPC))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -202,21 +213,22 @@ HCPCanalysis <- function(SEresNorm,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## PCA preprocessing
-    resPCA <- PCArealization(SEresNorm=SEresNorm,
-                             DATAnorm=DATAnorm,
-                             sample.deletion=sample.deletion,
-                             gene.deletion=gene.deletion,
-                             Supp.del.sample=Supp.del.sample)
+    SEresPCA <- PCArealization(SEresNorm=SEresNorm,
+                               DATAnorm=DATAnorm,
+                               sample.deletion=sample.deletion,
+                               gene.deletion=gene.deletion,
+                               Supp.del.sample=Supp.del.sample)
 
-    Vector.time <- resPCA$List.Factors$Vector.time
-    Vector.group <- resPCA$List.Factors$Vector.group
+    resPCA <- S4Vectors::metadata(SEresPCA)$PCA$res.pca
+    listFCTRS <- S4Vectors::metadata(SEresPCA)$PCA$List.Factors
 
-    Vector.patient <- resPCA$List.Factors$Vector.patient
+    Vector.time <- listFCTRS$Vector.time
+    Vector.group <- listFCTRS$Vector.group
+    Vector.patient <- listFCTRS$Vector.patient
     LvlsPAT <- levels(factor(Vector.patient))
 
-    res.PCA <- resPCA$res.pca
-    ## PCAqualiSup <- res.PCA$call$quali.sup$quali.sup
-    ## coordPCAind <- res.PCA$ind$coord
+    ## PCAqualiSup <- resPCA$call$quali.sup$quali.sup
+    ## coordPCAind <- resPCA$ind$coord
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -259,7 +271,7 @@ HCPCanalysis <- function(SEresNorm,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## 2D PCA and clustering
-    res.hcpc <- FactoMineR::HCPC(res.PCA, nb.clust=-1, method="ward",
+    res.hcpc <- FactoMineR::HCPC(resPCA, nb.clust=-1, method="ward",
                                  graph=FALSE, consol=FALSE)
 
     if (isTRUE(Plot.HCPC) | !is.null(path.result)) {
@@ -346,7 +358,7 @@ HCPCanalysis <- function(SEresNorm,
         ##--------------------------------------------------------------------#
         ## Data describing the distribution of samples
         ## among cluster, times, groups
-        NbGene <- nrow(res.PCA$var$coord)
+        NbGene <- nrow(resPCA$var$coord)
         RepSample <- rep(row.names(res.hcpc$data.clust),
                          times=ncol(res.hcpc$data.clust) - NbGene)
         RepSample <- factor(RepSample,
@@ -492,7 +504,7 @@ HCPCanalysis <- function(SEresNorm,
 
         ##--------------------------------------------------------------------#
         ## 3D PCA colored by cluster
-        data.3D <- res.PCA$ind$coord[, c(1, 2, 3)]
+        data.3D <- resPCA$ind$coord[, c(1, 2, 3)]
 
         if (!is.null(path.result)) {
             PCA3dTitle<-paste0("PCA3d_HCPC", Name.folder.hcpc, ".pdf")
@@ -505,13 +517,13 @@ HCPCanalysis <- function(SEresNorm,
                               theta=Theta, phi=Phi, d=2, epsilon=epsilon,
                               main = "3D PCA plot with HCPC clusters",
                               xlab=paste0("dim1 (",
-                                          round(res.PCA$eig[, 2][1], digits=2),
+                                          round(resPCA$eig[, 2][1], digits=2),
                                          "%)"),
                               ylab=paste0("dim3 (",
-                                          round(res.PCA$eig[, 2][3], digits=2),
+                                          round(resPCA$eig[, 2][3], digits=2),
                                          "%)"),
                               zlab=paste0("dim2 (",
-                                          round(res.PCA$eig[, 2][2], digits=2),
+                                          round(resPCA$eig[, 2][2], digits=2),
                                          "%)"))
 
             plot3D::text3D(data.3D[, 1] + epsilon,
@@ -537,13 +549,13 @@ HCPCanalysis <- function(SEresNorm,
                               ticktype="detailed", theta=Theta, phi=Phi, pch=20,
                               main="3D PCA plot with HCPC clusters", bty="b2",
                               xlab=paste0("dim1 (",
-                                          round(res.PCA$eig[, 2][1], digits=2),
+                                          round(resPCA$eig[, 2][1], digits=2),
                                           "%)"),
                               ylab=paste0("dim3 (",
-                                          round(res.PCA$eig[, 2][3], digits=2),
+                                          round(resPCA$eig[, 2][3], digits=2),
                                           "%)"),
                               zlab=paste0("dim2 (",
-                                          round(res.PCA$eig[, 2][2], digits=2),
+                                          round(resPCA$eig[, 2][2], digits=2),
                                           "%)"))
 
             plot3D::text3D(data.3D[, 1] + epsilon,
@@ -581,8 +593,8 @@ HCPCanalysis <- function(SEresNorm,
     }## if(Plot.HCPC==TRUE)
 
     ##------------------------------------------------------------------------#
-    FactorCluster <- data.frame(Obs=row.names(res.PCA$call$quali.sup$quali.sup),
-                                res.PCA$call$quali.sup$quali.sup,
+    FactorCluster <- data.frame(Obs=row.names(resPCA$call$quali.sup$quali.sup),
+                                resPCA$call$quali.sup$quali.sup,
                                 Clust=res.hcpc$data.clust$clust)
     colnames(FactorCluster) <- gsub("Quali.Sup.", "",
                                     x=colnames(FactorCluster),
@@ -599,7 +611,17 @@ HCPCanalysis <- function(SEresNorm,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
+    ## SE HCPC
+    listHCPC <- list(Res.hcpc=res.hcpc, Samples.FactorCluster=FactorCluster)
+    NBcol <- length(unlist(S4Vectors::metadata(SEresPCA)$colDataINFO))
+
+    SEprepHCPC <- SEresPCA
+    SummarizedExperiment::colData(SEprepHCPC)$HCPC.clust <- FactorCluster$Clust
+    S4Vectors::metadata(SEprepHCPC)$HCPC <- listHCPC
+    S4Vectors::metadata(SEprepHCPC)$colDataINFO$colINFOclusterHCPC <- NBcol+1
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
     ## List.plot.HCPC=List.plot.hcpc
-    return(list(Res.hcpc=res.hcpc,
-                Samples.FactorCluster=FactorCluster))
+    return(SEobj=SEprepHCPC)
 }## HCPCanalysis()

@@ -47,17 +47,16 @@ CharacterNumbers <- function(Vect.number) {
         Ch.numb <- as.character(vNBno0)
     } else {
         for (dg in seq_len(Max.digit)) {##1:Max.digit
-            I.dig<-which(floor(log10(abs(vNBno0))) + 1 == dg)
+            I.dig <- which(floor(log10(abs(vNBno0))) + 1 == dg)
             if (dg < Max.digit) {
-                Ch.numb[I.dig]<-paste0(paste0(rep(0, times=Max.digit-dg),
-                                              collapse=""),
-                                       vNBno0[I.dig])
-                ## paste(..., sep = "") is equivalent to paste0(...)
+                Ch.numb[I.dig] <- paste0(paste0(rep(0, times=Max.digit-dg),
+                                                collapse=""),
+                                         vNBno0[I.dig])
             } else {
                 Ch.numb[I.dig] <- as.character(vNBno0[I.dig])
             }## if(dg<Max.digit)
         }## for(dg in 1:Max.digit)
-    }## if(Max.digit==1)
+    }## if(Max.digit==1) ## paste(..., sep = "") is equivalent to paste0(...)
 
     ##------------------------------------------------------------------------#
     ## return

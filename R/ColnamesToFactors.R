@@ -102,12 +102,39 @@ ColnamesToFactors <- function(ExprData,
     ## Every sample must have an indidual name
     if (is.null(Individual.position)) {
         stop("Every sample must have an indidual name (name or number).")
+    } else {
+        if(floor(Individual.position) != Individual.position){
+            stop("'Individual.position' must be an integer.")
+        }## if(floor(Individual.position) != Individual.position)
     }## if(is.null(Individual.position))
 
     ## Biological condition & Times point absent
     if (is.null(Group.position) & is.null(Time.position)) {
         stop("Samples must belong to at least one time or one group.")
     }## if(is.null(Group.position) & is.null(Time.position))
+
+    if (!is.null(Column.gene)) {
+        if (floor(Column.gene) != Column.gene){
+            stop("'Column.gene' must be an integer.")
+        }## if (floor(Column.gene) != Column.gene)
+    }## if (!is.null(Column.gene))
+
+    if (!is.null(Group.position)) {
+        if (floor(Group.position) != Group.position){
+            stop("'Group.position' must be an integer.")
+        }## if (floor(Group.position) != Group.position)
+    }## if (!is.null(Group.position))
+
+    if (!is.null(Time.position)) {
+        if (floor(Time.position) != Time.position){
+            stop("'Time.position' must be an integer.")
+        }## if (floor(Time.position) != Time.position)
+    }## if (!is.null(Time.position))
+
+    if (!is.data.frame(ExprData)) {
+        stop("'ExprData' must be a matrix of class data.frame.")
+    }## if (!is.data.frame(ExprData))
+
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -179,7 +206,7 @@ ColnamesToFactors <- function(ExprData,
             stop(Stop.BC.T)
         }## if(Var.GT + Var.IT + max(Contingency.IT)-1>0)
         ##
-        if (min(c(table(Group.info,Time.info.f))) < 2) {
+        if (min(c(table(Group.info, Time.info.f))) < 2) {
             stop("Each group must have at least two individuals.")
         }## if(min(c(table(Group.info,Time.info.f)))<2)
 
@@ -193,7 +220,7 @@ ColnamesToFactors <- function(ExprData,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Biological condition present & Times points absent
-    if (is.null(Group.position) == FALSE & is.null(Time.position) == TRUE) {
+    if (!is.null(Group.position) & is.null(Time.position)) {
         ##--------------------------------------------------------------------#
         ## Setting
         Time.info.f <- Tps.info <- NULL
@@ -210,11 +237,11 @@ ColnamesToFactors <- function(ExprData,
 
         ##--------------------------------------------------------------------#
         ## Check, stop
-        if (Var.IG + max(apply(Contingency.IG,1,sum)) - 1 > 0) {
+        if (Var.IG + max(apply(Contingency.IG, 1, sum)) - 1 > 0) {
             stop("Every individual must be associated to only one group.")
         }## if(Var.IG + max(apply(Contingency.IG,1,sum))-1 >0)
         ##
-        if (min(apply(Contingency.IG,2,sum)) < 2) {
+        if (min(apply(Contingency.IG, 2, sum)) < 2) {
             stop("Each group must have at least two individuals.")
         }## if(min(apply(Contingency.IG,2,sum))<2)
 
@@ -238,8 +265,7 @@ ColnamesToFactors <- function(ExprData,
         ## Cases when algorithm must stop
         if (length(Time.info.f) == length(unique(Time.info.f))) {
             Stop.Tinfo <- paste("The data must contain the temporal",
-                                "expression of at least two individuals.",
-                                sep=" ")
+                                "expression of at least two individuals.")
             stop(Stop.Tinfo)
         }## if(length(Time.info.f)==length(unique(Time.info.f)))
 

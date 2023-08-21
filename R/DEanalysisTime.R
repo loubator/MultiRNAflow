@@ -10,8 +10,8 @@
 #' @param pval.min Numeric value between 0 and 1. A gene will be considered as
 #' differentially expressed (DE) between two biological conditions if
 #' its Benjamini-Hochberg adjusted p-value
-#' (see [stats::p.adjust()]) is below the threshold pval.min.
-#' Default value is 0.05
+#' (see [stats::p.adjust()])
+#' is below the threshold pval.min. Default value is 0.05
 #' @param pval.vect.t \code{NULL} or vector of dimension \eqn{T-1} filled with
 #' numeric values between 0 and 1, with \eqn{T} the number of time
 #' measurements.
@@ -83,7 +83,8 @@
 #' @examples
 #' data(RawCounts_Leong2014_FISSIONsub500wt)
 #' ## We take only the first three time for the speed of the example
-#' RawCounts_Fission_3t<-RawCounts_Leong2014_FISSIONsub500wt[,1:10]
+#' RawCounts_Fission_3t<-RawCounts_Leong2014_FISSIONsub500wt[seq_len(200),
+#'                                                           seq_len(10)]
 #'
 #' ## Preprocessing step
 #' resDATAprepSEfission <- DATAprepSE(RawCounts=RawCounts_Fission_3t,
@@ -92,9 +93,11 @@
 #'                                    Time.position=2,
 #'                                    Individual.position=3)
 #'
+#' DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEfission)$DESeq2obj
+#' DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
+#'
 #' ##-------------------------------------------------------------------------#
-#' dds.DE.T<-DESeq2::DESeq(resDATAprepSEfission$DESeq2.obj,
-#'                         quiet=TRUE, betaPrior=FALSE)
+#' dds.DE.T<-DESeq2::DESeq(DESeq2obj, quiet=TRUE, betaPrior=FALSE)
 #' ##
 #' res.T<-DEanalysisTime(DESeq.result=dds.DE.T,
 #'                       pval.min=0.05,
@@ -189,7 +192,7 @@ DEanalysisTime<-function(DESeq.result,
     ## 3) Filling of data.frames and DE genes
     if(LRT.supp.info==TRUE){
         res.LRT<-DESeq2::results(DESeq.result, test="LRT")
-        # the argument 'reduced' is useless because there is only the factor time
+        # the argument 'reduced' is useless because there is only factor time
 
         padj.LRT<-res.LRT$padj
         if(length(which(is.na(padj.LRT)))>0){
@@ -264,8 +267,9 @@ DEanalysisTime<-function(DESeq.result,
         data.sign.2t<-data.frame(Attribute=c("UpRegulated", "DownRegulated"),
                                  Number.DE=c(Pos.2t, Neg.2t))
 
+        LVLSattribute <- rev(levels(factor(data.sign.2t$Attribute)))
         data.sign.2t$Attribute<-factor(data.sign.2t$Attribute,
-                                       levels=rev(levels(factor(data.sign.2t$Attribute))))
+                                       levels=LVLSattribute)
 
         barplot2t<-ggplot2::ggplot(data=data.sign.2t,
                                    ggplot2::aes(x="t1 vs t0",
@@ -298,7 +302,8 @@ DEanalysisTime<-function(DESeq.result,
         names(List.plots.DE.time)[1]<-"Alluvial.graph"
 
         List.plots.DE.time[[2]]<-res.allu.g$g.alluvial.freq
-        names(List.plots.DE.time)[2]<-"NumberDEgenes_acrossTime_perTemporalGroup"
+        names(List.plots.DE.time)[2]<-paste0("NumberDEgenes_acrossTime",
+                                             "_perTemporalGroup")
 
         ##--------------------------------------------------------------------#
         ## Number DE gene per time with or without sign
@@ -357,8 +362,8 @@ DEanalysisTime<-function(DESeq.result,
 
             ##----------------------------------------------------------------#
             # Save graph nb de gene per group per time
-            NbaccrosTfile<-paste0("Plot_NumberDEgenes_acrossTime_perTemporalGroup",
-                                  SubFile.name, ".pdf")
+            NbaccrosTfile<-paste0("Plot_NumberDEgenes_acrossTime",
+                                  "_perTemporalGroup", SubFile.name, ".pdf")
 
             grDevices::pdf(file=file.path(path.result, NbaccrosTfile),
                            width=11, height=8)
@@ -406,23 +411,31 @@ DEanalysisTime<-function(DESeq.result,
     }# if(Nb.time>2)
 
     ##------------------------------------------------------------------------#
-    if(Nb.time>2){
-        DE.Temporal.Pattern.f<-res.VennBarplot$DE.pattern.t.01.sum
-    }else{
-        DE.Temporal.Pattern.f<-data.frame(matrix(NA, nrow=1, ncol=4))
-        colnames(DE.Temporal.Pattern.f)<-c("DE.Temporal.Pattern",
-                                           "0.ti.over.t0",
-                                           "1.ti.over.t0",
-                                           "Total")
+    if (Nb.time>2) {
+        DE.Temporal.Pattern.f <- res.VennBarplot$DE.pattern.t.01.sum
+    } else {
+        DE.Temporal.Pattern.f <- data.frame(matrix(NA, nrow=1, ncol=4))
+        colnames(DE.Temporal.Pattern.f) <- c("DE.Temporal.Pattern",
+                                             "0.ti.over.t0",
+                                             "1.ti.over.t0",
+                                             "Total")
         #
-        DE.Temporal.Pattern.f[1,]<-c(1, data.sign.2t$Number.DE[c(2,1)],
-                                     sum(data.sign.2t$Number.DE[c(2,1)]))
-    }# if(Nb.time>2)
+        DE.Temporal.Pattern.f[1,] <- c(1, data.sign.2t$Number.DE[c(2, 1)],
+                                       sum(data.sign.2t$Number.DE[c(2, 1)]))
+    }## if(Nb.time>2)
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## SE final
+    listDEresultTime <- list(Results=Table.Results.f,
+                             DE.Temporal.Pattern=DE.Temporal.Pattern.f)
+
+    DESeqclass <- DESeq.result
+    S4Vectors::metadata(DESeqclass)$DEresultTime <- listDEresultTime
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## 6) End et outputs
-    # List.Plots.DE.Time=List.plots.DE.time
-    return(list(Results=Table.Results.f,
-                DE.Temporal.Pattern=DE.Temporal.Pattern.f))
-}# DEanalysisTime()
+    ## List.Plots.DE.Time=List.plots.DE.time
+    return(DESeqclass=DESeqclass)
+}## DEanalysisTime()

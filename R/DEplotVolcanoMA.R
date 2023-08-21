@@ -24,7 +24,7 @@
 #'   corresponding to the \eqn{log_2} fold change between
 #'   each pair of biological conditions, for all fixed time point.
 #'
-#' @param Res.DE.analysis A list. Output from
+#' @param SEresDE A SummarizedExperiment class object. Output from
 #' [DEanalysisGlobal()]
 #' (see \code{Examples}).
 #' @param NbGene.plotted Non negative integer. The algorithm computes the sum
@@ -68,57 +68,93 @@
 #' @export
 #'
 #' @examples
-#' data(Results_DEanalysis_sub500)
-#' ## Results of DEanalysisGlobal() with the dataset of Antoszewski
-#' res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
+#' ## data importation
+#' data(RawCounts_Antoszewski2022_MOUSEsub500)
+#' ## No time points. We take only two groups for the speed of the example
+#' dataT1wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200), seq_len(7)]
 #'
-#' resVolcanoMA<-DEplotVolcanoMA(res.all,
-#'                               NbGene.plotted=5,
-#'                               Display.plots=TRUE,
-#'                               Save.plots=FALSE)
+#' ## Preprocessing with Results of DEanalysisGlobal()
+#' resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
+#'                             Column.gene=1,
+#'                             Group.position=1,
+#'                             Time.position=NULL,
+#'                             Individual.position=2)
+#' ##-------------------------------------------------------------------------#
+#' ## DE analysis
+#' resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
+#'                               pval.min=0.05,
+#'                               pval.vect.t=NULL,
+#'                               log.FC.min=1,
+#'                               LRT.supp.info=FALSE,
+#'                               Plot.DE.graph=FALSE,
+#'                               path.result=NULL,
+#'                               Name.folder.DE=NULL)
 #'
 #' ##-------------------------------------------------------------------------#
-#' ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-#' ## data(RawCounts_Antoszewski2022_MOUSEsub500)
-#' ## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#' ##                           Column.gene=1, Group.position=1,
-#' ##                           Time.position=NULL, Individual.position=2,
-#' ##                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
-#' ##                           path.result=NULL, Name.folder.DE=NULL)
+#' ## Volcano MA
+#' resVolcanoMA <- DEplotVolcanoMA(SEresDE=resDET1wt,
+#'                                 NbGene.plotted=5,
+#'                                 Display.plots=TRUE,
+#'                                 Save.plots=FALSE)
 
-DEplotVolcanoMA<-function(Res.DE.analysis,
-                          NbGene.plotted=2,
-                          SizeLabel=3,
-                          Display.plots=TRUE,
-                          Save.plots=FALSE){
+DEplotVolcanoMA <- function(SEresDE,
+                            NbGene.plotted=2,
+                            SizeLabel=3,
+                            Display.plots=TRUE,
+                            Save.plots=FALSE) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Check
-    if(!is.list(Res.DE.analysis) & !is(Res.DE.analysis, 'DESeqDataSet')){
-        stop("Res.DE.analysis must be a list or a 'DESeqDataSet' object")
-    }## if(!is.list(Res.DE.analysis) & !is(classDeseq2, 'DESeqDataSet'))
+    ## Check 1
+    ## DATAprepSE
+    Err_SE <- paste0("'SEresDE' mut be the results of the function ",
+                     "'DEanalysisGlobal()'.")
+
+    ## DATAprepSE
+    if (!is(SEresDE, "SummarizedExperiment")) {
+        stop(Err_SE)
+    } else {
+        DESeq2objList <- S4Vectors::metadata(SEresDE)$DESeq2obj
+        codeDEres <-DESeq2objList$SEidentification <-"SEresultsDE"
+
+        if (is.null(codeDEres)) {
+            stop(Err_SE)
+        }## if (is.null(codeDEres))
+
+        if (codeDEres != "SEresultsDE") {
+            stop(Err_SE)
+        }## if (codeDEres != SEresultsDE))
+    }## if (!is(SEresDE, "SummarizedExperiment"))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Preprocessing
+    DEresults <- SummarizedExperiment::rowData(SEresDE)
+    Name.G <- as.character(SummarizedExperiment::rownames(SEresDE))
+    dataRLE <- data.frame(SummarizedExperiment::assays(SEresDE)$rle)
+    resPATH <- S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME
+    resInputs <- S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## To avoid "no visible binding for global variable" with devtools::check()
-    log2FoldChange<-padj<-Gene<-ColpFC<-Shape.pFC<-NULL
+    log2FoldChange <- padj <- Gene <- ColpFC <- Shape.pFC <- NULL
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Folder path and creation
     if(!isFALSE(Save.plots)){
         if(isTRUE(Save.plots)){
-            path.result<-Res.DE.analysis$Path.result
+            path.result<-resPATH$Path.result
         }else{
             path.result<-Save.plots
         }## if(isTRUE(Save.plots))
 
         if(!is.null(path.result)){
-            if(!is.null(Res.DE.analysis$Folder.result)){
-                SufixDE<-paste0("_", Res.DE.analysis$Folder.result)
+            if(!is.null(resPATH$Folder.result)){
+                SufixDE<-paste0("_", resPATH$Folder.result)
             }else{
                 SufixDE<-NULL
-            }## if(!is.null(Res.DE.analysis$Folder.result))
+            }## if(!is.null(resPATH$Folder.result))
 
             SuppPlotFolder<-paste0("2-4_Supplementary_Plots", SufixDE)
 
@@ -163,12 +199,12 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Distinction case when samples belong to different group and/or time
-    if(length(Res.DE.analysis$Summary.Inputs$ExprCond)==2){
+    if(length(resInputs$ExprCond)==2){
         ##--------------------------------------------------------------------#
-        NbGroup<-length(Res.DE.analysis$Summary.Inputs$GroupLevels)
-        NbTime<-length(Res.DE.analysis$Summary.Inputs$TimeLevels)
-        pevo<-c(rep(Res.DE.analysis$Summary.Inputs$pvalsTime, times=NbGroup),
-                rep(Res.DE.analysis$Summary.Inputs$pvalGroup,
+        NbGroup<-length(resInputs$GroupLevels)
+        NbTime<-length(resInputs$TimeLevels)
+        pevo<-c(rep(resInputs$pvalsTime, times=NbGroup),
+                rep(resInputs$pvalGroup,
                     times=NbTime*NbGroup*(NbGroup-1)/2))
 
         Title.g<-rep(NA,times=NbGroup*(NbGroup-1)/2)
@@ -178,9 +214,9 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
         for(i in seq_len(NbGroup-1)){
             for(k in seq(from=(i+1), to=NbGroup, by=1)){
                 cptBC<-cptBC+1
-                Title.g[cptBC]<-paste(Res.DE.analysis$Summary.Inputs$GroupLevels[k],
+                Title.g[cptBC]<-paste(resInputs$GroupLevels[k],
                                       "vs",
-                                      Res.DE.analysis$Summary.Inputs$GroupLevels[i])
+                                      resInputs$GroupLevels[i])
             }# for(k in (i+1):NbGroup)
         }# for(i in 1:(NbGroup-1))
 
@@ -188,21 +224,21 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
         Title.g2<-paste0("(", rep(paste0("t", seq_len(NbTime)-1),
                                   each=NbGroup*(NbGroup-1)/2), ") ", Title.g)
         #
-        Title.vMA<-c(paste0("(",rep(Res.DE.analysis$Summary.Inputs$GroupLevels,
+        Title.vMA<-c(paste0("(",rep(resInputs$GroupLevels,
                                    each=NbTime-1),
                            ") t", rep(seq_len(NbTime-1), times=NbGroup),
                            " vs t0"), Title.g2)
 
     }else{
         ##--------------------------------------------------------------------#
-        if("Time"%in%Res.DE.analysis$Summary.Inputs$ExprCond){
-            NbTime<-length(Res.DE.analysis$Summary.Inputs$TimeLevels)
-            pevo<-Res.DE.analysis$Summary.Inputs$pvalsTime
+        if("Time"%in%resInputs$ExprCond){
+            NbTime<-length(resInputs$TimeLevels)
+            pevo<-resInputs$pvalsTime
 
             Title.vMA<-paste0("t", rep(seq_len(NbTime-1), times=1)," vs t0")
         }else{
-            NbGroup<-length(Res.DE.analysis$Summary.Inputs$GroupLevels)
-            pevo<-rep(Res.DE.analysis$Summary.Inputs$pvalGroup,
+            NbGroup<-length(resInputs$GroupLevels)
+            pevo<-rep(resInputs$pvalGroup,
                       times=NbGroup*(NbGroup-1))
 
             Title.vMA<-rep(NA, times=NbGroup*(NbGroup-1)/2)
@@ -211,22 +247,19 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
             for(i in seq_len(NbGroup-1)){
                 for(k in seq(from=(i+1), to=NbGroup, by=1)){
                     cptBC<-cptBC+1
-                    Title.vMA[cptBC]<-paste(Res.DE.analysis$Summary.Inputs$GroupLevels[k],
+                    Title.vMA[cptBC]<-paste(resInputs$GroupLevels[k],
                                             "vs",
-                                            Res.DE.analysis$Summary.Inputs$GroupLevels[i])
+                                            resInputs$GroupLevels[i])
                 }# for(k in (i+1):NbGroup)
             }# for(i in 1:(NbGroup-1))
-        }# if("Time"%in%Res.DE.analysis$Summary.Inputs$ExprCond)
-    }# if(length(Res.DE.analysis$Summary.Inputs$ExprCond)==2)
+        }# if("Time"%in%resInputs$ExprCond)
+    }# if(length(resInputs$ExprCond)==2)
 
-    AbsLog2Fcmin<-Res.DE.analysis$Summary.Inputs$logFCmin
+    AbsLog2Fcmin<-resInputs$logFCmin
 
     ##------------------------------------------------------------------------#
-    log2Mean<-log2(apply(Res.DE.analysis$RLEdata[,-1], 1 ,
-                         mean) + 1)
-    IdLog2FC<-grep(pattern="Log2FoldChange",
-                   x=colnames(Res.DE.analysis$DE.results),
-                   fixed=TRUE)
+    log2Mean<-log2(apply(dataRLE, 1 , mean) + 1)
+    IdLog2FC<-grep(pattern="Log2FoldChange", x=colnames(DEresults), fixed=TRUE)
 
     ##------------------------------------------------------------------------#
     Nlog2FC<-length(IdLog2FC)
@@ -238,7 +271,7 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
     ##------------------------------------------------------------------------#
     # Volcano and MA plots for each case
     for(i in seq_len(Nlog2FC)){
-        DatVolMA<-data.frame(Gene=Res.DE.analysis$RLEdata$Gene,
+        DatVolMA<-data.frame(Gene=Name.G,
                              log2Mean=log2Mean,
                              log2FoldChange=NA,
                              padj=NA,
@@ -249,8 +282,8 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
         row.names(DatVolMA)<-NULL
 
         ##--------------------------------------------------------------------#
-        DatVolMA$log2FoldChange<-Res.DE.analysis$DE.results[,IdLog2FC[i]]
-        DatVolMA$padj<-Res.DE.analysis$DE.results[,IdLog2FC[i]+1]
+        DatVolMA$log2FoldChange <- DEresults[,IdLog2FC[i]]
+        DatVolMA$padj <- DEresults[,IdLog2FC[i]+1]
 
         ##--------------------------------------------------------------------#
         if(min(DatVolMA$padj)==0 & length(unique(DatVolMA$padj))>1){
@@ -377,11 +410,11 @@ DEplotVolcanoMA<-function(Res.DE.analysis,
         options(warn=-1)
         #
         if(is.null(path.result)==FALSE){
-            if(isTRUE(Save.plots) & !is.null(Res.DE.analysis$Folder.result)){
-                SuffixSaveplots<-paste0("_", Res.DE.analysis$Folder.result)
+            if(isTRUE(Save.plots) & !is.null(resPATH$Folder.result)){
+                SuffixSaveplots<-paste0("_", resPATH$Folder.result)
             }else{
                 SuffixSaveplots<-""
-            }## if(isTRUE(Save.plots)& !is.null(Res.DE.analysis$Folder.result))
+            }## if(isTRUE(Save.plots)& !is.null(resPATH$Folder.result))
 
             TitleVol<-paste0("Volcano_",
                              gsub(" ", "_", x=Title.vMA[i], fixed=TRUE),

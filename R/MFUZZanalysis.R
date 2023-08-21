@@ -86,6 +86,7 @@
 #' @importFrom Mfuzz filter.NA fill.NA filter.std standardise mestimate
 #' mfuzz mfuzz.plot2
 #' @importFrom SummarizedExperiment colData assays rownames
+#' @importFrom S4Vectors metadata
 #' @importFrom Biobase assayData
 #' @importFrom utils write.table
 #' @importFrom grDevices pdf dev.off
@@ -118,6 +119,8 @@
 #'
 #' ##-------------------------------------------------------------------------#
 #' ## Preprocessing step
+#' DATAclustSIM <- data.frame(DATAclustSIM)
+#'
 #' resDATAprepSE <- DATAprepSE(RawCounts=DATAclustSIM,
 #'                             Column.gene=NULL,
 #'                             Group.position=1,
@@ -149,18 +152,57 @@ MFUZZanalysis <- function(SEresNorm,
                           Name.folder.mfuzz=NULL) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Check
+    ## Check 1
     ## DATAprepSE
     Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
                      "'DATAnormalization().'")
 
-    if (is.null(SEresNorm$SEidentification)) {
+    if (!is(SEresNorm, "SummarizedExperiment")) {
         stop(Err_SE)
     } else {
-        if (SEresNorm$SEidentification != "SEresNormalization") {
+        codeDEres <- S4Vectors::metadata(SEresNorm)$SEidentification
+
+        if (is.null(codeDEres)) {
             stop(Err_SE)
-        }## if (SEresNorm$SEidentification != "SEresNormalization")
-    }## if ((is.null(SEresNorm$SEidentification))
+        }## if (is.null(codeDEres))
+
+        if (codeDEres != "SEresNormalization") {
+            stop(Err_SE)
+        }## if (codeDEres != "SEresNormalization")
+    }## if (!is(SEresNorm, "SummarizedExperiment"))
+
+    if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm)) {
+        stop("'DATAnorm' must be TRUE or FALSE.")
+    }## if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check 2
+    if (!Method%in%c("hcpc", "kmeans")) {
+        stop("'Method' must be 'hcpc' or 'kmeans'.")
+    }## if (!Method%in%c("hcpc", "kmeans"))
+
+    if (!isTRUE(Plot.Mfuzz) & !isFALSE(Plot.Mfuzz)) {
+        stop("'Plot.Mfuzz' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.Mfuzz) & !isFALSE(Plot.Mfuzz))
+
+    if (!is.null(Max.clust)) {
+        if (floor(Max.clust) != Max.clust){
+            stop("'Max.clust' must be a non negative integer.")
+        }## if (floor(Max.clust) != Max.clust)
+    }## if (!is.null(Max.clust))
+
+    if (!is.null(path.result)) {
+        if (!is.character(path.result)) {
+            stop("'path.result' must be NULL or a character.")
+        }## if (!is.character(path.result))
+    }## if (!is.null(path.result))
+
+    if (!is.null(Name.folder.mfuzz)) {
+        if (!is.character(Name.folder.mfuzz)) {
+            stop("'Name.folder.mfuzz' must be NULL or a character.")
+        }## if (!is.character(Name.folder.mfuzz))
+    }## if (!is.null(Name.folder.mfuzz))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -196,7 +238,7 @@ MFUZZanalysis <- function(SEresNorm,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Preprocessing
-    cSEdat <- SummarizedExperiment::colData(SEresNorm$SEobj)
+    cSEdat <- SummarizedExperiment::colData(SEresNorm)
 
     if (c("Time")%in%colnames(cSEdat)) {
         Vect.time <- as.character(cSEdat$Time)
@@ -215,6 +257,7 @@ MFUZZanalysis <- function(SEresNorm,
     } else {
         Vect.group <- NULL
         Nb.group <- 1
+        Group.Lvls <- "1condition"
         Name.plot.Mfuzz<-c("ClustersNumbers", "Mfuzz.Plots")
     }## if (c("Group")%in%colnames(cSEdat))
 
@@ -224,34 +267,36 @@ MFUZZanalysis <- function(SEresNorm,
         aSE <- 1
     }## if (DATAnorm == TRUE)
 
-    ExprData <- SummarizedExperiment::assays(SEresNorm$SEobj)[[aSE]]
+    ExprData <- SummarizedExperiment::assays(SEresNorm)[[aSE]]
     ExprData.f <- data.frame(ExprData)
-    Name.G <- as.character(SummarizedExperiment::rownames(SEresNorm$SEobj))
+    Name.G <- as.character(SummarizedExperiment::rownames(SEresNorm))
 
     ##------------------------------------------------------------------------#
-    List.plot.Mfuzz <- vector(mode="list", length=Nb.group + 1)
-    names(List.plot.Mfuzz) <- Name.plot.Mfuzz
-
+    ## List.plot.Mfuzz <- vector(mode="list", length=Nb.group + 1)
+    ## names(List.plot.Mfuzz) <- Name.plot.Mfuzz
+    ## List.plot.Mfuzz[[1]] <- resCLnumber$Plot.Number.Cluster
     ##------------------------------------------------------------------------#
     ## Selection the number of clusters
     if (is.null(DataNumberCluster)) {
-        resClustNumber <- MFUZZclustersNumber(SEresNorm=SEresNorm,
-                                              DATAnorm=DATAnorm,
-                                              Method=Method,
-                                              Max.clust=Max.clust,
-                                              Min.std=Min.std,
-                                              Plot.Cluster=Plot.Mfuzz,
-                                              path.result=path.result.new)
+        SEresClustNumber <- MFUZZclustersNumber(SEresNorm=SEresNorm,
+                                                DATAnorm=DATAnorm,
+                                                Method=Method,
+                                                Max.clust=Max.clust,
+                                                Min.std=Min.std,
+                                                Plot.Cluster=Plot.Mfuzz,
+                                                path.result=path.result.new)
 
-        DataNumberCluster <- resClustNumber$DataClustSel
-        List.plot.Mfuzz[[1]] <- resClustNumber$Plot.Number.Cluster
-
+        resCLnumber <- S4Vectors::metadata(SEresClustNumber)$MFUZZ
+        DataNumberCluster <- resCLnumber$DataClustSel
+        fnidNBclusters <- TRUE
     } else {
         Sum.clust <- sum(DataNumberCluster[, 2])
 
         if (Sum.clust < 2 | floor(Sum.clust) != Sum.clust) {
             stop("Max.clust must be an integer greater or equal to 2")
         }## if(Sum.clust<2 | floor(Sum.clust)!=Sum.clust)
+
+        fnidNBclusters <- FALSE
     }## if(is.null(DataNumberCluster)==TRUE)
 
     ##------------------------------------------------------------------------#
@@ -426,7 +471,24 @@ MFUZZanalysis <- function(SEresNorm,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
+    ## SE Mfuzz
+    if (isTRUE(fnidNBclusters)) {
+        SEresMFUZZ <- SEresClustNumber
+        S4Vectors::metadata(SEresMFUZZ)$MFUZZ[[3]] <- Data.mfuzz
+        S4Vectors::metadata(SEresMFUZZ)$MFUZZ[[4]] <- dat.mfuzz
+
+        nameMFUZZlist <- c("Data.Mfuzz", "Result.Mfuzz")
+        names(S4Vectors::metadata(SEresMFUZZ)$MFUZZ)[c(3, 4)] <- nameMFUZZlist
+    } else {
+        SEresMFUZZ <- SEresNorm
+        listMFUZZ <- list(DataClustSel=DataNumberCluster,
+                          Data.Mfuzz=Data.mfuzz,
+                          Result.Mfuzz=dat.mfuzz)
+        S4Vectors::metadata(SEresMFUZZ)$MFUZZ <- listMFUZZ
+    }## if (is.null(DataNumberCluster))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
     ## Output ## Plot.Mfuzz=List.plot.Mfuzz
-    return(list(Data.Mfuzz=Data.mfuzz,
-                Result.Mfuzz=dat.mfuzz))
+    return(SEobj=SEresMFUZZ)
 }## MFUZZanalysis()

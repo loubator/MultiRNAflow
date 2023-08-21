@@ -10,7 +10,7 @@
 #'
 #' @param SEres Results of either our R function
 #' [DATAprepSE()],
-#' either our R function
+#' or our R function
 #' [DATAnormalization()].
 #' @param row.gene Non negative integer indicating the row of the gene
 #' to be plotted.
@@ -24,13 +24,14 @@
 #' If samples belong to different time points only,
 #' \code{Color.Group} will not be used.
 #'
+#' @importFrom SummarizedExperiment assays colData rownames
+#' @importFrom S4Vectors metadata
 #' @importFrom reshape2 melt
 #' @importFrom stats var sd
 #' @importFrom scales hue_pal
 #' @importFrom ggplot2 ggplot xlab ylab aes geom_errorbar position_dodge
 #' geom_line geom_point position_nudge geom_jitter position_jitter
 #' geom_violin geom_boxplot geom_dotplot
-#' @importFrom SummarizedExperiment assays colData rownames
 #'
 #' @return The function plots for the gene selected with
 #' the input \code{row.gene}
@@ -77,25 +78,54 @@ DATAplotExpression1Gene <- function(SEres,
                                     Color.Group=NULL) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Check
+    ## Check 1
     ## DATAprepSE
     Err_SE <- paste0("'SEres' mut be the results of either the function ",
                      "'DATAprepSE()' or 'DATAnormalization()'.")
-    if (is.null(SEres$SEidentification)) {
+
+    ## DATAprepSE
+    if (!is(SEres, "SummarizedExperiment")) {
         stop(Err_SE)
     } else {
-        if (!SEres$SEidentification%in%c("SEstep", "SEresNormalization")) {
+        codeDEres <- S4Vectors::metadata(SEres)$SEidentification
+
+        if (is.null(codeDEres)) {
             stop(Err_SE)
-        }
-    }## if (SEres$SEidentification!="SEstep")
+        }## if (is.null(codeDEres))
+
+        if (!codeDEres%in%c("SEstep", "SEresNormalization")) {
+            stop(Err_SE)
+        }## if (!codeDEres%in%c("SEstep", "SEresNormalization"))
+    }## if (!is(SEres, "SummarizedExperiment"))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check 2
+    if (!is.numeric(row.gene) & !is.integer(row.gene)) {
+        stop("'row.gene' must be a non negative integer.")
+    } else {
+        if(floor(row.gene) != row.gene){
+            stop("'row.gene' must be a non negative integer.")
+        }## if(floor(Individual.position) != Individual.position)
+
+        if (row.gene <= 0) {
+            stop("'row.gene' must be a non negative integer.")
+        }## if (row.gene <= 0)
+    }## if(is.null(Individual.position))
+
+    if (!is.null(Color.Group)) {
+        if (!is.data.frame(Color.Group)) {
+            stop("'Color.Group' must be NULL or a data.frame.")
+        }## if (!is.data.frame(Color.Group))
+    }## if (!is.null(Color.Group))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## preprocessing
-    Ndata <- length(SummarizedExperiment::assays(SEres$SEobj))
-    ExprData <- SummarizedExperiment::assays(SEres$SEobj)[[Ndata]]
-    cDat <- data.frame(SummarizedExperiment::colData(SEres$SEobj))
-    NameG <- as.character(SummarizedExperiment::rownames(SEres$SEobj))
+    Ndata <- length(SummarizedExperiment::assays(SEres))
+    ExprData <- SummarizedExperiment::assays(SEres)[[Ndata]]
+    cDat <- data.frame(SummarizedExperiment::colData(SEres))
+    NameG <- as.character(SummarizedExperiment::rownames(SEres))
 
     if (c("Group")%in%colnames(cDat)) {
         Vector.group <- as.character(cDat$Group)
@@ -191,13 +221,13 @@ DATAplotExpression1Gene <- function(SEres,
             ggplot2::theme(legend.position="bottom") +
             ggplot2::xlab("Time") + ggplot2::ylab("Expression") +
             ggplot2::ggtitle(GENEtitle) +
-            ggplot2::geom_errorbar(data=by.Dat.1G, width=0.2, size=0.7,
+            ggplot2::geom_errorbar(data=by.Dat.1G, width=0.2, linewidth=0.7,
                                    ggplot2::aes(x=factor(Time),
                                                 ymin=Mean-Sd, ymax=Mean+Sd,
                                                 group=Group, color=Group,
                                                 linetype=Group),
                                    position=ggplot2::position_dodge(0.2)) +
-            ggplot2::geom_line(data=by.Dat.1G, size=1.1,
+            ggplot2::geom_line(data=by.Dat.1G, linewidth=1.1,
                                ggplot2::aes(x=factor(Time),
                                             y=as.numeric(Mean),
                                             group=Group,
@@ -270,13 +300,13 @@ DATAplotExpression1Gene <- function(SEres,
             ggplot2::xlab("Time")+ ggplot2::ylab("Expression") +
             ggplot2::ggtitle(GENEtitle) +
             ggplot2::geom_errorbar(data=by.Dat.1G,
-                                   linetype="dashed", width=.2, size=0.7,
+                                   linetype="dashed", width=.2, linewidth=0.7,
                                    ggplot2::aes(x=factor(Time),
                                                 ymin=Mean-Sd,
                                                 ymax=Mean+Sd),
                                    position=ggplot2::position_nudge(x=0.1,
                                                                     y=0)) +
-            ggplot2::geom_line(data=by.Dat.1G, color="black", size=1.1,
+            ggplot2::geom_line(data=by.Dat.1G, color="black", linewidth=1.1,
                                ggplot2::aes(x=factor(Time),
                                             y=as.numeric(Mean), group=1),
                                position=ggplot2::position_nudge(x=0.1, y=0)) +
@@ -369,7 +399,7 @@ DATAplotExpression1Gene <- function(SEres,
                                                fill=Group),
                                   binaxis='y', stackdir='center',
                                   binwidth=size.pt)+
-            ggplot2::geom_errorbar(data=by.Dat.1G, width=0.2, size=0.9,
+            ggplot2::geom_errorbar(data=by.Dat.1G, width=0.2, linewidth=0.9,
                                    ggplot2::aes(x=factor(Group),
                                                 ymin=Mean-Sd, ymax=Mean+Sd),
                                    position = ggplot2::position_nudge(x=0,

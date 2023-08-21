@@ -5,40 +5,38 @@
 #' a correlation heatmap between samples from the output of
 #' [DEanalysisGlobal()].
 #'
-#' @details
-#' * If \code{Set.Operation="union"} then the rows extracted from \code{Data}
-#' are those such that the sum of the selected columns in
-#' \code{Res.DE.analysis} is >0.
-#' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()], the rows extracted from \code{Data} will be those DE
-#' at least at one time.
+#' @details We have the following three cases:
+#' * If \code{Set.Operation="union"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that the sum of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at least at t1 or t2
+#' (versus the reference time t0).
+#' * If \code{Set.Operation="intersect"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that the product of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at times t1 and t2
+#' (versus the reference time t0).
+#' * If \code{Set.Operation="setdiff"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that only one element of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at times t1 only and
+#' at times t2 only (versus the reference time t0).
 #'
-#' * If \code{Set.Operation="intersect"} then the rows extracted from data are
-#' those such that the product of the selected columns in
-#' \code{Res.DE.analysis} is >0.
-#' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()], the rows extracted from \code{Data} will be those DE
-#' at all time ti (except the reference time t0).
 #'
-#' * If \code{Set.Operation="setdiff"} then the rows extracted from data are
-#' those such that only one element of the selected columns in
-#' \code{Res.DE.analysis} is >0.
-#' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()],
-#' the rows extracted from \code{Data} will be those DE at only one time ti
-#' (except the reference time t0).
-#'
-#' The time in the first column of \code{Color.Time} must be either
-#' 't0', 'T0' or '0' for time 0,
-#' 't1', 'T1' or '1' for time 1, ...
-#'
-#' @param Res.DE.analysis A list. Output from
-#' [DEanalysisGlobal()].
+#' @param SEresDE A SummarizedExperiment class object. Output from
+#' [DEanalysisGlobal()]
+#' (see \code{Examples}).
 #' @param ColumnsCriteria A vector of integers where each integer indicates
-#' column of the output \code{DE.results} from \code{Res.DE.analysis}.
-#' Columns should contained binary values, but if there are other
-#' integers or other values, rows selected are those which values are >0
-#' (see \code{Details}).
+#' a column of  \code{SummarizedExperiment::rowData(SEresDE)}.
+#' These columns should either contain only binary values, or may contain other
+#' numerical value, in which case extracted outputs from \code{SEresDE}
+#' will be those with >0 values (see \code{Details}).
 #' @param Set.Operation A character.
 #' The user must choose between "union" (default), "intersect", "setdiff"
 #' (see \code{Details}).
@@ -93,31 +91,40 @@
 #' @export
 #'
 #' @examples
-#' data(Results_DEanalysis_sub500)
-#' ## Results of DEanalysisGlobal() with the dataset of Antoszewski
-#' res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
+#' ## data importation
+#' data(RawCounts_Antoszewski2022_MOUSEsub500)
+#' ## No time points. We take only two groups for the speed of the example
+#' dataT1wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200), seq_len(7)]
 #'
-#' resHeatmap<-DEplotHeatmaps(Res.DE.analysis=res.all,
-#'                            ColumnsCriteria=3, ## Specific genes N1haT1ko
-#'                            Set.Operation="union",
-#'                            NbGene.analysis=20,
-#'                            Color.Group=NULL,
-#'                            SizeLabelRows=5,
-#'                            SizeLabelCols=5,
-#'                            Display.plots=TRUE,
-#'                            Save.plots=FALSE)
-#' ##
+#' ## Preprocessing with Results of DEanalysisGlobal()
+#' resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
+#'                             Column.gene=1,
+#'                             Group.position=1,
+#'                             Time.position=NULL,
+#'                             Individual.position=2)
 #' ##-------------------------------------------------------------------------#
-#' ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-#' ## data(RawCounts_Antoszewski2022_MOUSEsub500)
-#' ## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#' ##                           Column.gene=1, Group.position=1,
-#' ##                           Time.position=NULL, Individual.position=2,
-#' ##                           pval.min=0.05, log.FC.min=1,
-#' ##                           LRT.supp.info=FALSE,
-#' ##                           path.result=NULL, Name.folder.DE=NULL)
+#' ## DE analysis
+#' resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
+#'                               pval.min=0.05,
+#'                               pval.vect.t=NULL,
+#'                               log.FC.min=1,
+#'                               LRT.supp.info=FALSE,
+#'                               Plot.DE.graph=FALSE,
+#'                               path.result=NULL,
+#'                               Name.folder.DE=NULL)
+#'
+#' ##-------------------------------------------------------------------------#
+#' resHeatmap <- DEplotHeatmaps(SEresDE=resDET1wt,
+#'                              ColumnsCriteria=3, ## Specific genes N1haT1ko
+#'                              Set.Operation="union",
+#'                              NbGene.analysis=20,
+#'                              Color.Group=NULL,
+#'                              SizeLabelRows=5,
+#'                              SizeLabelCols=5,
+#'                              Display.plots=TRUE,
+#'                              Save.plots=FALSE)
 
-DEplotHeatmaps<-function(Res.DE.analysis,
+DEplotHeatmaps<-function(SEresDE,
                          ColumnsCriteria=2,
                          Set.Operation="union",
                          NbGene.analysis=20,
@@ -128,37 +135,60 @@ DEplotHeatmaps<-function(Res.DE.analysis,
                          Save.plots=FALSE){
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    if(!is.list(Res.DE.analysis) & !is(Res.DE.analysis, 'DESeqDataSet')){
-        stop("Res.DE.analysis must be a list or a 'DESeqDataSet' object")
-    }## if(!is.list(Res.DE.analysis) & !is(classDeseq2, 'DESeqDataSet'))
+    ## Check 1
+    ## DATAprepSE
+    Err_SE <- paste0("'SEresDE' mut be the results of the function ",
+                     "'DEanalysisGlobal()'.")
+
+    ## DATAprepSE
+    if (!is(SEresDE, "SummarizedExperiment")) {
+        stop(Err_SE)
+    } else {
+        DESeq2objList <- S4Vectors::metadata(SEresDE)$DESeq2obj
+        codeDEres <-DESeq2objList$SEidentification <-"SEresultsDE"
+
+        if (is.null(codeDEres)) {
+            stop(Err_SE)
+        }## if (is.null(codeDEres))
+
+        if (codeDEres != "SEresultsDE") {
+            stop(Err_SE)
+        }## if (codeDEres != SEresultsDE))
+    }## if (!is(SEresDE, "SummarizedExperiment"))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## RLE count data
-    RleDat<-Res.DE.analysis$RLEdata
+    ## Preprocessing
+    DEresults <- SummarizedExperiment::rowData(SEresDE)
+    Name.G <- as.character(SummarizedExperiment::rownames(SEresDE))
+    RleDat <- data.frame(SummarizedExperiment::assays(SEresDE)$rle)
+    resPATH <- S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME
+    resInputs <- S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
     ## Sub data preprocessing for both heatmaps
-
     if(!is.null(ColumnsCriteria)){
         ##--------------------------------------------------------------------#
-        ResSubDE<-DEanalysisSubData(Data=RleDat,
-                                    Res.DE.analysis=Res.DE.analysis,
+        ResSubDE<-DEanalysisSubData(SEresDE=SEresDE,
                                     ColumnsCriteria=ColumnsCriteria,
                                     Set.Operation=Set.Operation)
+
+        rowSel <- S4Vectors::metadata(ResSubDE)$DEselection$DEselectedGenes
 
         ##--------------------------------------------------------------------#
         ##--------------------------------------------------------------------#
         ## Selection of genes with the highest sum of absolute log2 fold change
-        IdLog2FC<-grep(pattern="Log2FC", x=colnames(Res.DE.analysis$DE.results),
-                       fixed=TRUE)
-        SubLog2FC<-data.frame(Res.DE.analysis$DE.results[ResSubDE$RowsSelected,
-                                                         IdLog2FC])
+        IdLog2FC<-grep(pattern="Log2FC", x=colnames(DEresults), fixed=TRUE)
+        SubLog2FC<-data.frame(DEresults[rowSel, IdLog2FC])
         SumLog2FC<-apply(SubLog2FC, 1, function(x) sum(abs(x)))
         OrderLog2FC.ini<-order(SumLog2FC, decreasing=TRUE)
 
         ##--------------------------------------------------------------------#
         ##--------------------------------------------------------------------#
-        RleSubCount<-as.matrix(ResSubDE$SubData[,-1])
-        NbSelectedRows<-length(ResSubDE$RowsSelected)
+        ##as.matrix(ResSubDE$SubData[,-1])
+        RleSubCount<-SummarizedExperiment::assays(ResSubDE)$rle
+        NbSelectedRows<-length(rowSel)
 
         ##--------------------------------------------------------------------#
         ##--------------------------------------------------------------------#
@@ -179,7 +209,7 @@ DEplotHeatmaps<-function(Res.DE.analysis,
         RleLog2corVar<-FactoMineR::HCPC(data.frame(RleScaled),
                                         method="ward", graph=FALSE)
     }else{
-        RleSubCount<-as.matrix(RleDat[,-1])
+        RleSubCount<-as.matrix(RleDat)
         SumLog2FC<-apply(data.frame(RleSubCount), 1, var)
         OrderLog2FC.ini<-order(SumLog2FC, decreasing=TRUE)
         NbSelectedRows<-length(SumLog2FC)
@@ -204,11 +234,11 @@ DEplotHeatmaps<-function(Res.DE.analysis,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    if(length(Res.DE.analysis$Summary.Inputs$ExprCond)==2){
+    if (length(resInputs$ExprCond) == 2) {
         ##--------------------------------------------------------------------#
         Vect.Time.ini<-gsub("T", "",
                             gsub("t", "",
-                                 as.character(Res.DE.analysis$Summary.Inputs$FactorsInfo$Time)))
+                                 as.character(resInputs$FactorsInfo$Time)))
         Vect.Time<-paste0("t", Vect.Time.ini)
         Tlevels<-levels(factor(Vect.Time))
         NbTime<-length(Tlevels)
@@ -233,8 +263,8 @@ DEplotHeatmaps<-function(Res.DE.analysis,
                                       ")")))
 
         ##--------------------------------------------------------------------#
-        Vect.Group<-Res.DE.analysis$Summary.Inputs$FactorsInfo$Group
-        Glevels<-Res.DE.analysis$Summary.Inputs$GroupLevels
+        Vect.Group<-resInputs$FactorsInfo$Group
+        Glevels<-resInputs$GroupLevels
         NbGroup<-length(Glevels)
 
         ##--------------------------------------------------------------------#
@@ -271,12 +301,12 @@ DEplotHeatmaps<-function(Res.DE.analysis,
                                                       col=list(Time=fa1.t,
                                                                Group=fa2.g),
                                                       show_legend=FALSE)
-    }else{
+    } else {
         ##--------------------------------------------------------------------#
-        if("Time"%in%Res.DE.analysis$Summary.Inputs$ExprCond){
+        if ("Time"%in%resInputs$ExprCond) {
             Vect.Time.ini<-gsub("T", "",
                                 gsub("t", "",
-                                     as.character(Res.DE.analysis$Summary.Inputs$FactorsInfo$Time)))
+                                     as.character(resInputs$FactorsInfo$Time)))
             Vect.Time<-paste0("t", Vect.Time.ini)
             Tlevels<-levels(factor(Vect.Time))
             NbTime<-length(Tlevels)
@@ -307,8 +337,8 @@ DEplotHeatmaps<-function(Res.DE.analysis,
                                                           col=list(Time=fa1.t),
                                                           show_legend=FALSE)
         }else{
-            Vect.Group<-Res.DE.analysis$Summary.Inputs$FactorsInfo$Group
-            Glevels<-Res.DE.analysis$Summary.Inputs$GroupLevels
+            Vect.Group<-resInputs$FactorsInfo$Group
+            Glevels<-resInputs$GroupLevels
             NbGroup<-length(Glevels)
 
             ##----------------------------------------------------------------#
@@ -341,8 +371,8 @@ DEplotHeatmaps<-function(Res.DE.analysis,
             AnnotCplxHeat2<-ComplexHeatmap::rowAnnotation(Group=Vect.Group,
                                                           show_legend=FALSE,
                                                           col=list(Group=fa2.g))
-        }## if("Time"%in%Res.DE.analysis$Summary.Inputs$ExprCond)
-    }## if(length(Res.DE.analysis$Summary.Inputs$ExprCond)==2)
+        }## if("Time"%in%resInputs$ExprCond)
+    }## if(length(resInputs$ExprCond)==2)
 
     ##------------------------------------------------------------------------#
     ## Heatmaps of the selected genes
@@ -370,17 +400,17 @@ DEplotHeatmaps<-function(Res.DE.analysis,
     if(!isFALSE(Save.plots)){
 
         if(isTRUE(Save.plots)){
-            path.result<-Res.DE.analysis$Path.result
+            path.result<-resPATH$Path.result
         }else{
             path.result<-Save.plots
         }## if(isTRUE(Save.plots))
 
         if(!is.null(path.result)){
-            if(!is.null(Res.DE.analysis$Folder.result)){
-                SufixDE<-paste0("_", Res.DE.analysis$Folder.result)
+            if(!is.null(resPATH$Folder.result)){
+                SufixDE<-paste0("_", resPATH$Folder.result)
             }else{
                 SufixDE<-NULL
-            }# if(!is.null(Res.DE.analysis$Folder.result))
+            }# if(!is.null(resPATH$Folder.result))
 
             SuppPlotFolder<-paste0("2-4_Supplementary_Plots", SufixDE)
 

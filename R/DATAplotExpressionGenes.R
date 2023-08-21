@@ -8,9 +8,9 @@
 #'
 #' @param SEresNorm Results of the function
 #' [DATAnormalization()].
-#' @param Vector.row.gene Vector of integer indicating the rows of the genes
-#' to be plotted.
-#' @param DATAnorm \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' @param Vector.row.gene Vector of non negative integers indicating
+#' the rows of the genes to be plotted.
+#' @param DATAnorm \code{TRUE} or \code{FALSE}. \code{TRUE} by default.
 #' \code{TRUE} means the function plots gene normalized expression profiles.
 #' \code{FALSE} means the function plots gene raw expression profiles.
 #' @param Color.Group \code{NULL} or a data.frame with \eqn{N_{bc}} rows and
@@ -21,11 +21,12 @@
 #' If \code{Color.Group=NULL}, the function will automatically attribute
 #' a color for each biological condition.
 #' If samples belong to different time points only,
-#' \code{Color.Group} will not be used.
-#' @param Plot.Expression \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+#' \code{Color.Group} will not be used. \code{NULL} by default.
+#' @param Plot.Expression \code{TRUE} or \code{FALSE}. \code{TRUE} by default.
 #' If \code{TRUE}, the graph will be plotted.
 #' Otherwise no graph will be plotted.
-#' @param path.result Character or \code{NULL}. Path to save all results.
+#' @param path.result Character or \code{NULL}. \code{NULL} by default.
+#' Path to save all results.
 #' If \code{path.result} contains a sub folder entitled
 #' "1_UnsupervisedAnalysis_\code{Name.folder.profile}" and a sub sub folder,
 #' "1-5_ProfileExpression_\code{Name.folder.profile}"
@@ -39,7 +40,7 @@
 #' "1_UnsupervisedAnalysis_\code{Name.folder.profile}/
 #' 1-5_ProfileExpression_\code{Name.folder.profile}".
 #' If NULL, the results will not be saved in a folder. NULL as default.
-#' @param Name.folder.profile Character or \code{NULL}.
+#' @param Name.folder.profile Character or \code{NULL}. \code{NULL} by default.
 #' If \code{Name.folder.profile} is a character, the folder and
 #' sub folder names which will contain the PCA graphs will respectively be
 #' "1_UnsupervisedAnalysis_\code{Name.folder.profile}" and
@@ -72,6 +73,7 @@
 #'
 #' @importFrom grDevices pdf dev.off
 #' @importFrom SummarizedExperiment assays colData rownames
+#' @importFrom S4Vectors metadata
 #'
 #' @export
 #'
@@ -112,13 +114,63 @@ DATAplotExpressionGenes <- function(SEresNorm,
     ## DATAprepSE
     Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
                      "'DATAnormalization().'")
-    if (is.null(SEresNorm$SEidentification)) {
+
+    if (!is(SEresNorm, "SummarizedExperiment")) {
         stop(Err_SE)
     } else {
-        if (SEresNorm$SEidentification != "SEresNormalization") {
+        codeDEres <- S4Vectors::metadata(SEresNorm)$SEidentification
+
+        if (is.null(codeDEres)) {
             stop(Err_SE)
-        }## if (SEresNorm$SEidentification != "SEresNormalization")
-    }## if ((is.null(SEresNorm$SEidentification))
+        }## if (is.null(codeDEres))
+
+        if (codeDEres != "SEresNormalization") {
+            stop(Err_SE)
+        }## if (codeDEres != "SEresNormalization")
+    }## if (!is(SEresNorm, "SummarizedExperiment"))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check 2
+    Err_integers <- paste("'Vector.row.gene' must be a vector",
+                          "of non negative integers.")
+    if (!is.numeric(Vector.row.gene) & !is.integer(Vector.row.gene)) {
+        stop(Err_integers)
+    } else {
+        if (sum(abs(floor(Vector.row.gene)-Vector.row.gene)) != 0) {
+            stop(Err_integers)
+        }## if(floor(Individual.position) != Individual.position)
+
+        if (min(Vector.row.gene) <= 0) {
+            stop(Err_integers)
+        }## if (min(Vector.row.gene) <= 0)
+    }## if(is.null(Individual.position))
+
+    if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm)) {
+        stop("'DATAnorm' must be TRUE or FALSE.")
+    }## if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm))
+
+    if (!is.null(Color.Group)) {
+        if (!is.data.frame(Color.Group)) {
+            stop("'Color.Group' must be NULL or a data.frame.")
+        }## if (!is.data.frame(Color.Group))
+    }## if (!is.null(Color.Group))
+
+    if (!isTRUE(Plot.Expression) & !isFALSE(Plot.Expression)) {
+        stop("'Plot.Expression' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.Expression) & !isFALSE(Plot.Expression))
+
+    if (!is.null(path.result)) {
+        if (!is.character(path.result)) {
+            stop("'path.result' must be NULL or a character.")
+        }## if (!is.character(path.result))
+    }## if (!is.null(path.result))
+
+    if (!is.null(Name.folder.profile)) {
+        if (!is.character(Name.folder.profile)) {
+            stop("'Name.folder.profile' must be NULL or a character.")
+        }## if (!is.character(Name.folder.profile))
+    }## if (!is.null(Name.folder.profile))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -165,27 +217,29 @@ DATAplotExpressionGenes <- function(SEresNorm,
         aSE <- 1
     }## if (DATAnorm == TRUE)
 
-    assaySE <- data.frame(SummarizedExperiment::assays(SEresNorm$SEobj)[[aSE]])
-    cSEdat <- SummarizedExperiment::colData(SEresNorm$SEobj)
+    NameG <- as.character(SummarizedExperiment::rownames(SEresNorm))
+    assaySE <- data.frame(SummarizedExperiment::assays(SEresNorm)[[aSE]])
+    cSEdat <- SummarizedExperiment::colData(SEresNorm)
+    metaSelect <- S4Vectors::metadata(SEresNorm)[c("RAWcolnames", "colGene",
+                                                   "colINFOfactors", "formula",
+                                                   "SEidentification")]
+
     subSEnorm <- SEobjFUN(as.matrix(assaySE[Vector.row.gene,]), cSEdat)
-
-    NameG <- as.character(SummarizedExperiment::rownames(subSEnorm))
-
-    subSEresNorm <- SEresNorm
-    subSEresNorm$SEobj <-subSEnorm
-
+    S4Vectors::metadata(subSEnorm) <- metaSelect
     ##------------------------------------------------------------------------#
     List.All.G <- vector(mode="list", length=length(Vector.row.gene))
-    names(List.All.G) <- NameG
+    names(List.All.G) <- NameG[Vector.row.gene]
 
     cpt <- 0
     for (g.sel in Vector.row.gene) {
         cpt <- cpt+1
-        PlotExpr1G <- DATAplotExpression1Gene(SEres=subSEresNorm,
+        PlotExpr1G <- DATAplotExpression1Gene(SEres=subSEnorm,
                                               row.gene=cpt,
                                               Color.Group=Color.Group)
         List.All.G[[cpt]] <- PlotExpr1G
     }## for(g.sel in Vector.row.gene)
+
+    S4Vectors::metadata(subSEnorm)$List.plots <- List.All.G
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -214,6 +268,5 @@ DATAplotExpressionGenes <- function(SEresNorm,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Output
-    return(list(SEobj=subSEnorm,
-                List.plots=List.All.G))
+    return(SEobj=subSEnorm)
 }## DATAplotExpressionGenes()

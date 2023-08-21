@@ -19,7 +19,8 @@
 #' [BiocGenerics::estimateSizeFactors()] for "rle",
 #' [DESeq2::rlog()] for "rlog" and
 #' [DESeq2::vst()] for "vst").
-#' @param Blind.rlog.vst \code{TRUE} or \code{FALSE}. See input 'blind' in
+#' @param Blind.rlog.vst \code{TRUE} or \code{FALSE}. \code{FALSE} by default.
+#' See input 'blind' in
 #' [DESeq2::rlog()].
 #' It is recommended to set \code{Blind.rlog.vst=FALSE}
 #' for downstream analysis.
@@ -28,12 +29,14 @@
 #' [DATAplotBoxplotSamples()] will be
 #' called and boxplots will be plotted. Otherwise, no boxplots will be plotted.
 #' @param Colored.By.Factors \code{TRUE} or \code{FALSE}.
+#' \code{FALSE} by default.
 #' If \code{TRUE}, boxplots will be colored with different colors for different
 #' time measurements (if data were collected at different time points).
 #' Otherwise, boxplots will be colored with different colors for different
 #' biological conditions.
 #' @param Color.Group \code{NULL} or a data.frame with \eqn{N_{bc}} rows and
 #' two columns where \eqn{N_{bc}} is the number of biological conditions.
+#' \code{NULL} by default.
 #' If \code{Color.Group} is a data.frame, the first column must contain
 #' the name of each biological condition and the second column must contain
 #' the colors associated to each biological condition.
@@ -41,11 +44,12 @@
 #' color for each biological condition.
 #' If samples belong to different time points only,
 #' \code{Color.Group} will not be used.
-#' @param Plot.genes \code{TRUE} or \code{FALSE}.
+#' @param Plot.genes \code{TRUE} or \code{FALSE}. \code{FALSE} by default.
 #' If \code{TRUE}, points representing gene expressions
 #' (normalized or raw counts) will be plotted for each sample.
 #' Otherwise, only boxplots will be plotted.
-#' @param path.result Character or \code{NULL}. Path to save all results.
+#' @param path.result Character or \code{NULL}. \code{NULL} by default.
+#' Path to save all results.
 #' If \code{path.result} contains a sub folder entitled
 #' "1_Normalization_\code{Name.folder.norm}"
 #' all results will be saved in the sub folder
@@ -54,16 +58,14 @@
 #' will be created in \code{path.result} and all results will be saved in
 #' "1_Normalization_\code{Name.folder.norm}".
 #' If NULL, the results will not be saved in a folder. NULL as default.
-#' @param Name.folder.norm Character or \code{NULL}.
+#' @param Name.folder.norm Character or \code{NULL}. \code{NULL} by default.
 #' If \code{Name.folder.norm} is a character,
 #' the folder name which will contain the results will be
 #' "1_Normalization_\code{Name.folder.norm}".
 #' Otherwise, the folder name will be "1_Normalization".
 #'
-#' @return The function returns
-#' * a normalized count data.frame
-#' * A SummarizedExperiment object identical as \code{SEres} but with
-#' the normalized data included (\code{SEresNorm}).
+#' @return The function returns a SummarizedExperiment object identical as
+#' \code{SEres} but with the normalized count data included (\code{SEresNorm})
 #' and plots a boxplot (if \code{Plot.Boxplot=TRUE}).
 #'
 #' @seealso The [DATAnormalization()]
@@ -96,8 +98,6 @@
 #'                              Normalization="rle",
 #'                              Plot.Boxplot=TRUE,
 #'                              Colored.By.Factors=TRUE)
-#' ##
-#' ## print(resNorm$NormalizedBoxplot)
 
 DATAnormalization <- function(SEres,
                               Normalization="vst",
@@ -110,20 +110,63 @@ DATAnormalization <- function(SEres,
                               Name.folder.norm=NULL) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Check
+    ## Check 1
     ## DATAprepSE
-    if (is.null(SEres$SEidentification)) {
+    if (!is(SEres, "SummarizedExperiment")) {
         stop("'SEres' mut be the results of the function 'DATAprepSE()'")
     } else {
-        if (SEres$SEidentification != "SEstep") {
+        codeDEres <- S4Vectors::metadata(SEres)$SEidentification
+
+        if (is.null(codeDEres)) {
             stop("'SEres' mut be the results of the function 'DATAprepSE()'")
-        }## if (SEres$SEidentification != "SEstep")
-    }## if (SEres$SEidentification!="SEstep")
+        }## if (is.null(codeDEres))
+
+        if (codeDEres != "SEstep") {
+            stop("'SEres' mut be the results of the function 'DATAprepSE()'")
+        }## if (codeDEres != "SEstep")
+    }## if (!is(SEres, "SummarizedExperiment"))
 
     ## Different normalization authorized
     if (!Normalization%in%c("rlog","vst","rle")) {
         stop("Normalization mut be 'vst', 'rlog' or 'rle'")
     }## if(!Normalization%in%c("rlog","vst","rle"))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check 2
+    if (!isTRUE(Blind.rlog.vst) & !isFALSE(Blind.rlog.vst)) {
+        stop("'Blind.rlog.vst' must be TRUE or FALSE.")
+    }## if (!isTRUE(Blind.rlog.vst) & !isFALSE(Blind.rlog.vst))
+
+    if (!isTRUE(Plot.Boxplot) & !isFALSE(Plot.Boxplot)) {
+        stop("'Plot.Boxplot' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.Boxplot) & !isFALSE(Plot.Boxplot))
+
+    if (!isTRUE(Colored.By.Factors) & !isFALSE(Colored.By.Factors)) {
+        stop("'Colored.By.Factors' must be TRUE or FALSE.")
+    }## if (!isTRUE(Colored.By.Factors) & !isFALSE(Colored.By.Factors))
+
+    if (!isTRUE(Plot.genes) & !isFALSE(Plot.genes)) {
+        stop("'Plot.genes' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.genes) & !isFALSE(Plot.genes))
+
+    if (!is.null(Color.Group)) {
+        if (!is.data.frame(Color.Group)) {
+            stop("'Color.Group' must be NULL or a data.frame.")
+        }## if (!is.data.frame(Color.Group))
+    }## if (!is.null(Color.Group))
+
+    if (!is.null(path.result)) {
+        if (!is.character(path.result)) {
+            stop("'path.result' must be NULL or a character.")
+        }## if (!is.character(path.result))
+    }## if (!is.null(path.result))
+
+    if (!is.null(Name.folder.norm)) {
+        if (!is.character(Name.folder.norm)) {
+            stop("'Name.folder.norm' must be NULL or a character.")
+        }## if (!is.character(Name.folder.norm))
+    }## if (!is.null(Name.folder.norm))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -164,13 +207,11 @@ DATAnormalization <- function(SEres,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Preprocessing, SummarizedExperiment::rowData, dimnames(DESeq2.obj)
-    RawCounts <- SummarizedExperiment::assays(SEres$SEobj)[[1]]
-    SEsampleName <- SummarizedExperiment::colnames(SEres$SEobj)
-    Name.G <- SummarizedExperiment::rownames(SEres$SEobj)
-    ## colnames(RawCounts), row.names(RawCounts)
-
-    DESeq2.obj <- SEres$DESeq2.obj
-    FactorBoxplt <- SummarizedExperiment::colData(SEres$DESeq2.obj)
+    ## colnames(RawCounts), row.names(RawCounts) ## FactorBoxplt
+    RawCounts <- SummarizedExperiment::assays(SEres)[[1]]
+    SEsampleName <- SummarizedExperiment::colnames(SEres)
+    Name.G <- SummarizedExperiment::rownames(SEres)
+    DESeq2.obj <- S4Vectors::metadata(SEres)$DESeq2obj$DESeq2preproceesing
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -182,8 +223,8 @@ DATAnormalization <- function(SEres,
             log2.data.prepare <- vst2(DESeq2.obj, Blind.rlog.vst)
         }## if(nrow(RawCounts)>1000)
 
-        log2.data <- round(SummarizedExperiment::assay(log2.data.prepare),
-                           digits=3)
+        log2.data <- data.frame(SummarizedExperiment::assay(log2.data.prepare))
+        log2.data <- round(log2.data, digits=3)
         ##
         Norm.dat <- data.frame(Gene=Name.G, log2.data)
         row.names(Norm.dat) <- Name.G
@@ -197,8 +238,8 @@ DATAnormalization <- function(SEres,
     ## Normalization rlog
     if (Normalization == "rlog") {
         log2.data.prepare <- DESeq2::rlog(DESeq2.obj, blind=Blind.rlog.vst)
-        log2.data <- round(SummarizedExperiment::assay(log2.data.prepare),
-                           digits=3)
+        log2.data <- data.frame(SummarizedExperiment::assay(log2.data.prepare))
+        log2.data <- round(log2.data, digits=3)
         ##
         Norm.dat <- data.frame(Gene=Name.G, log2.data)
         row.names(Norm.dat) <- Name.G
@@ -220,12 +261,18 @@ DATAnormalization <- function(SEres,
 
     colnames(Norm.dat)[-1] <- SEsampleName
 
-    SummarizedExperiment::assays(SEres$SEobj)[[2]] <- as.matrix(Norm.dat[, -1])
-    names(SummarizedExperiment::assays(SEres$SEobj))[2] <- Normalization
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## New SummarizeExperiment class object
+    SEresNORM <- SEres
+    SummarizedExperiment::assays(SEresNORM)[[2]] <- as.matrix(Norm.dat[, -1])
+    names(SummarizedExperiment::assays(SEresNORM))[2] <- Normalization
+    S4Vectors::metadata(SEresNORM)$SEidentification <- c("SEresNormalization")
+
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Boxplot
-    res.bxplt <- DATAplotBoxplotSamples(SEres=SEres,
+    res.bxplt <- DATAplotBoxplotSamples(SEres=SEresNORM,
                                         Log2.transformation=Log2Trf,
                                         Colored.By.Factors=Colored.By.Factors,
                                         Color.Group=Color.Group,
@@ -250,25 +297,18 @@ DATAnormalization <- function(SEres,
         print(res.bxplt)
         grDevices::dev.off()
 
-        if (isTRUE(Plot.Boxplot)) {
-            print(res.bxplt)
-        }## if(isTRUE(Plot.Boxplot))
 
-    } else {
-
-        if (isTRUE(Plot.Boxplot)) {
-            print(res.bxplt)
-        }## if(isTRUE(Plot.Boxplot))
 
     }## if(!is.null(path.result))
 
+    if (isTRUE(Plot.Boxplot)) {
+        print(res.bxplt)
+    }## if(isTRUE(Plot.Boxplot))
+
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Output
-    return(list(SEobj=SEres$SEobj,
-                NormalizedData=Norm.dat,
-                NormalizedBoxplot=res.bxplt,
-                SEidentification=c("SEresNormalization")))
+    ## Output ## NormalizedBoxplot=res.bxplt ## NormalizedData=Norm.dat
+    return(SEobj=SEresNORM)
 }## DATAnormalization()
 
 

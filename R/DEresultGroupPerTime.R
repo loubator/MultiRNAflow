@@ -50,17 +50,20 @@
 #' ## We take only the first three times (both group) for the speed of
 #' ## the example
 #' Index3t<-c(2:4,11:13,20:22, 29:31,38:40,47:49)
-#' RawCounts_P_NP_3t<-RawCounts_Schleiss2021_CLLsub500[,c(1,Index3t)]
+#' RawCounts_3t<-RawCounts_Schleiss2021_CLLsub500[seq_len(200), c(1,Index3t)]
 #'
 #' ## Preprocessing step
-#' resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_P_NP_3t,
+#' resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_3t,
 #'                                 Column.gene=1,
 #'                                 Group.position=2,
 #'                                 Time.position=4,
 #'                                 Individual.position=3)
 #'
+#' DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEleuk)$DESeq2obj
+#' DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
+#'
 #' ##------------------------------------------------------------------------#
-#' dds.DE <- DESeq2::DESeq(resDATAprepSEleuk$DESeq2.obj)
+#' dds.DE<-DESeq2::DESeq(DESeq2obj)
 #' ##
 #' res.G.T.2<-DEresultGroupPerTime(DESeq.result=dds.DE,
 #'                                 LRT.supp.info=FALSE,
@@ -473,10 +476,18 @@ DEresultGroupPerTime<-function(DESeq.result,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
+    ## SE object
+    listDEresGT <- list(M.sum.DE.pair.G.per.T=M.sum.DE.pair.g.per.t,
+                        Spe.G.1t.min=Spe.1t.min,
+                        Sum.cont.G.per.T=Sum.cont.t.g,
+                        List.DE.per.pair.G.per.T=List.M.DE.pair.g.per.t,
+                        OverUnder.per.G.per.T=M.Over.Under.spe.g)
+
+    DESeqclass <- DESeq.result
+    S4Vectors::metadata(DESeqclass)$DEresultTimeAndGroup <- listDEresGT
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
     # 5) Output
-    return(list(M.sum.DE.pair.G.per.T=M.sum.DE.pair.g.per.t,
-                Spe.G.1t.min=Spe.1t.min,
-                Sum.cont.G.per.T=Sum.cont.t.g,
-                List.DE.per.pair.G.per.T=List.M.DE.pair.g.per.t,
-                OverUnder.per.G.per.T=M.Over.Under.spe.g))
+    return(DESeqclass)
 }# DEresultGroupPerTime()

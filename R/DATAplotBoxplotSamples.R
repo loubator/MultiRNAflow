@@ -31,15 +31,18 @@
 #' [DATAprepSE()] or
 #' [DATAnormalization()].
 #' @param Log2.transformation \code{TRUE} or \code{FALSE}.
+#' \code{TRUE} by default.
 #' If \code{TRUE}, each numeric value \eqn{x} in \code{ExprData} will become
 #' \eqn{log_2(x+1)} (see \code{Details}).
 #' @param Colored.By.Factors \code{TRUE} or \code{FALSE}.
+#' \code{FALSE} by default.
 #' If \code{TRUE}, boxplots will be colored with different colors for different
 #' time measurements (if data were collected at different time points).
 #' Otherwise, boxplots will be colored with different colors for
 #' different biological conditions.
 #' @param Color.Group \code{NULL} or a data.frame with \eqn{N_{bc}} rows and
 #' two columns where \eqn{N_{bc}} is the number of biological conditions.
+#' \code{NULL} by default.
 #' If \code{Color.Group} is a data.frame, the first column must contain
 #' the name of each biological condition and the second column must contain
 #' the colors associated to each biological condition.
@@ -47,10 +50,10 @@
 #' color for each biological condition.
 #' If samples belong to different time points only,
 #' \code{Color.Group} will not be used.
-#' @param Plot.genes \code{TRUE} or \code{FALSE}.
+#' @param Plot.genes \code{TRUE} or \code{FALSE}. \code{FALSE} by default.
 #' If \code{TRUE}, points representing gene expression
 #' (normalized or raw counts) will be added for each sample.
-#' @param y.label \code{NULL} or a character. \code{NULL} as default.
+#' @param y.label \code{NULL} or a character. \code{NULL} by default.
 #' If \code{y.label} is a character, it will be the y label of the graph.
 #' If \code{y.label=NULL}, the label will be either "log2(Gene expression +1)"
 #' (if \code{Log2.transformation=TRUE}) or "Gene expression"
@@ -106,13 +109,43 @@ DATAplotBoxplotSamples <- function(SEres,
     ## DATAprepSE
     Err_SE <- paste0("'SEres' mut be the results of either the function ",
                      "'DATAprepSE()' or 'DATAnormalization()'.")
-    if (is.null(SEres$SEidentification)) {
+
+    if (!is(SEres, "SummarizedExperiment")) {
         stop(Err_SE)
     } else {
-        if (!SEres$SEidentification%in%c("SEstep", "SEresNormalization")) {
+        codeDEres <- S4Vectors::metadata(SEres)$SEidentification
+
+        if (!codeDEres%in%c("SEstep", "SEresNormalization")) {
             stop(Err_SE)
-        }
-    }## if (SEres$SEidentification!="SEstep")
+        }## if (!codeDEres%in%c("SEstep", "SEresNormalization"))
+    }## if (!is(SEres, "SummarizedExperiment"))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check 2
+    if (!isTRUE(Log2.transformation) & !isFALSE(Log2.transformation)) {
+        stop("'Log2.transformation' must be TRUE or FALSE.")
+    }## if (!isTRUE(Log2.transformation) & !isFALSE(Log2.transformation))
+
+    if (!isTRUE(Colored.By.Factors) & !isFALSE(Colored.By.Factors)) {
+        stop("'Colored.By.Factors' must be TRUE or FALSE.")
+    }## if (!isTRUE(Colored.By.Factors) & !isFALSE(Colored.By.Factors))
+
+    if (!isTRUE(Plot.genes) & !isFALSE(Plot.genes)) {
+        stop("'Plot.genes' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.genes) & !isFALSE(Plot.genes))
+
+    if (!is.null(Color.Group)) {
+        if (!is.data.frame(Color.Group)) {
+            stop("'Color.Group' must be NULL or a data.frame.")
+        }## if (!is.data.frame(Color.Group))
+    }## if (!is.null(Color.Group))
+
+    if (!is.null(y.label)) {
+        if (!is.character(y.label)) {
+            stop("'y.label' must be NULL or a character.")
+        }## if (!is.character(y.label))
+    }## if (!is.null(y.label))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -123,10 +156,9 @@ DATAplotBoxplotSamples <- function(SEres,
     ##------------------------------------------------------------------------#
     ## Preprocessing
 
-    Ndata <- length(SummarizedExperiment::assays(SEres$SEobj))
-    ExprData <- SummarizedExperiment::assays(SEres$SEobj)[[Ndata]]
-
-    cDat <- data.frame(SummarizedExperiment::colData(SEres$SEobj))
+    Ndata <- length(SummarizedExperiment::assays(SEres))
+    ExprData <- SummarizedExperiment::assays(SEres)[[Ndata]]
+    cDat <- data.frame(SummarizedExperiment::colData(SEres))
 
     ## which(colnames(cDat)%in%c("Group")), SEobj
     if (c("Group")%in%colnames(cDat)) {
@@ -141,7 +173,7 @@ DATAplotBoxplotSamples <- function(SEres,
         SEinfoTime <- NULL
     }## if (c("Time")%in%colnames(cDat))
 
-    SEfinalname <- SEres$Data.code.names$Final.Name
+    SEfinalname <- as.character(cDat$Final.Name)
     N.spl <- length(SEfinalname)
 
     ##------------------------------------------------------------------------#
@@ -383,8 +415,14 @@ DATAplotBoxplotSamples <- function(SEres,
 
     ##------------------------------------------------------------------------#
     ## Final ggplot2
+    if (isFALSE(Plot.genes)) {
+        minGENEplot <- min(Norm.dat.melt$Expression)
+    } else {
+        minGENEplot <- min(Norm.dat.melt$Expression) - 0.1
+    }## if (isFALSE(Plot.genes))
+
     res.bxplt <- res.bxplt +
-        ggplot2::ylim(min=min(Norm.dat.melt$Expression),
+        ggplot2::ylim(min=minGENEplot,
                       max=max(Norm.dat.melt$Expression) + 0.1)
 
     ##------------------------------------------------------------------------#

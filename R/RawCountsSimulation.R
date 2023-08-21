@@ -29,7 +29,23 @@ RawCountsSimulation <- function(Nb.Group,
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Check
-    if (max(Nb.Group,Nb.Time) == 1) {
+    if(floor(Nb.Group) != Nb.Group){
+        stop("'Nb.Group' must be an integer.")
+    }
+
+    if(floor(Nb.Time) != Nb.Time){
+        stop("'Nb.Time' must be an integer.")
+    }
+
+    if(floor(Nb.per.GT) != Nb.per.GT){
+        stop("'Nb.per.GT' must be an integer.")
+    }
+
+    if(floor(Nb.Gene) != Nb.Gene){
+        stop("'Nb.Gene' must be an integer.")
+    }
+
+    if (max(Nb.Group, Nb.Time) == 1) {
         stop("At least two groups or two times are demanded.")
     }## if(max(Nb.Group,Nb.Time)==1)
 
@@ -53,7 +69,7 @@ RawCountsSimulation <- function(Nb.Group,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    if (min(Nb.Group,Nb.Time) > 1) {
+    if (min(Nb.Group, Nb.Time) > 1) {
         colnames(Data.sim) <- paste0(Gsim, "_", Tsim, "_", Patient)
         Mmodel <- stats::model.matrix(~ Tsim + Gsim + Gsim:Tsim)
         Design.M <- matrix(Mmodel, ncol=length(colnames(Mmodel)))

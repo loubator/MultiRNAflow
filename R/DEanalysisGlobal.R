@@ -6,11 +6,15 @@
 #' or samples belonging to different time measurements
 #' and different biological conditions.
 #'
-#' @details All results are built from the results of the function
-#' [DATAprepSE()].
+#' @details All results are built from the results of either our R function
+#' [DATAprepSE()],
+#' or our R function
+#' [DATAnormalization()].
 #'
-#' @param SEres Results of the function
-#' [DATAprepSE()].
+#' @param SEres Results of either our R function
+#' [DATAprepSE()],
+#' or our R function
+#' [DATAnormalization()].
 #' @param pval.min Numeric value between 0 and 1. A gene will be considered as
 #' differentially expressed (DE) between two biological conditions if
 #' its Benjamini-Hochberg adjusted p-value
@@ -53,9 +57,10 @@
 #' contain all results will be "DEanalysis_\code{Name.folder.DE}".
 #' Otherwise, the folder name will be "DEanalysis".
 #'
-#' @return The function [DEanalysisGlobal()]
-#' returns first the raw counts and
-#' the rle normalized data automatically realized by
+#' @return The different results which are not plots are saved in the
+#' SummarizedExperiment class object \code{SEres}. The function
+#' [DEanalysisGlobal()] returns
+#' first the raw counts and the rle normalized data automatically realized by
 #' [DESeq2::DESeq()]
 #' (output \code{RLEdata}). Then
 #' * If samples belong to different biological conditions,
@@ -251,7 +256,7 @@
 #'
 #'
 #' @importFrom DESeq2 DESeq counts
-#' @importFrom SummarizedExperiment assays colnames rownames colData
+#' @importFrom SummarizedExperiment assays colnames rownames colData rowData
 #' @importFrom utils write.table
 #'
 #' @export
@@ -259,7 +264,8 @@
 #' @examples
 #' data(RawCounts_Antoszewski2022_MOUSEsub500)
 #' ## No time points. We take only two groups for the speed of the example
-#' RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[,1:7]
+#' RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200),
+#'                                                         seq_len(7)]
 #' ##-------------------------------------------------------------------------#
 #' ## Preprocessing
 #' resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
@@ -268,7 +274,7 @@
 #'                             Time.position=NULL,
 #'                             Individual.position=2)
 #' ##-------------------------------------------------------------------------#
-#' ##
+#' ## DE analysis
 #' resDE <- DEanalysisGlobal(SEres=resDATAprepSE,
 #'                           pval.min=0.05,
 #'                           pval.vect.t=NULL,
@@ -288,15 +294,25 @@ DEanalysisGlobal <- function(SEres,
                              Name.folder.DE=NULL){
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Check
+    ## Check 1
     ## DATAprepSE
-    if (is.null(SEres$SEidentification)) {
-        stop("'SEres' mut be the results of the function 'DATAprepSE()'")
+    Err_SE <- paste0("'SEres' mut be the results of either the function ",
+                     "'DATAprepSE()' or 'DATAnormalization()'.")
+
+    ## DATAprepSE
+    if (!is(SEres, "SummarizedExperiment")) {
+        stop(Err_SE)
     } else {
-        if (SEres$SEidentification != "SEstep") {
-            stop("'SEres' mut be the results of the function 'DATAprepSE()'")
-        }## if (SEres$SEidentification != "SEstep")
-    }## if (SEres$SEidentification!="SEstep")
+        codeDEres <- S4Vectors::metadata(SEres)$SEidentification
+
+        if (is.null(codeDEres)) {
+            stop(Err_SE)
+        }## if (is.null(codeDEres))
+
+        if (!codeDEres%in%c("SEstep", "SEresNormalization")) {
+            stop(Err_SE)
+        }## if (!codeDEres%in%c("SEstep", "SEresNormalization"))
+    }## if (!is(SEres, "SummarizedExperiment"))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
@@ -357,17 +373,19 @@ DEanalysisGlobal <- function(SEres,
     ##------------------------------------------------------------------------#
     ## Preprocessing
     print("Preprocessing")
+    DESeq2.obj <- S4Vectors::metadata(SEres)$DESeq2obj$DESeq2preproceesing
 
-    DESeq2.obj <- SEres$DESeq2.obj
+    RawCounts <- SummarizedExperiment::assays(SEres)[[1]]
+    SEsampleName <- SummarizedExperiment::colnames(SEres)
+    Name.G <- as.character(SummarizedExperiment::rownames(SEres))
+    cDat <- data.frame(SummarizedExperiment::colData(DESeq2.obj))
+    FactorBoxplt <- data.frame(SummarizedExperiment::colData(SEres))
 
-    RawCounts <- SummarizedExperiment::assays(SEres$SEobj)[[1]]
-    SEsampleName <- SummarizedExperiment::colnames(SEres$SEobj)
-    Name.G <- as.character(SummarizedExperiment::rownames(SEres$SEobj))
-    cDat <- data.frame(SummarizedExperiment::colData(SEres$DESeq2.obj))
-    FactorBoxplt <- data.frame(SummarizedExperiment::colData(SEres$SEobj))
+    colFCTRS <- S4Vectors::metadata(SEres)$colDataINFO
+    colFCTRS <- as.numeric(colFCTRS$colINFOfactors)
 
-    FactorInfo.f <- FactorBoxplt
-    names(FactorInfo.f)[ncol(FactorBoxplt)] <- "Samples"
+    FactorInfo.f <- FactorBoxplt[, colFCTRS]
+    names(FactorInfo.f)[ncol(FactorInfo.f)] <- "Samples"
 
     ##------------------------------------------------------------------------#
     if (c("Group")%in%colnames(cDat)) {
@@ -430,15 +448,17 @@ DEanalysisGlobal <- function(SEres,
     ##------------------------------------------------------------------------#
     ScaledData <- round(DESeq2::counts(dds.norm.diff, normalized=TRUE),
                         digits=3)
-
-    SEresRLE <- SEres
-    SEresRLE$SEidentification <- c("SEresNormalization")
-    SummarizedExperiment::assays(SEresRLE$SEobj)[[2]] <- ScaledData
     RLEdata <- data.frame(Gene=Name.G, ScaledData)
-    ## colnames(RLEdata) <- c("Gene", colnames(RawCounts)[ind.col.expr])
 
     ##------------------------------------------------------------------------#
-    res.bxplt <- DATAplotBoxplotSamples(SEres=SEresRLE,
+    ## SE object
+    SEresDE <- SEres
+    S4Vectors::metadata(SEresDE)$SEidentification <- c("SEresNormalization")
+    SummarizedExperiment::assays(SEresDE)$rle <- ScaledData
+    S4Vectors::metadata(SEresDE)$DESeq2obj$DESeq2results <- dds.norm.diff
+
+    ##------------------------------------------------------------------------#
+    res.bxplt <- DATAplotBoxplotSamples(SEres=SEresDE,
                                         Log2.transformation=TRUE,
                                         Colored.By.Factors=FALSE,
                                         Color.Group=NULL,
@@ -495,13 +515,15 @@ DEanalysisGlobal <- function(SEres,
             path.result.new2 <- NULL
         }## if(is.null(path.result)==FALSE)
 
-        Res.DE.BC <- DEanalysisGroup(DESeq.result=dds.norm.diff,
-                                     LRT.supp.info=LRT.supp.info,
-                                     log.FC.min=log.FC.min,
-                                     pval.min=pval.min,
-                                     Plot.DE.graph=Plot.DE.graph,
-                                     path.result=path.result.new2,
-                                     SubFile.name=SubFolder.name)
+        resDEbioncond <- DEanalysisGroup(DESeq.result=dds.norm.diff,
+                                         LRT.supp.info=LRT.supp.info,
+                                         log.FC.min=log.FC.min,
+                                         pval.min=pval.min,
+                                         Plot.DE.graph=Plot.DE.graph,
+                                         path.result=path.result.new2,
+                                         SubFile.name=SubFolder.name)
+
+        Res.DE.BC <- S4Vectors::metadata(resDEbioncond)$DEresultGroup
 
         ##--------------------------------------------------------------------#
         ## Table which contains all results.
@@ -514,22 +536,27 @@ DEanalysisGlobal <- function(SEres,
                                sep=";", row.names=FALSE)
         }## if(is.null(path.result)==FALSE)
 
-        SumInfo<-list(ExprCond=c("Group"),
-                      FactorsInfo=FactorInfo.f,
-                      GroupLevels=LvlsGROUP,
-                      logFCmin=log.FC.min,
-                      pvalGroup=pval.min)
+        ##--------------------------------------------------------------------#
+        ## SE final
+        SumInfo <- list(ExprCond=c("Group"),
+                        FactorsInfo=FactorInfo.f,
+                        GroupLevels=LvlsGROUP,
+                        logFCmin=log.FC.min,
+                        pvalGroup=pval.min)
 
-        resGlossary<-Glossary(path.result.new3, Case=1)
+        resGlossary <- Glossary(path.result.new3, Case=1)
+        listPATHname <- list(Path.result=path.result.f,
+                             Folder.result=Name.folder.DE.ini)
 
-        ## List.Plots.DE.Analysis=Res.DE.BC$List.Plots.DE.Group,
-        return(list(RLEdata=RLEdata,
-                    Summary.Inputs=SumInfo,
-                    DE.results=Res.DE.BC$Results,
-                    Path.result=path.result.f,
-                    Folder.result=Name.folder.DE.ini,
-                    List.Glossary=resGlossary,
-                    DESeq.dds=dds.norm.diff))## SubFolder.name
+        SummarizedExperiment::rowData(SEresDE) <- Res.DE.BC$Results
+        S4Vectors::metadata(SEresDE)$DESeq2obj$List.Glossary <- resGlossary
+        # S4Vectors::metadata(SEresDE)$DESeq2obj$RLEdata <- RLEdata
+        S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs <- SumInfo
+        S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME <- listPATHname
+        S4Vectors::metadata(SEresDE)$DESeq2obj$SEidentification <-"SEresultsDE"
+
+        ## List.Plots.DE.Analysis=Res.DE.BC$List.Plots.DE.Group #SubFolder.name
+        return(SEresDE)
     }## if(is.null(Vector.time)==TRUE & !is.null(Vector.group))
 
     ##------------------------------------------------------------------------#
@@ -557,14 +584,15 @@ DEanalysisGlobal <- function(SEres,
             path.result.new2 <- NULL
         }## if(is.null(path.result)==FALSE)
 
-        Res.DE.Time <- DEanalysisTime(DESeq.result=dds.norm.diff,
-                                      LRT.supp.info=LRT.supp.info,
-                                      log.FC.min=log.FC.min,
-                                      pval.min=pval.min,
-                                      pval.vect.t=pval.vect.t,
-                                      Plot.DE.graph=Plot.DE.graph,
-                                      path.result=path.result.new2,
-                                      SubFile.name=SubFolder.name)
+        resDEtime <- DEanalysisTime(DESeq.result=dds.norm.diff,
+                                    LRT.supp.info=LRT.supp.info,
+                                    log.FC.min=log.FC.min,
+                                    pval.min=pval.min,
+                                    pval.vect.t=pval.vect.t,
+                                    Plot.DE.graph=Plot.DE.graph,
+                                    path.result=path.result.new2,
+                                    SubFile.name=SubFolder.name)
+        Res.DE.Time <- S4Vectors::metadata(resDEtime)$DEresultTime
 
         ##--------------------------------------------------------------------#
         ## Table which contains all results
@@ -577,22 +605,27 @@ DEanalysisGlobal <- function(SEres,
                                sep=";", row.names=FALSE)
         }## if(is.null(path.result)==FALSE)
 
-        SumInfo<-list(ExprCond=c("Time"),
-                      FactorsInfo=FactorInfo.f,
-                      TimeLevels=levels(factor(TlevNumeric)),
-                      logFCmin=log.FC.min,
-                      pvalsTime=pval.vect.t)
+        ##--------------------------------------------------------------------#
+        ## SE final
+        SumInfo <- list(ExprCond=c("Time"),
+                        FactorsInfo=FactorInfo.f,
+                        TimeLevels=levels(factor(TlevNumeric)),
+                        logFCmin=log.FC.min,
+                        pvalsTime=pval.vect.t)
 
-        resGlossary<-Glossary(path.result.new3, Case=2)
+        resGlossary <- Glossary(path.result.new3, Case=2)
+        listPATHname <- list(Path.result=path.result.f,
+                             Folder.result=Name.folder.DE.ini)
 
-        ## List.Plots.DE.Analysis=Res.DE.Time$List.Plots.DE.Time,
-        return(list(RLEdata=RLEdata,
-                    Summary.Inputs=SumInfo,
-                    DE.results=Res.DE.Time$Results,
-                    Path.result=path.result.f,
-                    Folder.result=Name.folder.DE.ini,
-                    List.Glossary=resGlossary,
-                    DESeq.dds=dds.norm.diff))##SubFolder.name
+        SummarizedExperiment::rowData(SEresDE) <- Res.DE.Time$Results
+        S4Vectors::metadata(SEresDE)$DESeq2obj$List.Glossary <- resGlossary
+        # S4Vectors::metadata(SEresDE)$DESeq2obj$RLEdata <- RLEdata
+        S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs <- SumInfo
+        S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME <- listPATHname
+        S4Vectors::metadata(SEresDE)$DESeq2obj$SEidentification <-"SEresultsDE"
+
+        ##List.Plots.DE.Analysis=Res.DE.Time$List.Plots.DE.Time #SubFolder.name
+        return(SEresDE)
     }## if(!is.null(Vector.time) & is.null(Vector.group))
 
     ##------------------------------------------------------------------------#
@@ -619,14 +652,15 @@ DEanalysisGlobal <- function(SEres,
             path.result.new2 <- NULL
         }## if(is.null(path.result)==FALSE)
 
-        Res.DE.T.G <- DEanalysisTimeAndGroup(DESeq.result=dds.norm.diff,
-                                             LRT.supp.info=LRT.supp.info,
-                                             log.FC.min=log.FC.min,
-                                             pval.min=pval.min,
-                                             pval.vect.t=pval.vect.t,
-                                             Plot.DE.graph=Plot.DE.graph,
-                                             path.result=path.result.new2,
-                                             SubFile.name=SubFolder.name)
+        resDEtg <- DEanalysisTimeAndGroup(DESeq.result=dds.norm.diff,
+                                          LRT.supp.info=LRT.supp.info,
+                                          log.FC.min=log.FC.min,
+                                          pval.min=pval.min,
+                                          pval.vect.t=pval.vect.t,
+                                          Plot.DE.graph=Plot.DE.graph,
+                                          path.result=path.result.new2,
+                                          SubFile.name=SubFolder.name)
+        Res.DE.T.G <- S4Vectors::metadata(resDEtg)$DEresultTimeAndGroup
 
         ##--------------------------------------------------------------------#
         ## Tables which contain all results
@@ -638,7 +672,8 @@ DEanalysisGlobal <- function(SEres,
                                           Name.folder.DE, ".csv", sep=""),
                                sep=";", row.names=FALSE)
         }## if(is.null(path.result)==FALSE)
-
+        ##--------------------------------------------------------------------#
+        ## SE final
         SumInfo <- list(ExprCond=c("Time","Group"),
                         FactorsInfo=FactorInfo.f,
                         TimeLevels=levels(factor(TlevNumeric)),
@@ -649,15 +684,20 @@ DEanalysisGlobal <- function(SEres,
 
         resGlossary <- Glossary(path.result.new3, Case=3)
 
+        listPATHname <- list(Path.result=path.result.f,
+                             Folder.result=Name.folder.DE.ini)
+        datTG <- data.frame(Res.DE.T.G$Results)
+
+        SummarizedExperiment::rowData(SEresDE) <- datTG
+        S4Vectors::metadata(SEresDE)$DESeq2obj$List.Glossary <- resGlossary
+        # S4Vectors::metadata(SEresDE)$DESeq2obj$RLEdata <- RLEdata
+        S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs <- SumInfo
+        S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME <- listPATHname
+        S4Vectors::metadata(SEresDE)$DESeq2obj$SEidentification <-"SEresultsDE"
+
         ##--------------------------------------------------------------------#
         ## List.Plots.DE.Analysis=Res.DE.T.G$List.Plots.DE.Time.Group,
-        return(list(RLEdata=RLEdata,
-                    Summary.Inputs=SumInfo,
-                    DE.results=data.frame(Res.DE.T.G$Results),
-                    Path.result=path.result.f,
-                    Folder.result=Name.folder.DE.ini,
-                    List.Glossary=resGlossary,
-                    DESeq.dds=dds.norm.diff))
+        return(SEresDE)
     }# if(is.null(Vector.time)==FALSE & !is.null(Vector.group))
 }## DEanalysisGlobal()
 

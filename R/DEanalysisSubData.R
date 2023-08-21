@@ -1,227 +1,277 @@
 #' @title Sub data of a data.frame
 #'
-#' @description From an initial data.frame, the function extracts a sub
-#' data.frame containing predefined rows.
-#'
-#' @details
-#' If \code{Res.DE.analysis} is a data.frame() or the output from
-#' [DEanalysisGlobal()], then
-#' * If \code{Set.Operation="union"} then the rows extracted from \code{Data}
-#' are those such that the sum of the selected columns by
-#' \code{ColumnsCriteria} in \code{Res.DE.analysis} is >0.
-#' For example, if \code{Res.DE.analysis} is the outputs from
+#' @description From the results from our function
 #' [DEanalysisGlobal()],
-#' the rows extracted from \code{Data} will be those DE at least at one time ti
-#' (except the reference time t0).
+#' the function extracts from the SummarizedExperiment class outputs of
+#' the subset of genes selected with the inputs \code{Set.Operation} and
+#' \code{ColumnsCriteria}, and saves them in a SummarizeExperiment object.
 #'
+#' @details We have the following three cases:
+#' * If \code{Set.Operation="union"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that the sum of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at least at t1 or t2
+#' (versus the reference time t0).
 #' * If \code{Set.Operation="intersect"} then the rows extracted from
-#' \code{Data} are those such that the product of the selected columns
-#' by \code{ColumnsCriteria} in \code{Res.DE.analysis} is >0.
-#' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()],
-#' the rows extracted from \code{Data} will be those DE at all time ti
-#' (except the reference time t0).
+#' the different datasets included in \code{SEresDE}
+#' are those such that the product of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at times t1 and t2
+#' (versus the reference time t0).
+#' * If \code{Set.Operation="setdiff"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that only one element of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at times t1 only and
+#' at times t2 only (versus the reference time t0).
 #'
-#' * If \code{Set.Operation="setdiff"} then the rows extracted from \code{Data}
-#' are those such that only one element of the selected columns by
-#' \code{ColumnsCriteria} in \code{Res.DE.analysis} is >0.
-#' For example, if \code{Res.DE.analysis} is the outputs from
-#' [DEanalysisGlobal()],
-#' the rows extracted from \code{Data} will be those DE at only one time ti
-#' (except the reference time t0).
-#'
-#' If \code{Res.DE.analysis} is a vector, \code{ColumnsCriteria} and
-#' \code{Set.Operation} are not used.
-#'
-#' @param Data Data.frame with \eqn{N_g} rows and (\eqn{N_s+k}) columns,
-#' where \eqn{N_g} is the number of genes,
-#' \eqn{N_s} is the number of samples and
-#' \eqn{k=1} if a column is used to specify gene names, or \eqn{k=0} otherwise.
-#' If \eqn{k=1}, the position of the column containing gene names is given by
-#' \code{Column.gene}.
-#' The data.frame contains numeric values giving gene expressions of each gene
-#' in each sample. Gene expressions can be raw counts or normalized raw counts.
-#' Data and \code{Res.DE.analysis} must have the same number of rows.
-#' @param Res.DE.analysis A list containing a data.frame or a data.frame or
-#' a binary vector. If it is a list, it must be the outputs from
+#' @param SEresDE A SummarizedExperiment class object. Output from
 #' [DEanalysisGlobal()]
 #' (see \code{Examples}).
-#' If it is a data.frame, it must contains at least one binary column
-#' (filled with 0 and 1).
 #' @param ColumnsCriteria A vector of integers where each integer indicates
-#' a column of \code{Res.DE.analysis}.
+#' a column of  \code{SummarizedExperiment::rowData(SEresDE)}.
 #' These columns should either contain only binary values, or may contain other
-#' numerical value, in which case extracted rows from \code{Data} will be
-#' those with >0 values (see \code{Details}).
+#' numerical value, in which case extracted outputs from \code{SEresDE}
+#' will be those with >0 values (see \code{Details}).
 #' @param Set.Operation A character.
 #' The user must choose between "union" (default), "intersect", "setdiff"
 #' (see \code{Details}).
 #' @param Save.SubData \code{TRUE} or \code{FALSE} or a Character.
-#' \code{NULL} as default.
+#' \code{FALSE} as default.
 #' If \code{TRUE}, two csv files (see \code{Value}) will be saved in the folder
 #' "2_SupervisedAnalysis_\code{Name.folder.DE}"
 #' (see [DEanalysisGlobal()]).
 #'
-#' @return The function returns
-#' * A sub data.frame of \code{Data} containing only the rows specified by
+#' @return The function returns a SummarizeExperiment class object containing
+#' * sub data.frames of the different dataset included in \code{SEresDE}
+#' containing only the rows specified by
 #' \code{ColumnsCriteria} and \code{Set.Operation}.
-#' * A sub data.frame of \code{Data} containing only the rows specified by
+#' * the DE results saved in \code{SEresDE} of genes selected by
 #' \code{ColumnsCriteria} and \code{Set.Operation}.
-#' * The rows specified by \code{ColumnsCriteria} and \code{Set.Operation}.
+#' * The genes specified by \code{ColumnsCriteria} and \code{Set.Operation}.
 #'
 #' @export
 #'
 #' @examples
-#' Data.EX<-data.frame(matrix(sample(x=1:150, size=20), nrow=5))
-#' colnames(Data.EX)<-paste0("Gene", 1:4)
+#' ## Simulation raw counts
+#' resSIMcount <- RawCountsSimulation(Nb.Group=2, Nb.Time=1, Nb.per.GT=4,
+#'                                    Nb.Gene=5)
+#' ## Preprocessing step
+#' resDATAprepSE <- DATAprepSE(RawCounts=resSIMcount$Sim.dat,
+#'                             Column.gene=1,
+#'                             Group.position=1,
+#'                             Time.position=NULL,
+#'                             Individual.position=2)
+#'
 #' ##-------------------------------------------------------------------------#
-#' ## Exemple of output from the function DEanalysisGlobal()
-#' res.DEanalysisGlobal.Ex<-list(data.frame(Gene=paste("Gene",1:5,sep="."),
-#'                                          DE1=c(0,1,0,0,1),
-#'                                          DE2=c(0,1,0,1,0)))
-#' names(res.DEanalysisGlobal.Ex)<-c("DE.results")
+#' ## Transformation of resDATAprepSE into results of DEanalysisGlobal
+#' resultsExamples <- data.frame(Gene=paste0("Gene", seq_len(5)),
+#'                               DE1=c(0, 1, 0, 0, 1),
+#'                               DE2=c(0, 1, 0, 1, 0))
+#' listPATHnameEx <- list(Path.result=NULL, Folder.result=NULL)
+#'
+#' SummarizedExperiment::rowData(resDATAprepSE) <- resultsExamples
+#' S4Vectors::metadata(resDATAprepSE)$DESeq2obj$pathNAME <- listPATHnameEx
+#' S4Vectors::metadata(resDATAprepSE)$DESeq2obj$SEidentification<-"SEresultsDE"
+#'
 #' ##-------------------------------------------------------------------------#
-#' res.SubDE<-DEanalysisSubData(Data=Data.EX,
-#'                              Res.DE.analysis=res.DEanalysisGlobal.Ex,
-#'                              ColumnsCriteria=c(2,3),
-#'                              Set.Operation="union",
-#'                              Save.SubData=FALSE)
+#' ## results of DEanalysisSubData
+#' resDEsub <- DEanalysisSubData(SEresDE=resDATAprepSE,
+#'                               ColumnsCriteria=c(2, 3),
+#'                               Set.Operation="union",
+#'                               Save.SubData=FALSE)
 
-DEanalysisSubData<-function(Data,
-                            Res.DE.analysis,
-                            ColumnsCriteria=1,
-                            Set.Operation="union",
-                            Save.SubData=FALSE){
+DEanalysisSubData <- function(SEresDE,
+                              ColumnsCriteria=1,
+                              Set.Operation="union",
+                              Save.SubData=FALSE){
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check 1
+    ## DATAprepSE
+    Err_SE <- paste0("'SEresDE' mut be the results of the function ",
+                     "'DEanalysisGlobal()'.")
+
+    ## DATAprepSE
+    if (!is(SEresDE, "SummarizedExperiment")) {
+        stop(Err_SE)
+    } else {
+        DESeq2objList <- S4Vectors::metadata(SEresDE)$DESeq2obj
+        codeDEres <-DESeq2objList$SEidentification <-"SEresultsDE"
+
+        if (is.null(codeDEres)) {
+            stop(Err_SE)
+        }## if (is.null(codeDEres))
+
+        if (codeDEres != "SEresultsDE") {
+            stop(Err_SE)
+        }## if (codeDEres != SEresultsDE))
+    }## if (!is(SEresDE, "SummarizedExperiment"))
+
     ##------------------------------------------------------------------------#
     ## Check
-    if(!Set.Operation%in%c("union", "intersect", "setdiff")){
+    if (!Set.Operation%in%c("union", "intersect", "setdiff")) {
         stop("Set.Operation mut be 'union', 'intersect' or 'setdiff'")
-    }# if(Set.Operation%in%c("union", "intersect", "setdiff")==FALSE)
+    }## if(Set.Operation%in%c("union", "intersect", "setdiff")==FALSE)
 
     ##------------------------------------------------------------------------#
-    if(is.list(Res.DE.analysis)==TRUE){
-        DatRowSel<-data.frame(Res.DE.analysis$DE.results)
-    }else{
-        DatRowSel<-data.frame(Res.DE.analysis)
-    }# if(is.list(Res.DE.analysis)==TRUE)
-    ncol.DatRowSel<-ncol(DatRowSel)
-    nrow.DatRowSel<-nrow(DatRowSel)
+    resDESeq2obj <- S4Vectors::metadata(SEresDE)$DESeq2obj
+    resPATH <- resDESeq2obj$pathNAME$Path.result
+    DatRowSel <- SummarizedExperiment::rowData(SEresDE)
+    ncol.DatRowSel <- ncol(DatRowSel)
+    nrow.DatRowSel <- Nb.rows.Data <- nrow(DatRowSel)
 
     ##------------------------------------------------------------------------#
-    if(is.numeric(ColumnsCriteria)==TRUE){
+    if (is.numeric(ColumnsCriteria) == TRUE) {
 
-        if(sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0){
+        if (sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0) {
             stop("'ColumnsCriteria' must be integers or characters")
-        }# if(sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0)
+        }## if(sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0)
 
-    }else{
+    } else {
 
-        if(is.character(ColumnsCriteria)==TRUE){
-            ColumnsCriteria.2<-rep(NA, times=length(ColumnsCriteria))
+        if (is.character(ColumnsCriteria) == TRUE) {
+            ColumnsCriteria.2 <- rep(NA, times=length(ColumnsCriteria))
 
-            for(i in seq_len(length(ColumnsCriteria))){
-                if(length(grep(pattern=ColumnsCriteria[i],
-                               x=colnames(DatRowSel)))==0){
-                    Stop.WrongNames<-paste("The element", i,
-                                           "of 'ColumnsCriteria' is not correct",
-                                           sep=" ")
+            for (i in seq_len(length(ColumnsCriteria))) {
+                lenCOLcriteria <- length(grep(pattern=ColumnsCriteria[i],
+                                              x=colnames(DatRowSel)))
+                if (lenCOLcriteria == 0) {
+                    Stop.WrongNames <- paste("The element", i, "of",
+                                             "'ColumnsCriteria'",
+                                             "is not correct.")
                     stop(Stop.WrongNames)
-                }
-                ColumnsCriteria.2[i]<-grep(pattern=ColumnsCriteria[i],
-                                           x=colnames(DatRowSel))
-            }# for(i in 1:length(ColumnsCriteria))
+                }## if(length(grep(pattern=ColumnsCriteria[i],
+                ### x=colnames(DatRowSel)))==0)
 
-            ColumnsCriteria<-sort(ColumnsCriteria.2)
-        }else{
+                ColumnsCriteria.2[i] <- grep(pattern=ColumnsCriteria[i],
+                                             x=colnames(DatRowSel))
+            }## for(i in 1:length(ColumnsCriteria))
+
+            ColumnsCriteria <- sort(ColumnsCriteria.2)
+        } else {
             stop("'ColumnsCriteria' must be integers or characters")
-        }# if(is.character(ColumnsCriteria)==TRUE)
-    }# if(is.numeric(ColumnsCriteria)==TRUE)
+        }## if(is.character(ColumnsCriteria)==TRUE)
+    }## if(is.numeric(ColumnsCriteria)==TRUE)
 
     ##------------------------------------------------------------------------#
-    if(ncol.DatRowSel==1){
-        ColumnsCriteria<-c(1)
-    }# if(ncol.DatRowSel==1)
+    if (ncol.DatRowSel == 1) {
+        ColumnsCriteria <- c(1)
+    }## if(ncol.DatRowSel==1)
 
-    if(max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1){
-        Stop.WrongIntegers<-paste("Integers of 'ColumnsCriteria' must be",
-                                  "between 1 and", ncol.DatRowSel, sep=" ")
+    if (max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1) {
+        Stop.WrongIntegers <- paste("Integers of 'ColumnsCriteria' must be",
+                                    "between 1 and", ncol.DatRowSel, sep=" ")
         stop(Stop.WrongIntegers)
-    }# if(max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1)
+    }## if(max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1)
 
     ##------------------------------------------------------------------------#
-    Nb.rows.Data<-nrow(Data)
-    if(Nb.rows.Data!=nrow.DatRowSel){
-        Stop.nrow<-paste0("The number of rows of 'Data' and, ",
-                          "the length or the number of rows of 'Res.DE.analysis', ",
-                          "must be identical.")
-        stop(Stop.nrow)
-    }# if(Nb.rows.Data!=nrow.DatRowSel)
+    if (length(ColumnsCriteria) == 1) {
+        DEsel <- which(as.numeric(DatRowSel[, ColumnsCriteria])>0)
+    }## if(length(ColumnsCriteria)==1)
+
+    if (Set.Operation == "union" & length(ColumnsCriteria)>1) {
+        Sum.colsel <- apply(data.frame(DatRowSel[, ColumnsCriteria]), 1, sum)
+        DEsel <- which(as.numeric(Sum.colsel)>0)
+    }## if(Set.Operation=="union" & length(ColumnsCriteria)>1)
+
+    if (Set.Operation == "intersect" & length(ColumnsCriteria)>1) {
+        Prod.colsel <- apply(data.frame(DatRowSel[, ColumnsCriteria]), 1, prod)
+        DEsel <- which(as.numeric(Prod.colsel)>0)
+    }## if(Set.Operation=="intersect" & length(ColumnsCriteria)>1)
+
+    if (Set.Operation == "setdiff" & length(ColumnsCriteria)>1) {
+        Nb0.colsel <- apply(X=data.frame(DatRowSel[,ColumnsCriteria]),
+                            MARGIN=1,
+                            FUN=function(x) length(which(x==0)))
+        DEsel <- which(as.numeric(Nb0.colsel) == (length(ColumnsCriteria)-1))
+    }## if (Set.Operation == "setdiff" & length(ColumnsCriteria)>1)
+
+    L.DEsel <- length(DEsel)
 
     ##------------------------------------------------------------------------#
-    if(length(ColumnsCriteria)==1){
-        DEsel<-which(as.numeric(DatRowSel[,ColumnsCriteria])>0)
-    }# if(length(ColumnsCriteria)==1)
-
-    if(Set.Operation=="union" & length(ColumnsCriteria)>1){
-        Sum.colsel<-apply(data.frame(DatRowSel[,ColumnsCriteria]), 1, sum)
-        DEsel<-which(as.numeric(Sum.colsel)>0)
-    }
-
-    if(Set.Operation=="intersect" & length(ColumnsCriteria)>1){
-        Prod.colsel<-apply(data.frame(DatRowSel[,ColumnsCriteria]), 1, prod)
-        DEsel<-which(as.numeric(Prod.colsel)>0)
-    }
-
-    if(Set.Operation=="setdiff" & length(ColumnsCriteria)>1){
-        Nb0.colsel<-apply(X=data.frame(DatRowSel[,ColumnsCriteria]), MARGIN=1,
-                          FUN=function(x) length(which(x==0)))
-        DEsel<-which(as.numeric(Nb0.colsel)==(length(ColumnsCriteria)-1))
-    }
-
-    L.DEsel<-length(DEsel)
-
     ##------------------------------------------------------------------------#
-    if(L.DEsel==0){
-        print(paste0("No selection because the column selected is full of 0.",
-                     "The original 'Data' is returned."))
-        DataSub<-Data
-    }# if(L.DEsel==0)
+    listDEselected <- list(DEselectedGenes=DEsel,
+                           ColumnsCriteria=ColumnsCriteria,
+                           Set.Operation=Set.Operation)
 
-    if(L.DEsel==Nb.rows.Data){
+    if (L.DEsel == 0) {
+        print(paste("No selection because the column selected is full of 0.",
+                    "The original 'SEresDE' is returned."))
+        SEresSEsub <- SEresDE
+        S4Vectors::metadata(SEresSEsub)$DEselection <- listDEselected
+    }## if(L.DEsel == 0)
+
+    if (L.DEsel == Nb.rows.Data) {
         print(paste("All rows are selected because there is no 0",
-                    "in the column selected.", "The original 'Data' is returned.",
-                    sep=" "))
-        DataSub<-Data
-    }# if(L.DEsel==Nb.rows.Data)
+                    "in the column selected.",
+                    "The original 'SEresDE' is returned."))
+        SEresSEsub <- SEresDE
+        S4Vectors::metadata(SEresSEsub)$DEselection <- listDEselected
+    }## if(L.DEsel == Nb.rows.Data)
 
-    if(L.DEsel>0 & L.DEsel<Nb.rows.Data){
-        DataSub<-Data[DEsel,]
-    }# if(L.DEsel>0 & L.DEsel<Nb.rows.Data)
+    if (L.DEsel>0 & L.DEsel<Nb.rows.Data) {
+        colFCTRS <- S4Vectors::metadata(SEresDE)$colDataINFO$colINFOfactors
+        colFCTRS <- as.numeric(colFCTRS)
+        colSEsub <- SummarizedExperiment::colData(SEresDE)[, colFCTRS]
+        geneNames1 <- SummarizedExperiment::rownames(SEresDE)
+
+        ## COUNTsub <- SummarizedExperiment::assays(resDESeq2obj$DESeq2results)
+        ## COUNTsub <- COUNTsub$counts
+        COUNTsub <- SummarizedExperiment::assays(SEresDE)$counts
+        COUNTsub <- data.frame(Gene=geneNames1[DEsel], COUNTsub[DEsel,])
+
+        RLEsub <- SummarizedExperiment::assays(SEresDE)$rle
+        colNAMESini <- S4Vectors::metadata(SEresDE)$RAWcolnames
+        colGene1 <- S4Vectors::metadata(SEresDE)$colGene
+
+        SEresSEsub <-DATAprepSE(RawCounts=COUNTsub,
+                                Column.gene=1,
+                                Group.position=NULL,
+                                Time.position=NULL,
+                                Individual.position=NULL,
+                                colData=data.frame(colSEsub))
+
+        SummarizedExperiment::assays(SEresSEsub)$rle <- RLEsub[DEsel,]
+        S4Vectors::metadata(SEresSEsub)$RAWcolnames <- colNAMESini
+        S4Vectors::metadata(SEresSEsub)$colGene <- colGene1
+        S4Vectors::metadata(SEresSEsub)$DEselection <- listDEselected
+        S4Vectors::metadata(SEresSEsub)$SEidentification <-"SEresNormalization"
+
+    }## if(L.DEsel>0 & L.DEsel<Nb.rows.Data)
 
     ##------------------------------------------------------------------------#
-    # Folder path and creation
-    if(!isFALSE(Save.SubData)){
-        if(Save.SubData==TRUE){
-            path.result<-Res.DE.analysis$Path.result
-        }else{
-            path.result<-Save.SubData
-        }# if(Save.SubData==TRUE)
+    ##------------------------------------------------------------------------#
+    ## Folder path and creation
+    if (!isFALSE(Save.SubData)) {
+        if (Save.SubData == TRUE) {
+            path.result <- resPATH
+        } else {
+            path.result <- Save.SubData
+        }## if(Save.SubData==TRUE)
 
-        utils::write.table(DataSub,
-                           file=file.path(path.result, "Sub_Data.csv"),
+        utils::write.table(SummarizedExperiment::assays(SEresSEsub)$rle,
+                           file=file.path(path.result, "Sub_DataRLE.csv"),
+                           sep=";", row.names=FALSE)
+
+        utils::write.table(SummarizedExperiment::assays(SEresSEsub)$counts,
+                           file=file.path(path.result,"Sub_RawCountsData.csv"),
                            sep=";", row.names=FALSE)
 
         utils::write.table(DatRowSel,
                            file=file.path(path.result, "Sub_DEresults.csv"),
                            sep=";", row.names=FALSE)
-    }else{
-        path.result<-NULL
-    }# if(isFALSE(Save.SubData)==FALSE)
+    } else {
+        path.result <- NULL
+    }## if(isFALSE(Save.SubData)==FALSE)
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Output
-    return(list(SubData=DataSub,
-                SubDataCriteria=DatRowSel,
-                RowsSelected=DEsel))
+    ## list(SubData, SubDataCriteria=DatRowSel, RowsSelected=DEsel)
+    return(SEresSEsub)
 }## DEanalysisSubData()

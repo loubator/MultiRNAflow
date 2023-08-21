@@ -90,8 +90,8 @@
 #' res.dodgeFALSE<-DEplotBarplot(ContingencyTable=CrossTabulation,dodge=TRUE)
 #' res.dodgeFALSE
 
-DEplotBarplot<-function(ContingencyTable,
-                        dodge=TRUE){
+DEplotBarplot <- function(ContingencyTable,
+                          dodge=TRUE) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Data preprocessing for graph

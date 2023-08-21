@@ -17,37 +17,41 @@
 #' [gprofiler2::gost()]
 #' and the vignette of \code{gprofiler2} for more details.
 #'
-#' * If \code{Set.Operation="union"} then the rows (so genes) extracted from
-#' \code{Res.DE.analysis$DE.results} are those such that the sum of
-#' the selected columns in \code{Res.DE.analysis} is >0.
-#' For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-#' will be those DE at least at one time.
-#'
+#' We have the following three cases:
+#' * If \code{Set.Operation="union"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that the sum of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at least at t1 or t2
+#' (versus the reference time t0).
 #' * If \code{Set.Operation="intersect"} then the rows extracted from
-#' \code{Res.DE.analysis$DE.results} are those such that the product of
-#' the selected columns in \code{Res.DE.analysis$DE.results} is >0.
-#' For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-#' will be those DE at all time ti (except the reference time t0).
+#' the different datasets included in \code{SEresDE}
+#' are those such that the product of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at times t1 and t2
+#' (versus the reference time t0).
+#' * If \code{Set.Operation="setdiff"} then the rows extracted from
+#' the different datasets included in \code{SEresDE}
+#' are those such that only one element of the selected columns of
+#' \code{SummarizedExperiment::rowData(SEresDE)}
+#' by \code{ColumnsCriteria} is >0.
+#' For example, the selected genes can be those DE at times t1 only and
+#' at times t2 only (versus the reference time t0).
 #'
-#' * If \code{Set.Operation="setdiff"} then the rows extracted from data
-#' are those such that only one element of the selected columns in
-#' \code{Res.DE.analysis$DE.results} is >0.
-#' For example, the rows extracted from \code{Res.DE.analysis$DE.results}
-#' will be those DE at only one time ti (except the reference time t0).
-#'
-#' @param Internect.Connection \code{TRUE} or \code{FALSE}.
-#' \code{FALSE} as default.
-#' If \code{TRUE}, the function realizes an enrichment analysis.
-#' If \code{FALSE}, the function returns a message indicating that
-#' the user must have an internet connection.
-#' @param Res.DE.analysis A list corresponding to the output of
-#' [DEanalysisGlobal()].
+#' @param SEresDE A SummarizedExperiment class object. Output from
+#' [DEanalysisGlobal()]
+#' (see \code{Examples}).
 #' @param ColumnsCriteria A vector of integers where each integer indicates
-#' a column of \code{Res.DE.analysis$DE.results} to be selected for
-#' GSEA analysis. These columns should either contain only binary values,
-#' or may contain other numerical value, in which case extracted rows
-#' from \code{Res.DE.analysis$DE.results} will be those with >0 values
-#' (see \code{Details}).
+#' a column of  \code{SummarizedExperiment::rowData(SEresDE)}.
+#' These columns should either contain only binary values, or may contain other
+#' numerical value, in which case extracted outputs from \code{SEresDE}
+#' will be those with >0 values (see \code{Details}).
+#' @param Internect.Connection \code{TRUE} or \code{FALSE}.
+#' \code{FALSE} by default. If the user is sure to have an internet connection,
+#' the user must set \code{Internect.Connection=TRUE}, otherwise, the algorithm
+#' will not run.
 #' @param Set.Operation A character. The user must choose between "union"
 #' (default), "intersect", "setdiff" (see \code{Details}).
 #' @param ColumnsLog2ordered \code{NULL} or a vector of integers.
@@ -93,9 +97,11 @@
 #' @return The function returns
 #' * a data.frame which contains the outputs of
 #' [gprofiler2::gost()]
-#' * a Manhattan plot showing all GO names according to their pvalue.
-#' * A lollipop graph showing the \code{MaxNumberGO} most important GO.
+#' * a Manhattan plot showing all GO names according to their pvalue
+#' * a lollipop graph showing the \code{MaxNumberGO} most important GO.
 #'
+#' @importFrom SummarizedExperiment rowData assays rownames
+#' @importFrom S4Vectors metadata
 #' @importFrom gprofiler2 gost gostplot publish_gosttable
 #' @importFrom grDevices png dev.off
 #' @importFrom ggplot2 ggplot aes geom_point geom_line geom_hline geom_bar
@@ -113,35 +119,44 @@
 #' @export
 #'
 #' @examples
-#' data(Results_DEanalysis_sub500)
-#' ## Results of DEanalysisGlobal() with the dataset of Antoszewski
-#' res.all<-Results_DEanalysis_sub500$DE_Antoszewski2022_MOUSEsub500
+#' ## data importation
+#' data(RawCounts_Antoszewski2022_MOUSEsub500)
+#' ## No time points. We take only two groups for the speed of the example
+#' dataT1wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200), seq_len(7)]
+#'
+#' ## Preprocessing with Results of DEanalysisGlobal()
+#' resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
+#'                             Column.gene=1,
+#'                             Group.position=1,
+#'                             Time.position=NULL,
+#'                             Individual.position=2)
 #'
 #' ##-------------------------------------------------------------------------#
-#' ## Internet is needed in order to run the following lines of code
-#' ## resGpA<-GSEAQuickAnalysis(Internect.Connection=FALSE,
-#' ##                           Res.DE.analysis=res.all,
-#' ##                           ColumnsCriteria=2,
-#' ##                           ColumnsLog2ordered=NULL,
-#' ##                           Set.Operation="union",
-#' ##                           Organism="mmusculus",
-#' ##                           MaxNumberGO=20,
-#' ##                           Background=FALSE,
-#' ##                           Display.plots=TRUE,
-#' ##                           Save.plots=FALSE)
-#' ##-------------------------------------------------------------------------#
-#'
-#' ##-------------------------------------------------------------------------#
-#' ## The results res.all of DEanalysisGlobal with the dataset Antoszewski2022
-#' ## data(RawCounts_Antoszewski2022_MOUSEsub500)
-#' ## res.all<-DEanalysisGlobal(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
-#' ##                           Column.gene=1, Group.position=1,
-#' ##                           Time.position=NULL, Individual.position=2,
-#' ##                           pval.min=0.05, log.FC.min=1,LRT.supp.info=FALSE,
-#' ##                           path.result=NULL, Name.folder.DE=NULL)
+#' ## Internet is needed in order to run the following lines of code because
+#' ## gprofileR2 needs an internet connection
+#' ## DE analysis
+#' # resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
+#' #                               pval.min=0.05,
+#' #                               pval.vect.t=NULL,
+#' #                               log.FC.min=1,
+#' #                               LRT.supp.info=FALSE,
+#' #                               Plot.DE.graph=FALSE,
+#' #                               path.result=NULL,
+#' #                               Name.folder.DE=NULL)
+#' #########
+#' # resGs<-GSEAQuickAnalysis(Internect.Connection=TRUE,
+#' #                          SEresDE=resDET1wt,
+#' #                          ColumnsCriteria=3,
+#' #                          ColumnsLog2ordered=NULL,
+#' #                          Set.Operation="union",
+#' #                          Organism="mmusculus",
+#' #                          MaxNumberGO=20,
+#' #                          Background=FALSE,
+#' #                          Display.plots=TRUE,
+#' #                          Save.plots=FALSE)
 
 GSEAQuickAnalysis<-function(Internect.Connection=FALSE,
-                            Res.DE.analysis,
+                            SEresDE,
                             ColumnsCriteria=1,
                             ColumnsLog2ordered=NULL,
                             Set.Operation="union",
@@ -150,12 +165,6 @@ GSEAQuickAnalysis<-function(Internect.Connection=FALSE,
                             Background=FALSE,
                             Display.plots=TRUE,
                             Save.plots=FALSE){
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    if(!is.list(Res.DE.analysis) & !is(Res.DE.analysis, 'DESeqDataSet')){
-        stop("Res.DE.analysis must be a list or a 'DESeqDataSet' object")
-    }## if(!is.list(Res.DE.analysis) & !is(classDeseq2, 'DESeqDataSet'))
-
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     if(isFALSE(Internect.Connection)){
@@ -173,20 +182,51 @@ GSEAQuickAnalysis<-function(Internect.Connection=FALSE,
         term_id<-p_value<-significant<-xmh<-NULL
 
         ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        ## Check 1
+        ## DATAprepSE
+        Err_SE <- paste0("'SEresDE' mut be the results of the function ",
+                         "'DEanalysisGlobal()'.")
+
+        ## DATAprepSE
+        if (!is(SEresDE, "SummarizedExperiment")) {
+            stop(Err_SE)
+        } else {
+            DESeq2objList <- S4Vectors::metadata(SEresDE)$DESeq2obj
+            codeDEres <-DESeq2objList$SEidentification <-"SEresultsDE"
+
+            if (is.null(codeDEres)) {
+                stop(Err_SE)
+            }## if (is.null(codeDEres))
+
+            if (codeDEres != "SEresultsDE") {
+                stop(Err_SE)
+            }## if (codeDEres != SEresultsDE))
+        }## if (!is(SEresDE, "SummarizedExperiment"))
+
+        ##--------------------------------------------------------------------#
+        ## Preprocessing
+        scaled.data <- round(SummarizedExperiment::assays(SEresDE)$rle,
+                             digits=3)
+        GeneNames <- as.character(SummarizedExperiment::rownames(SEresDE))
+        resPATH <- S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME
+        resInputs <- S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs
+
+        ##--------------------------------------------------------------------#
         ## Folder path and creation
         if(!isFALSE(Save.plots)){
             if(Save.plots==TRUE){
-                path.result<-Res.DE.analysis$Path.result
+                path.result<-resPATH$Path.result
             }else{
                 path.result<-Save.plots
             }## if(Save.plots==TRUE)
 
             if(!is.null(path.result)){
-                if(!is.null(Res.DE.analysis$Folder.result)){
-                    SufixDE<-paste0("_", Res.DE.analysis$Folder.result)
+                if(!is.null(resPATH$Folder.result)){
+                    SufixDE<-paste0("_", resPATH$Folder.result)
                 }else{
                     SufixDE<-NULL
-                }## if(is.null(Res.DE.analysis$Folder.result)==FALSE)
+                }## if(is.null(resPATH$Folder.result)==FALSE)
 
                 if(Save.plots==TRUE){
                     SuppPlotFolder<-paste0("2-5_Enrichment_analysis", SufixDE)
@@ -247,55 +287,52 @@ GSEAQuickAnalysis<-function(Internect.Connection=FALSE,
 
         ##--------------------------------------------------------------------#
         ## Selection of genes according to Columns criteria and Set.operation
-        ResSubDE<-DEanalysisSubData(Data=Res.DE.analysis$RLEdata,
-                                    Res.DE.analysis=Res.DE.analysis,
+        ResSubDE<-DEanalysisSubData(SEresDE=SEresDE,
                                     ColumnsCriteria=ColumnsCriteria,
                                     Set.Operation=Set.Operation)
 
-        GeneNames<-Res.DE.analysis$RLEdata$Gene
-
         ##--------------------------------------------------------------------#
         ## Gene order considered as important or not
-        if(!is.null(ColumnsLog2ordered)){
-            Log2FCchosen<-Res.DE.analysis$DE.results[ResSubDE$RowsSelected,
-                                                     ColumnsLog2ordered]
+        if (!is.null(ColumnsLog2ordered)) {
+            Log2FCchosen <- data.frame(SummarizedExperiment::rowData(ResSubDE))
+            Log2FCchosen <- Log2FCchosen[, ColumnsLog2ordered]
 
             orderLog2FC<-order(abs(Log2FCchosen))
-            GeneSelected.i<-GeneNames[ResSubDE$RowsSelected]
+            GeneSelected.i <- rownames(ResSubDE)
             GeneSelected<-GeneSelected.i[orderLog2FC]
             QueryOrder<-TRUE
-        }else{
-            GeneSelected<-GeneNames[ResSubDE$RowsSelected]
+        } else {
+            GeneSelected<-rownames(ResSubDE)
             QueryOrder<-FALSE
         }## if(is.null(ColumnsLog2ordered)==FALSE)
 
         ##--------------------------------------------------------------------#
         ## Inputs of gprofiler2::gost()
-        if(isFALSE(Background)){
+        if (isFALSE(Background)) {
             Backgene<-NULL
             DomainScoped<-"annotated"
-        }else{
+        } else {
             Backgene<-GeneNames
             DomainScoped<-"custom"
-        }# if(Background==FALSE)
+        }## if(Background==FALSE)
 
         ##--------------------------------------------------------------------#
         ## gprofiler2 analysis
-        gostres<-gprofiler2::gost(query=GeneSelected,
-                                  organism=Organism,
-                                  ordered_query=QueryOrder,
-                                  multi_query=FALSE,
-                                  significant=FALSE,
-                                  exclude_iea=FALSE,
-                                  measure_underrepresentation=FALSE,
-                                  evcodes=TRUE,
-                                  user_threshold=0.05,
-                                  correction_method="g_SCS",
-                                  domain_scope=DomainScoped,
-                                  custom_bg=Backgene,
-                                  numeric_ns="",
-                                  sources=c("GO:BP", "GO:MF", "GO:CC", "KEGG"),
-                                  as_short_link=FALSE)
+        gostres <- gprofiler2::gost(query=GeneSelected,
+                                    organism=Organism,
+                                    ordered_query=QueryOrder,
+                                    multi_query=FALSE,
+                                    significant=FALSE,
+                                    exclude_iea=FALSE,
+                                    measure_underrepresentation=FALSE,
+                                    evcodes=TRUE,
+                                    user_threshold=0.05,
+                                    correction_method="g_SCS",
+                                    domain_scope=DomainScoped,
+                                    custom_bg=Backgene,
+                                    numeric_ns="",
+                                    sources=c("GO:BP","GO:MF","GO:CC","KEGG"),
+                                    as_short_link=FALSE)
         # term_size - number of genes that are annotated to the term (GO)
         # query_sizes
         ### - number of genes that were included in the query in the order of
@@ -509,12 +546,20 @@ GSEAQuickAnalysis<-function(Internect.Connection=FALSE,
             }
 
         }## if(is.null(path.result)==FALSE)
-    }## if(Internect.Connection==FALSE)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Output
-    return(list(GSEAresults=GOmat,
-                LollipopChart=glolipop,
-                ManhattanPlot=gManhattan))
+        ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        ## SE object
+        listGSEA <- list(GSEAresults=GOmat,
+                         LollipopChart=glolipop,
+                         ManhattanPlot=gManhattan)
+
+        SEresGSEA <- SEresDE
+        S4Vectors::metadata(SEresGSEA)$Rgprofiler2 <- listGSEA
+
+        ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        ## Output
+        return(SEresGSEA)
+    }## if(Internect.Connection==FALSE)
 }## GSEAQuickAnalysis()

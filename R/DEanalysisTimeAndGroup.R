@@ -1,22 +1,27 @@
 #' @title DE analysis when samples belong to different biological condition
 #' and time points.
 #'
-#' @description The function realizes from the [DESeq2::DESeq()] output
-#' the analysis of :
+#' @description The function realizes from the
+#' [DESeq2::DESeq()]
+#' output the analysis of :
 #' * DE genes between all pairs of biological conditions for each fixed time.
 #' * DE genes between all times ti and the reference time t0for each
 #' biological condition.
 #'
-#' @param DESeq.result Output from the function [DESeq2::DESeq()].
+#' @param DESeq.result Output from the function
+#' [DESeq2::DESeq()].
 #' @param pval.min Numeric value between 0 and 1. A gene will be considered as
 #' differentially expressed (DE) between two biological conditions
-#' if its Benjamini-Hochberg adjusted p-value (see [stats::p.adjust()])
+#' if its Benjamini-Hochberg adjusted p-value
+#' (see [stats::p.adjust()])
 #' is below the threshold \code{pval.min}. Default value is 0.05
-#' @param pval.vect.t \code{NULL} or vector of dimension \eqn{T-1} filled with
-#' numeric values between 0 and 1, with \eqn{T} the number of time measurements.
+#' @param pval.vect.t \code{NULL} or vector of dimension \eqn{T-1}
+#' filled with numeric values between 0 and 1,
+#' with \eqn{T} the number of time measurements.
 #' A gene will be considered as differentially expressed (DE) between the
 #' time ti and the reference time t0 if its Benjamini-Hochberg adjusted p-value
-#' (see [stats::p.adjust()]) is below the i-th threshold of \code{pval.vect.t}.
+#' (see [stats::p.adjust()])
+#' is below the i-th threshold of \code{pval.vect.t}.
 #' If NULL, \code{pval.vect.t} will be vector of dimension \eqn{T-1} filled
 #' with \code{pval.min}.
 #' @param log.FC.min Non negative numeric value.
@@ -27,8 +32,8 @@
 #' @param LRT.supp.info \code{TRUE} or \code{FALSE}.
 #' If \code{TRUE}, the algorithm realizes another statistical test in order
 #' to detect if, among all biological conditions and/or times, at least one has
-#' a different behavior than the others
-#' (see the input \code{test} in [DESeq2::DESeq()]).
+#' a different behavior than the others (see the input \code{test} in
+#' [DESeq2::DESeq()]).
 #' @param Plot.DE.graph \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
 #' If \code{TRUE}, all graphs will be plotted.
 #' Otherwise no graph will be plotted.
@@ -107,8 +112,10 @@
 #' * the following plots from the temporal statistical analysis
 #'   * a barplot which gives the number of DE genes between ti and the
 #'   reference time t0, for each time ti (except the reference time t0) and
-#'   biological condition (see [DEplotBarplotFacetGrid()]).
-#'   * \eqn{N_{bc}} alluvial graphs of DE genes (see [DEplotAlluvial()]),
+#'   biological condition
+#'   (see [DEplotBarplotFacetGrid()]).
+#'   * \eqn{N_{bc}} alluvial graphs of DE genes
+#'   (see [DEplotAlluvial()]),
 #'   one per biological condition.
 #'   * \eqn{N_{bc}} graphs showing the number of DE genes as a function of time
 #'   for each temporal group, one per biological condition. By temporal group,
@@ -151,17 +158,20 @@
 #' ## We take only the first three times (both group) for the speed of
 #' ## the example
 #' Index3t<-c(2:4,11:13,20:22, 29:31,38:40,47:49)
-#' RawCounts_P_NP_3t<-RawCounts_Schleiss2021_CLLsub500[,c(1,Index3t)]
+#' RawCounts_3t<-RawCounts_Schleiss2021_CLLsub500[seq_len(200), c(1,Index3t)]
 #'
 #' ## Preprocessing step
-#' resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_P_NP_3t,
+#' resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_3t,
 #'                                 Column.gene=1,
 #'                                 Group.position=2,
 #'                                 Time.position=4,
 #'                                 Individual.position=3)
 #'
+#' DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEleuk)$DESeq2obj
+#' DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
+#'
 #' ##------------------------------------------------------------------------#
-#' dds.DE<-DESeq2::DESeq(resDATAprepSEleuk$DESeq2.obj)
+#' dds.DE<-DESeq2::DESeq(DESeq2obj)
 #' ##
 #' res.G.T<-DEanalysisTimeAndGroup(DESeq.result=dds.DE,
 #'                                 LRT.supp.info=FALSE,
@@ -346,11 +356,11 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
 
         gene.DE.1tmin.g<-c()
 
-        ##------------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
         #### 2.3) Data.frame filling and DE genes
-        for(i in seq_len(length(Other.t))){# 1:length(Other.t)
-            Index.contrast<-rep(0,
-                                times=length(DESeq2::resultsNames(DESeq.result)))
+        for(i in seq_len(length(Other.t))){
+            NBcontrasts <- length(DESeq2::resultsNames(DESeq.result))
+            Index.contrast<-rep(0, times=NBcontrasts)
             Ind.tivst0<-grep(pattern=paste0("Time_", i),
                              x=DESeq2::resultsNames(DESeq.result))
 
@@ -376,15 +386,17 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
             Pvalue.adj<-res.dds.diff.t$padj
             Pvalue.adj[which(is.na(Pvalue.adj))]<-1
             M.sum.DE.t0.g[,(i-1)*3+1]<-round(Log2.FC,digits=3)
-            M.sum.DE.t0.g[,(i-1)*3+2]<-Pvalue.adj#round(Pvalue.adj,digits=3)
+            M.sum.DE.t0.g[,(i-1)*3+2]<-Pvalue.adj ## round(Pvalue.adj,digits=3)
             M.log2FC.g[,i]<-Log2.FC
 
             ind.logFC.sel<-which(abs(Log2.FC)>log.FC.min)
-            ind.padj.sel<-which(Pvalue.adj<pval.vect.t[i])#which(Pvalue.adj<pval.min)
+            ind.padj.sel<-which(Pvalue.adj<pval.vect.t[i])
+            ## which(Pvalue.adj<pval.min)
 
             if(LRT.supp.info==TRUE){
                 ind.padj.LRT.sel<-which(padj.LRT<pval.min)
-                gene.DE.i<-sort(intersect(intersect(ind.logFC.sel,ind.padj.sel),
+                gene.DE.i<-sort(intersect(intersect(ind.logFC.sel,
+                                                    ind.padj.sel),
                                           ind.padj.LRT.sel))
             }else{
                 gene.DE.i<-sort(intersect(ind.logFC.sel, ind.padj.sel))
@@ -425,13 +437,13 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
         colnames(M.time.DE.g)<-paste0("t", seq_len(ncol(M.time.DE.g)))
 
         if(length(Other.t)>1){
-            title.alluvial.TG<-paste0("Alluvial graph of genes which are DE at",
-                                     "at least one time,\nfor the group ",
+            title.alluvial.TG<-paste0("Alluvial graph of genes which are DE ",
+                                     "at at least one time,\nfor the group ",
                                      groupe.g)
-            title.evolution.TG<-paste0("Time evolution of the number of genes which ",
-                                      "are DE at at least one time within each ",
-                                      "temporal group,\nfor the group ",
-                                      groupe.g)
+            title.evolution.TG<-paste("Time evolution of the number of genes",
+                                      "which are DE at at least one time",
+                                      "within each temporal",
+                                      "group,\nfor the group", groupe.g)
 
             res.allu.g<-DEplotAlluvial(table.DE.time=M.time.DE.g,
                                        Temporal.Group=TRUE,
@@ -603,10 +615,12 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
     ### 3) DE group analysis for each time
     print("DE group analysis for each time measurement.")
 
-    res.sum.G.T<-DEresultGroupPerTime(DESeq.result=DESeq.result,
-                                      LRT.supp.info=LRT.supp.info,
-                                      log.FC.min=log.FC.min,
-                                      pval.min=pval.min)
+    resSUMgt<-DEresultGroupPerTime(DESeq.result=DESeq.result,
+                                   LRT.supp.info=LRT.supp.info,
+                                   log.FC.min=log.FC.min,
+                                   pval.min=pval.min)
+
+    res.sum.G.T <- S4Vectors::metadata(resSUMgt)$DEresultTimeAndGroup
 
     ##------------------------------------------------------------------------#
     ### 3.1) Specific and no specific DE genes per time and
@@ -652,8 +666,8 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
         SpeDat1tmin<-data.frame(res.sum.G.T$Spe.G.1t.min)
         colnames(SpeDat1tmin)<-Levels.group
 
-        TitleSpe.g<-paste("Alluvial graph of specific genes at at least one time",
-                          "for each group", sep=" ")
+        TitleSpe.g<-paste("Alluvial graph of specific genes at at least",
+                          "one time for each group", sep=" ")
 
         res.allu.Spe1tmin<-DEplotAlluvial(SpeDat1tmin, FALSE, TitleSpe.g)
 
@@ -738,7 +752,8 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
 
 
             AlluSpeG<-paste0("GroupResultsPerTime_",
-                             "_AlluvialGraph_SpecificGenes1tmin_perBiologicalCondition",
+                             "_AlluvialGraph_SpecificGenes1tmin",
+                             "_perBiologicalCondition",
                              SubFile.name, ".pdf")
 
             grDevices::pdf(file=file.path(PathResult_BCperTime, AlluSpeG),
@@ -846,7 +861,9 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
 
         for(g in seq_len(Nb.group)){
             Index.g.signature<-(g-1)*(Nb.time-1)+seq_len(Nb.time-1)
-            alluvialSignature[,g]<-apply(Signature.All.TG[,Index.g.signature],1,sum)
+            alluvialSignature[,g]<-apply(Signature.All.TG[,Index.g.signature],
+                                         1,
+                                         sum)
         }# for(g in 1:Nb.group)
 
         alluvialSignature[which(alluvialSignature>1, arr.ind=TRUE)]<-1
@@ -1006,8 +1023,17 @@ DEanalysisTimeAndGroup<-function(DESeq.result,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
+    ## SE final
+    resS <- Sum.final.g.t
+    rF <- Mat.facet.all
+    DESeqclass <- resSUMgt
+
+    S4Vectors::metadata(DESeqclass)$DEresultTimeAndGroup$Results <- resS
+    S4Vectors::metadata(DESeqclass)$DEresultTimeAndGroup$Summary.DEanalysis<-rF
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
     ##### 5) Output
-    # List.Plots.DE.Time.Group=List.plots.DE.time.group
-    return(list(Results=Sum.final.g.t,
-                Summary.DEanalysis=Mat.facet.all))
+    ## List.Plots.DE.Time.Group=List.plots.DE.time.group
+    return(DESeqclass)
 }## DEanalysisTimeAndGroup()

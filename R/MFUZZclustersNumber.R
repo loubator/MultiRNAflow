@@ -94,6 +94,7 @@
 #' @importFrom stats kmeans
 #' @importFrom FactoMineR HCPC
 #' @importFrom SummarizedExperiment colData assays
+#' @importFrom S4Vectors metadata
 #' @importFrom graphics lines legend
 #' @importFrom grDevices pdf dev.off
 #'
@@ -124,6 +125,8 @@
 #'
 #' ##-------------------------------------------------------------------------#
 #' ## Preprocessing step
+#' DATAclustSIM <- data.frame(DATAclustSIM)
+#'
 #' resDATAprepSE <- DATAprepSE(RawCounts=DATAclustSIM,
 #'                             Column.gene=NULL,
 #'                             Group.position=1,
@@ -146,28 +149,62 @@
 MFUZZclustersNumber <- function(SEresNorm,
                                 DATAnorm=TRUE,
                                 Method="hcpc",
-                                Max.clust,
+                                Max.clust=3,
                                 Min.std=0.1,
                                 Plot.Cluster=TRUE,
                                 path.result=NULL) {
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Check
+    ## Check 1
     ## DATAprepSE
     Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
                      "'DATAnormalization().'")
-    if (is.null(SEresNorm$SEidentification)) {
+
+    if (!is(SEresNorm, "SummarizedExperiment")) {
         stop(Err_SE)
     } else {
-        if (SEresNorm$SEidentification != "SEresNormalization") {
+        codeDEres <- S4Vectors::metadata(SEresNorm)$SEidentification
+
+        if (is.null(codeDEres)) {
             stop(Err_SE)
-        }## if (SEresNorm$SEidentification != "SEresNormalization")
-    }## if ((is.null(SEresNorm$SEidentification))
+        }## if (is.null(codeDEres))
+
+        if (codeDEres != "SEresNormalization") {
+            stop(Err_SE)
+        }## if (codeDEres != "SEresNormalization")
+    }## if (!is(SEresNorm, "SummarizedExperiment"))
+
+    if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm)) {
+        stop("'DATAnorm' must be TRUE or FALSE.")
+    }## if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm))
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Check 2
+    if (!Method%in%c("hcpc", "kmeans")) {
+        stop("'Method' must be 'hcpc' or 'kmeans'.")
+    }## if (!Method%in%c("hcpc", "kmeans"))
+
+    if (!isTRUE(Plot.Cluster) & !isFALSE(Plot.Cluster)) {
+        stop("'Plot.Cluster' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.Cluster) & !isFALSE(Plot.Cluster))
+
+    if (!is.null(Max.clust)) {
+        if (floor(Max.clust) != Max.clust){
+            stop("'Max.clust' must be a non negative integer.")
+        }## if (floor(Max.clust) != Max.clust)
+    }## if (!is.null(Max.clust))
+
+    if (!is.null(path.result)) {
+        if (!is.character(path.result)) {
+            stop("'path.result' must be NULL or a character.")
+        }## if (!is.character(path.result))
+    }## if (!is.null(path.result))
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
     ## Preprocessing
-    cSEdat <- SummarizedExperiment::colData(SEresNorm$SEobj)
+    cSEdat <- SummarizedExperiment::colData(SEresNorm)
 
     if (c("Time")%in%colnames(cSEdat)) {
         Vect.time <- as.character(cSEdat$Time)
@@ -190,7 +227,7 @@ MFUZZclustersNumber <- function(SEresNorm,
         aSE <- 1
     }## if (DATAnorm == TRUE)
 
-    ExprData <- SummarizedExperiment::assays(SEresNorm$SEobj)[[aSE]]
+    ExprData <- SummarizedExperiment::assays(SEresNorm)[[aSE]]
     ExprData.f <- data.frame(ExprData)
 
     ##------------------------------------------------------------------------#
@@ -445,10 +482,16 @@ MFUZZclustersNumber <- function(SEresNorm,
 
     ##------------------------------------------------------------------------#
     ##------------------------------------------------------------------------#
-    ## Output
-    ## Plot.Number.Cluster=Number.Cluster.plot
-    return(list(Summary.Nb.Cluster=Sum.nb.c,
-                DataClustSel=data.clust.kmeans))
+    ## SE Mfuzz
+    listMFUZZ <- list(Summary.Nb.Cluster=Sum.nb.c,
+                      DataClustSel=data.clust.kmeans)
+    SEprepMFUZZ <- SEresNorm
+    S4Vectors::metadata(SEprepMFUZZ)$MFUZZ <- listMFUZZ
+
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output ## plotMUZZnumberCluster=Number.Cluster.plot
+    return(SEobj=SEprepMFUZZ)
 }## MFUZZclustersNumber()
 
 NbClustKmeansHCPC <- function(NrowData, x1, y1, x2, y2){

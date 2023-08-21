@@ -7,12 +7,17 @@
 #' RawCounts_Leong2014_FISSIONsub500wt and
 #' RawCounts_Schleiss2021_CLLsub500
 #'
-#' @format A list of 3 lists.
+#' @format A list of 3 SummarizedExperiment class object
 #'
 #' @details
-#' Each list in Results_DEanalysis_sub500 contains the outputs
-#' "Summary.Inputs", "DE.results" and "List.Glossary" of
-#' [DEanalysisGlobal()]
+#' Each list in Results_DEanalysis_sub500 contains only the necessary outputs
+#' of [DEanalysisGlobal()],
+#' needed for the functions:
+#' [DEplotVolcanoMA()],
+#' [DEplotHeatmaps()],
+#' [GSEApreprocessing()],
+#' and
+#' [GSEAQuickAnalysis()],
 #' for each of the following raw counts :
 #' RawCounts_Weger2021_MOUSEsub500,
 #' RawCounts_Leong2014_FISSIONsub500wt and
