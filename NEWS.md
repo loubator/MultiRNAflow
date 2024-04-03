@@ -38,7 +38,36 @@ Suggestions and remarks from a bioconductor team member
 
 * modification of outputs in order to replace list ouputs by SE class object
 * Vignette (`Running_analysis_with_MultiRNAflow.Rmd`)
-  - modification because ouputs modification 
+  - modification because of ouputs modification 
 * More unit tests (now 197 unit tests in 31 files), coverage = 60/100
 
+# Changes in versions: 0.99.10
 
+* Dependency packages:
+  - we remove unnecessary dependencies: `ggsci`, `methods`, `plyr`,
+  `RcolorBrew`, `rlang`, `scales`
+  - we add the R package `ggplotify` from CRAN
+* The package now contains 321 tests and the coverage is now 90%
+* R functions of the packages
+  - `DEanalysisTimeAndGroup()`: Correction when there are two time points
+  by adding `data.frame(X)` as input of the function `apply()`.
+  - `DATAplotExpression1Gene()`: When data depends only on biological
+  conditions, violin plots are plotted only if the number of individual
+  per condition is >50.
+  - For all the main functions, all results (plots too now) are now saved
+  in the `SummaryExperiment` class object and can be accessed with
+  the R function metadata (`S4Vectors` package).
+  - `PCAgraphics()`: the 2D PCA graph with temporal links is now realized
+  with `ggplot2` and all 3D PCA graph is saved as `ggplot2` object
+  with the R package `ggplotify`
+  - `MFUZZclustersNumber()`: the plot is now realized with `ggplot2`
+  - `PCAgraphics()`, `PCAanalysis()` and `HCPCanalysis()`:
+  the input `D3.mouvment` is now called `motion3D`
+  - Many functions have been split into several parts to make the code easier
+  to read
+* Vignette (`Running_analysis_with_MultiRNAflow.Rmd`)
+  - modification because of outputs and inputs modification
+* Vignette (`MultiRNAflow_vignette-knitr.Rnw`)
+  - modification because of outputs and inputs modification
+  - update of the vignette in order to answer comment of reviewers
+  of Bioinformatics
