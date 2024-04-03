@@ -19,26 +19,32 @@
 #'
 #' We have the following three cases:
 #' * If \code{Set.Operation="union"} then the rows extracted from
-#' the different datasets included in \code{SEresDE}
+#' the different datasets (raw counts, normalized data and
+#' \code{SummarizedExperiment::rowData(SEresDE)})
+#' included in the SummarizedExperiment class object \code{SEresDE}
 #' are those such that the sum of the selected columns of
 #' \code{SummarizedExperiment::rowData(SEresDE)}
-#' by \code{ColumnsCriteria} is >0.
-#' For example, the selected genes can be those DE at least at t1 or t2
-#' (versus the reference time t0).
+#' given in \code{ColumnsCriteria} is >0.
+#' This means that the selected genes are those having at least one ’1’
+#' in one of the selected columns.
 #' * If \code{Set.Operation="intersect"} then the rows extracted from
-#' the different datasets included in \code{SEresDE}
+#' the different datasets (raw counts, normalized data and
+#' \code{SummarizedExperiment::rowData(SEresDE)})
+#' included in the SummarizedExperiment class object \code{SEresDE}
 #' are those such that the product of the selected columns of
 #' \code{SummarizedExperiment::rowData(SEresDE)}
-#' by \code{ColumnsCriteria} is >0.
-#' For example, the selected genes can be those DE at times t1 and t2
-#' (versus the reference time t0).
+#' given in \code{ColumnsCriteria} is >0.
+#' This means that the selected genes are those having ’1’
+#' in all of the selected columns.
 #' * If \code{Set.Operation="setdiff"} then the rows extracted from
-#' the different datasets included in \code{SEresDE}
+#' the different datasets (raw counts, normalized data and
+#' \code{SummarizedExperiment::rowData(SEresDE)})
+#' included in the SummarizedExperiment class object \code{SEresDE}
 #' are those such that only one element of the selected columns of
 #' \code{SummarizedExperiment::rowData(SEresDE)}
-#' by \code{ColumnsCriteria} is >0.
-#' For example, the selected genes can be those DE at times t1 only and
-#' at times t2 only (versus the reference time t0).
+#' given in \code{ColumnsCriteria} is >0.
+#' This means that the selected genes are those having ’1’
+#' in only one of the selected columns.
 #'
 #' @param SEresDE A SummarizedExperiment class object. Output from
 #' [DEanalysisGlobal()]
@@ -48,9 +54,9 @@
 #' These columns should either contain only binary values, or may contain other
 #' numerical value, in which case extracted outputs from \code{SEresDE}
 #' will be those with >0 values (see \code{Details}).
-#' @param Internect.Connection \code{TRUE} or \code{FALSE}.
+#' @param Internet.Connection \code{TRUE} or \code{FALSE}.
 #' \code{FALSE} by default. If the user is sure to have an internet connection,
-#' the user must set \code{Internect.Connection=TRUE}, otherwise, the algorithm
+#' the user must set \code{Internet.Connection=TRUE}, otherwise, the algorithm
 #' will not run.
 #' @param Set.Operation A character. The user must choose between "union"
 #' (default), "intersect", "setdiff" (see \code{Details}).
@@ -94,11 +100,17 @@
 #' Otherwise, the different files will not be saved.
 #'
 #'
-#' @return The function returns
+#' @return The function returns the same SummarizedExperiment class object
+#' \code{SEresDE} with
 #' * a data.frame which contains the outputs of
 #' [gprofiler2::gost()]
 #' * a Manhattan plot showing all GO names according to their pvalue
 #' * a lollipop graph showing the \code{MaxNumberGO} most important GO.
+#'
+#' saved in the metadata \code{Results[[2]][[5]]} of \code{SEresDE}.
+#'
+#' The Manhattan plot and the lollipop graph are plotted if
+#' \code{Display.plots=TRUE}.
 #'
 #' @importFrom SummarizedExperiment rowData assays rownames
 #' @importFrom S4Vectors metadata
@@ -131,7 +143,7 @@
 #'                             Time.position=NULL,
 #'                             Individual.position=2)
 #'
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' ## Internet is needed in order to run the following lines of code because
 #' ## gprofileR2 needs an internet connection
 #' ## DE analysis
@@ -144,422 +156,471 @@
 #' #                               path.result=NULL,
 #' #                               Name.folder.DE=NULL)
 #' #########
-#' # resGs<-GSEAQuickAnalysis(Internect.Connection=TRUE,
-#' #                          SEresDE=resDET1wt,
-#' #                          ColumnsCriteria=3,
-#' #                          ColumnsLog2ordered=NULL,
-#' #                          Set.Operation="union",
-#' #                          Organism="mmusculus",
-#' #                          MaxNumberGO=20,
-#' #                          Background=FALSE,
-#' #                          Display.plots=TRUE,
-#' #                          Save.plots=FALSE)
+#' # resGs <- GSEAQuickAnalysis(Internet.Connection=TRUE,
+#' #                            SEresDE=resDET1wt,
+#' #                            ColumnsCriteria=3,
+#' #                            ColumnsLog2ordered=NULL,
+#' #                            Set.Operation="union",
+#' #                            Organism="mmusculus",
+#' #                            MaxNumberGO=20,
+#' #                            Background=FALSE,
+#' #                            Display.plots=TRUE,
+#' #                            Save.plots=FALSE)
 
-GSEAQuickAnalysis<-function(Internect.Connection=FALSE,
-                            SEresDE,
-                            ColumnsCriteria=1,
-                            ColumnsLog2ordered=NULL,
-                            Set.Operation="union",
-                            Organism="hsapiens",
-                            MaxNumberGO=20,
-                            Background=FALSE,
-                            Display.plots=TRUE,
-                            Save.plots=FALSE){
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    if(isFALSE(Internect.Connection)){
-        GOmat<-gManhattan<-glolipop<-NULL
+GSEAQuickAnalysis <- function(Internet.Connection=FALSE,
+                              SEresDE,
+                              ColumnsCriteria=1,
+                              ColumnsLog2ordered=NULL,
+                              Set.Operation="union",
+                              Organism="hsapiens",
+                              MaxNumberGO=20,
+                              Background=FALSE,
+                              Display.plots=TRUE,
+                              Save.plots=FALSE){
+    ##-----------------------------------------------------------------------##
+    ## To avoid "no visible binding for global variable" with devtools::check()
+    term_name <- term_id <- p_value <- significant <- xmh <- NULL
 
-        MessageInternet<-paste("Once the user is sure to have",
-                               "an internet connection, the user must set",
-                               "'Internect.Connection=TRUE' in order to realize",
-                               "the enrichment analysis", sep=" ")
-        message(MessageInternet)
-    }else{
-        ##--------------------------------------------------------------------#
-        ## To avoid "no visible binding for global variable" with
-        ## devtools::check()
-        term_id<-p_value<-significant<-xmh<-NULL
+    LollipopPlot <- GSEAtablepng <- GSEAtable <- ManhPlot <- NULL
+    path.result.GSEA <- path.result <- NULL
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        ## Check 1
-        ## DATAprepSE
-        Err_SE <- paste0("'SEresDE' mut be the results of the function ",
-                         "'DEanalysisGlobal()'.")
+    GOmat <- gManhattan <- glolipop <- NULL
 
-        ## DATAprepSE
-        if (!is(SEresDE, "SummarizedExperiment")) {
-            stop(Err_SE)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check
+    resErr <- ErrGprofiler2(Internet.Connection=Internet.Connection,
+                            SEresDE=SEresDE,
+                            ColumnsCriteria=ColumnsCriteria,
+                            ColumnsLog2ordered=ColumnsLog2ordered,
+                            Set.Operation=Set.Operation,
+                            MaxNumberGO=MaxNumberGO,
+                            Background=Background,
+                            Display.plots=Display.plots,
+                            Save.plots=Save.plots)
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Preprocessing
+    scaled.data <- round(SummarizedExperiment::assays(SEresDE)$rle, digits=3)
+    GeneNames <- as.character(SummarizedExperiment::rownames(SEresDE))
+    resPATH <- S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME
+    resInputs <- S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Folder path and creation
+    if (!isFALSE(Save.plots)) {
+        if (isTRUE(Save.plots)) {
+            path.result <- resPATH$Path.result
         } else {
-            DESeq2objList <- S4Vectors::metadata(SEresDE)$DESeq2obj
-            codeDEres <-DESeq2objList$SEidentification <-"SEresultsDE"
+            path.result <- Save.plots
+        }## if (isTRUE(Save.plots))
 
-            if (is.null(codeDEres)) {
-                stop(Err_SE)
-            }## if (is.null(codeDEres))
+        if (!is.null(path.result)) {
+            if (!is.null(resPATH$Folder.result)) {
+                SufixDE <- paste0("_", resPATH$Folder.result)
+            } else {
+                SufixDE <- NULL
+            }## if(is.null(resPATH$Folder.result)==FALSE)
 
-            if (codeDEres != "SEresultsDE") {
-                stop(Err_SE)
-            }## if (codeDEres != SEresultsDE))
-        }## if (!is(SEresDE, "SummarizedExperiment"))
+            if (isTRUE(Save.plots)) {
+                SuppPlotFolder <- paste0("2-5_Enrichment_analysis", SufixDE)
 
-        ##--------------------------------------------------------------------#
-        ## Preprocessing
-        scaled.data <- round(SummarizedExperiment::assays(SEresDE)$rle,
-                             digits=3)
-        GeneNames <- as.character(SummarizedExperiment::rownames(SEresDE))
-        resPATH <- S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME
-        resInputs <- S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs
+                if (!SuppPlotFolder%in%dir(path=path.result)) {
+                    print("Folder creation")
+                    dir.create(path=file.path(path.result, SuppPlotFolder))
+                }## if(SuppPlotFolder%in%dir(path = path.result)==FALSE)
 
-        ##--------------------------------------------------------------------#
-        ## Folder path and creation
-        if(!isFALSE(Save.plots)){
-            if(Save.plots==TRUE){
-                path.result<-resPATH$Path.result
-            }else{
-                path.result<-Save.plots
+                path.result.f <- file.path(path.result, SuppPlotFolder)
+
+            } else {
+                path.result.f <- path.result
+            }## if (isTRUE(Save.plots))
+
+        } else {
+            path.result.f <- NULL
+        }## if(is.null(path.result)==FALSE)
+
+        if (!is.null(path.result)) {
+            if (isTRUE(Save.plots)) {
+                nom.dossier.result1 <- paste0("2-5-1_gprofiler2_results",
+                                              SufixDE)
+            } else {
+                nom.dossier.result1 <- paste0("gprofiler2_results",
+                                              SufixDE)
             }## if(Save.plots==TRUE)
 
-            if(!is.null(path.result)){
-                if(!is.null(resPATH$Folder.result)){
-                    SufixDE<-paste0("_", resPATH$Folder.result)
-                }else{
-                    SufixDE<-NULL
-                }## if(is.null(resPATH$Folder.result)==FALSE)
+            if (!nom.dossier.result1%in%dir(path=path.result.f)) {
+                dir.create(path=file.path(path.result.f,
+                                          nom.dossier.result1))
+            }## if(nom.dossier.result1%in%dir(path = path.result.f)==FALSE)
 
-                if(Save.plots==TRUE){
-                    SuppPlotFolder<-paste0("2-5_Enrichment_analysis", SufixDE)
+            path.result.GSEA <- file.path(path.result.f,
+                                          nom.dossier.result1)
 
-                    if(!SuppPlotFolder%in%dir(path=path.result)){
-                        print("Folder creation")
-                        dir.create(path=file.path(path.result, SuppPlotFolder))
-                        path.result.f<-file.path(path.result, SuppPlotFolder)
-                    }else{
-                        path.result.f<-file.path(path.result, SuppPlotFolder)
-                    }## if(SuppPlotFolder%in%dir(path = path.result)==FALSE)
+            LollipopPlot <- file.path(path.result.GSEA, "LollipopChart.pdf")
+            ManhPlot <- file.path(path.result.GSEA, "ManhattanPlot.pdf")
+            GSEAtable <- file.path(path.result.GSEA, "GSEAtable.csv")
+            GSEAtablepng <- file.path(path.result.GSEA, "GSEAtable.pdf")
+        }## else{path.result.GSEA<-NULL} ## if(is.null(path.result)==FALSE)
 
-                }else{
-                    path.result.f<-path.result
-                }## if(Save.plots==TRUE)
+    }## else{} ## if(isFALSE(Save.plots)==FALSE)
 
-            }else{
-                path.result.f<-NULL
-            }## if(is.null(path.result)==FALSE)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Selection of genes according to Columns criteria and Set.operation
+    ResSubDE <- DEanalysisSubData(SEresDE=SEresDE,
+                                  ColumnsCriteria=ColumnsCriteria,
+                                  Set.Operation=Set.Operation)
 
-            if(!is.null(path.result)){
-                if(Save.plots==TRUE){
-                    nom.dossier.result1<-paste0("2-5-1_gprofiler2_results",
-                                                SufixDE)
-                }else{
-                    nom.dossier.result1<-paste0("gprofiler2_results",
-                                                SufixDE)
-                }
+    ##-----------------------------------------------------------------------##
+    ## Gene order considered as important or not
+    if (!is.null(ColumnsLog2ordered)) {
+        Log2FCchosen <- data.frame(SummarizedExperiment::rowData(ResSubDE))
+        Log2FCchosen <- Log2FCchosen[, ColumnsLog2ordered]
 
-                if(!nom.dossier.result1%in%dir(path=path.result.f)){
-                    dir.create(path=file.path(path.result.f,
-                                              nom.dossier.result1))
-                    path.result.GSEA<-file.path(path.result.f,
-                                                nom.dossier.result1)
-                }else{
-                    path.result.GSEA<-file.path(path.result.f,
-                                                nom.dossier.result1)
-                }## if(nom.dossier.result1%in%dir(path = path.result.f)==FALSE)
+        orderLog2FC <- order(abs(Log2FCchosen))
+        GeneSelected.i <- rownames(ResSubDE)
+        GeneSelected <- GeneSelected.i[orderLog2FC]
+        QueryOrder <- TRUE
+    } else {
+        GeneSelected <- rownames(ResSubDE)
+        QueryOrder <- FALSE
+    }## if(is.null(ColumnsLog2ordered)==FALSE)
 
-                LollipopPlot<-file.path(path.result.GSEA, "LollipopChart.pdf")
-                ManhPlot<-file.path(path.result.GSEA, "ManhattanPlot.pdf")
-                GSEAtable<-file.path(path.result.GSEA, "GSEAtable.csv")
-                GSEAtablepng<-file.path(path.result.GSEA, "GSEAtable.pdf")
-            }else{
-                ## To avoid "no visible binding for global variable"
-                ## with devtools::check()
-                LollipopPlot<-GSEAtablepng<-GSEAtable<-ManhPlot<-NULL
-                path.result.GSEA<-path.result<-NULL
-                ## path.result.GSEA<-NULL
-            }## if(is.null(path.result)==FALSE)
+    ##-----------------------------------------------------------------------##
+    ## Inputs of gprofiler2::gost()
+    if (isFALSE(Background)) {
+        Backgene <- NULL
+        DomainScoped <- "annotated"
+    } else {
+        Backgene <- GeneNames
+        DomainScoped <- "custom"
+    }## if(Background==FALSE)
 
-        }else{
-            ## To avoid "no visible binding for global variable" with
-            ## devtools::check()
-            LollipopPlot<-GSEAtablepng<-GSEAtable<-ManhPlot<-NULL
-            path.result.GSEA<-path.result<-NULL
-        }## if(isFALSE(Save.plots)==FALSE)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    if (isFALSE(Internet.Connection)) {
+        MessageInternet <- paste("Once the user is sure to have",
+                                 "an internet connection, the user must set",
+                                 "'Internet.Connection=TRUE' in order to",
+                                 "realize the enrichment analysis", sep=" ")
 
-        ##--------------------------------------------------------------------#
-        ## Selection of genes according to Columns criteria and Set.operation
-        ResSubDE<-DEanalysisSubData(SEresDE=SEresDE,
-                                    ColumnsCriteria=ColumnsCriteria,
-                                    Set.Operation=Set.Operation)
+        MessageUser <- paste("Enrichment analysis were not realized because",
+                             "'Internet.Connection=FALSE'.",
+                             "The user must set 'Internet.Connection=TRUE'",
+                             "in order to realize the enrichment analysis",
+                             sep=" ")
 
-        ##--------------------------------------------------------------------#
-        ## Gene order considered as important or not
-        if (!is.null(ColumnsLog2ordered)) {
-            Log2FCchosen <- data.frame(SummarizedExperiment::rowData(ResSubDE))
-            Log2FCchosen <- Log2FCchosen[, ColumnsLog2ordered]
+        listGSEA <- MessageUser
 
-            orderLog2FC<-order(abs(Log2FCchosen))
-            GeneSelected.i <- rownames(ResSubDE)
-            GeneSelected<-GeneSelected.i[orderLog2FC]
-            QueryOrder<-TRUE
-        } else {
-            GeneSelected<-rownames(ResSubDE)
-            QueryOrder<-FALSE
-        }## if(is.null(ColumnsLog2ordered)==FALSE)
-
-        ##--------------------------------------------------------------------#
-        ## Inputs of gprofiler2::gost()
-        if (isFALSE(Background)) {
-            Backgene<-NULL
-            DomainScoped<-"annotated"
-        } else {
-            Backgene<-GeneNames
-            DomainScoped<-"custom"
-        }## if(Background==FALSE)
-
-        ##--------------------------------------------------------------------#
+        message(MessageInternet)
+    } else {
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
         ## gprofiler2 analysis
-        gostres <- gprofiler2::gost(query=GeneSelected,
-                                    organism=Organism,
+        gostres <- gprofiler2::gost(query=GeneSelected, organism=Organism,
                                     ordered_query=QueryOrder,
-                                    multi_query=FALSE,
-                                    significant=FALSE,
-                                    exclude_iea=FALSE,
+                                    multi_query=FALSE, significant=FALSE,
+                                    user_threshold=0.05, exclude_iea=FALSE,
                                     measure_underrepresentation=FALSE,
-                                    evcodes=TRUE,
-                                    user_threshold=0.05,
-                                    correction_method="g_SCS",
+                                    evcodes=TRUE, correction_method="g_SCS",
                                     domain_scope=DomainScoped,
                                     custom_bg=Backgene,
-                                    numeric_ns="",
                                     sources=c("GO:BP","GO:MF","GO:CC","KEGG"),
-                                    as_short_link=FALSE)
-        # term_size - number of genes that are annotated to the term (GO)
-        # query_sizes
-        ### - number of genes that were included in the query in the order of
-        ###   input queries
-        # intersection_sizes
-        ### - the number of genes in the input query that are annotated to
-        ###   the corresponding term in the order of input queries
-        # precision
-        ### - the proportion of genes in the input list that are annotated to
-        ###   the function (defined as intersection_size/query_size)
-        # recall
-        ### - the proportion of functionally annotated genes that the query
-        ###   recovers (defined as intersection_size/term_size)
+                                    numeric_ns="", as_short_link=FALSE)
+        ## term_size - number of genes that are annotated to the term (GO)
+        ## query_sizes
+        #### - number of genes that were included in the query in the order of
+        ####   input queries
+        ## intersection_sizes
+        #### - the number of genes in the input query that are annotated to
+        ####   the corresponding term in the order of input queries
+        ## precision
+        #### - the proportion of genes in the input list that are annotated to
+        ####   the function (defined as intersection_size/query_size)
+        ## recall
+        #### - the proportion of functionally annotated genes that the query
+        ####   recovers (defined as intersection_size/term_size)
+        ## p <- gprofiler2::gostplot(RESgost, capped=TRUE, interactive=FALSE)
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Creation of GOmat, a data.frame containing result
-        orderdPva<-order(gostres$result$p_value)
-        NewgoRes<-gostres$result[orderdPva,]
-        row.names(NewgoRes)<-NULL
-        gostres$result<-NewgoRes
-        GOmat<-NewgoRes[,c(9:11, 3:2, 4:8)]
+        orderdPva <- order(gostres$result$p_value)
+        NewgoRes <- gostres$result[orderdPva,]
+        row.names(NewgoRes) <- NULL
+        gostres$result <- NewgoRes
+        GOmat <- NewgoRes[, c(9:11, 3:2, 4:8)]
 
-        ##--------------------------------------------------------------------#
-        ## Preprocessing data.frame for graphs
-        GeneID<-paste0("(", NewgoRes$intersection, ")")
-        GOmat$Gene_id<-gsub(",",")_(",GeneID, fixed=TRUE)
-        GOmat$GOparents<-unlist(lapply(NewgoRes$parents,
-                                       function(x) paste0("(",
-                                                          paste(x,
-                                                                collapse=")_("),
-                                                          ")")))
+        GeneID <- paste0("(", NewgoRes$intersection, ")")
+        lapply_GOparents <- lapply(NewgoRes$parents, function(x) myCollapse(x))
+        GOmat$GOparents <- unlist(lapply_GOparents)
+        GOmat$Gene_id <- gsub(",", ")_(", GeneID, fixed=TRUE)
 
-        GOmat$term_id<-factor(GOmat$term_id, levels=rev(GOmat$term_id))
-        GOmat$significant<-factor(GOmat$significant,
-                                  levels=c("TRUE", "FALSE"))
-        GOmat$source<-factor(GOmat$source,
-                             levels=c("GO:BP", "GO:CC", "GO:MF" ,"KEGG"))
+        gproList <- RESgprofiler2(RESgost=GOmat, MaxNumberGO=MaxNumberGO)
 
-        if(max(GOmat$p_value)==1){
-            GOmat<-GOmat[-which(GOmat$p_value==1),]
-        }## if(max(GOmat$p_value)==1)
-
-        ##--------------------------------------------------------------------#
-        if(!is.null(path.result) | Display.plots==TRUE){
-            ## data.frame for lolipop graph
-            DatLolipop<-GOmat[seq_len(min(c(MaxNumberGO, nrow(GOmat)))),
-                              c(1, 2, 4, 5)]
-
-            ## Graph option
-            IntegerMaxLogPval<-ceiling(max(-log10(DatLolipop$p_value)))
-            SizeGOlabel<-(0.5*4*15)/nrow(DatLolipop)
-
-            ##----------------------------------------------------------------#
-            LevelSignificant<-which(levels(DatLolipop$significant)%in%unique(DatLolipop$significant)==TRUE)
-
-            ##----------------------------------------------------------------#
-            ## Lolipop graph
-            glolipop<-ggplot2::ggplot(DatLolipop,
-                                      ggplot2::aes(x=term_id,
-                                                   y=-log10(p_value),
-                                                   ymin=0,
-                                                   ymax=IntegerMaxLogPval))+
-                ggplot2::geom_point(ggplot2::aes(colour=significant),
-                                    size=1.9,
-                                    shape=19)+
-                ggplot2::coord_flip() +
-                ggplot2::geom_segment(ggplot2::aes(x=term_id, xend=term_id,
-                                                   y=-log10(p_value), yend=0,
-                                                   colour=significant),
-                                      size=1) +
-                ggplot2::geom_bar(stat="identity", color="black", size=0.5,
-                                  ggplot2::aes(fill=source,
-                                               y=-0.10*(IntegerMaxLogPval*0.55))) +
-                ggplot2::geom_hline(yintercept=-log10(0.05),
-                                    linetype="dashed",
-                                    size=0.6)+
-                ggplot2::scale_color_manual(values=c("#E69F00",
-                                                     "#56B4E9")[LevelSignificant])+
-                ggplot2::scale_fill_manual(values=c("#CB2027","#059748",
-                                                    "#EE7733","#7B3A96"),
-                                           name="Source")+
-                ggplot2::xlab("") + ggplot2::ylab("-log10(pvalue)")+
-                ggplot2::ggtitle("gprofiler2 enrichments analysis")+
-                ggplot2::labs(color = "Significant\n  (<0.05)")+
-                ggplot2::theme_bw()+#theme_linedraw()+
-                ggplot2::theme(legend.position="right",#"bottom",
-                               legend.box="vertical",
-                               axis.text.y=ggplot2::element_text(face="bold",
-                                                                 size=ggplot2::rel(SizeGOlabel)),
-                               legend.title=ggplot2::element_text(face="bold",
-                                                                  size=ggplot2::rel(0.8)),
-                               legend.text=ggplot2::element_text(size=ggplot2::rel(0.6)),
-                               legend.key.size = ggplot2::unit(0.4, "cm"))
-
-            ##----------------------------------------------------------------#
-            ## data.frame for Manhattan graph
-            if(length(which(GOmat$p_value==1))>0){
-                DatManhattan<-GOmat[-which(GOmat$p_value==1), c(1, 2, 4, 5)]
-            }else{
-                DatManhattan<-GOmat[,c(1,2,4,5)]
-            }## if(length(which(GOmat$p_value==1))>0)
-
-            DatManhattan<-DatManhattan[order(DatManhattan$source,
-                                             DatManhattan$p_value),]
-            DatManhattan$xmh<-seq_len(nrow(DatManhattan))
-            DatManhattan$Color<-factor(DatManhattan$source,
-                                       levels=c("GO:BP", "GO:CC",
-                                                "GO:MF", "KEGG"))
-
-            levels(DatManhattan$Color)<-c("#CB2027", "#059748",
-                                          "#EE7733", "#7B3A96")
-            DatManhattan$Point<-DatManhattan$significant
-            levels(DatManhattan$Point)<-c(8, 16)
-
-            ##----------------------------------------------------------------#
-            ## Option for the Manhattan graph
-            NbPerGOw<-as.numeric(table(DatManhattan$source))
-            if(length(which(NbPerGOw==0))>0){
-                NbPerGOw<-NbPerGOw[-which(NbPerGOw == 0)]
-            }## if(length(which(NbPerGOw==0))>0)
-
-            xGO<-cumsum(NbPerGOw)+1-((NbPerGOw+1)/2)
-            SelMh<-seq_len(max(ceiling(nrow(DatManhattan)*0.05),10))
-            ## 1:max(ceiling(nrow(DatManhattan)*0.05),10)
-            ## min(c(MaxNumberGO,nrow(DatManhattan)))
-            LevelSignificantManh<-which(levels(DatManhattan$significant)%in%unique(DatManhattan$significant)==TRUE)
-
-            ##----------------------------------------------------------------#
-            ## Manhattan plot
-            gManhattan<-ggplot2::ggplot(DatManhattan,
-                                        ggplot2::aes(x=xmh,
-                                                     y=-log10(p_value),
-                                                     label=term_id,
-                                                     ymin=0,
-                                                     ymax=IntegerMaxLogPval))+
-                ggplot2::geom_point(ggplot2::aes(color=source,
-                                                 shape=significant),
-                                    size=1.7) + #alpha=0.8,
-                ggplot2::geom_line(ggplot2::aes(color=as.character(source)),
-                                   size=0.4)+
-                ggplot2::geom_hline(yintercept=-log10(0.05),
-                                    linetype="dashed",
-                                    size=0.6)+
-                ggplot2::geom_area(ggplot2::aes(fill=as.character(source),
-                                                group=as.character(source)),
-                                   alpha=0.2, position='identity')+
-                ggplot2::geom_bar(stat="identity", size=1.5,
-                                  ggplot2::aes(fill=source,color=source,
-                                               y=-0.06*(IntegerMaxLogPval*0.55))) +
-                ggplot2::scale_fill_manual(values=c("#CB2027", "#059748",
-                                                    "#EE7733", "#7B3A96"),
-                                           name="Source")+
-                ggplot2::scale_color_manual(values=c("#CB2027", "#059748",
-                                                     "#EE7733", "#7B3A96"),
-                                            name="Source")+
-                ggplot2::scale_shape_manual(values=c(8,
-                                                     16)[LevelSignificantManh],
-                                            name="Significant\n   (<0.05)")+
-                ggrepel::geom_label_repel(data=DatManhattan[order(DatManhattan$p_value),][SelMh,],
-                                          col=DatManhattan$Color[order(DatManhattan$p_value)][SelMh],
-                                          box.padding=0.2,
-                                          max.overlaps=nrow(DatManhattan),
-                                          min.segment.length=0, size=2)+
-                ggplot2::scale_x_continuous(label=unique(DatManhattan$source),
-                                            breaks=xGO,
-                                            guide=ggplot2::guide_axis(angle=90))+
-                ggplot2::scale_y_continuous(limits=c(-0.06*(IntegerMaxLogPval*0.55),
-                                                     IntegerMaxLogPval),
-                                            expand=c(0,0))+
-                ggplot2::xlab("")+ ggplot2::ylab("-log10(pvalue)")+
-                ggplot2::ggtitle("Manhattan plot")+
-                ggplot2::theme_classic()+#theme_bw() +
-                ggplot2::theme(legend.position="right",# legend.position="bottom",
-                               legend.box="vertical",# legend.box = "vertical",
-                               panel.border = ggplot2::element_blank(),
-                               panel.grid.major.x = ggplot2::element_blank(),
-                               panel.grid.minor.x = ggplot2::element_blank(),
-                               legend.title=ggplot2::element_text(face="bold",
-                                                                  size=ggplot2::rel(0.8)),
-                               legend.text=ggplot2::element_text(size=ggplot2::rel(0.7)),
-                               legend.key.size = ggplot2::unit(0.5, "cm"))
-            ##
-            ## p<-gprofiler2::gostplot(gostres, capped = TRUE, interactive = FALSE)
-        }else{
-            gManhattan<-glolipop<-NULL
-        }
-
-        if(!is.null(path.result)){
-            ## grDevices::png(file = ManhPlot, width = 800, height = 700)
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        if (!is.null(path.result)) {
             grDevices::pdf(file=ManhPlot, width=11, height=8)
             print(gManhattan)
             grDevices::dev.off()
 
-            ## grDevices::png(file = LollipopPlot, width = 800, height = 700)
             grDevices::pdf(file=LollipopPlot, width=11, height=8)
             print(glolipop)
             grDevices::dev.off()
 
-            utils::write.table(GOmat, file=GSEAtable, sep=";",row.names=FALSE)
+            utils::write.table(GOmat, file=GSEAtable, sep=";", row.names=FALSE)
 
-            if(Display.plots==TRUE){
-                print(gManhattan)
-                print(glolipop)
-            }
+        }## if (!is.null(path.result))
 
-        }else{
+        if (isTRUE(Display.plots)) {
+            print(gManhattan)
+            print(glolipop)
+        }## if (isTRUE(Display.plots))
 
-            if(Display.plots==TRUE){
-                print(gManhattan)
-                print(glolipop)
-            }
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        ## SE object ## gproList
+        listGSEA <- list(GSEAresults=gproList$GOmat,
+                         selectedGenes=GeneSelected,
+                         lollipopChart=gproList$glolipop,
+                         manhattanPlot=gproList$gManhattan)
+    }## if(Internet.Connection==FALSE)
 
-        }## if(is.null(path.result)==FALSE)
+    SEresGSEA <- SEresDE
+    S4Vectors::metadata(SEresGSEA)$Results[[2]][[5]] <- listGSEA
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        ## SE object
-        listGSEA <- list(GSEAresults=GOmat,
-                         LollipopChart=glolipop,
-                         ManhattanPlot=gManhattan)
-
-        SEresGSEA <- SEresDE
-        S4Vectors::metadata(SEresGSEA)$Rgprofiler2 <- listGSEA
-
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        ## Output
-        return(SEresGSEA)
-    }## if(Internect.Connection==FALSE)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Output
+    return(SEresGSEA)
 }## GSEAQuickAnalysis()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+RESgprofiler2 <- function(RESgost, MaxNumberGO) {
+    ##-----------------------------------------------------------------------##
+    ## To avoid "no visible binding for global variable" with devtools::check()
+    p_value <- significant <- term_name <- xmh <- NULL
+    ##-----------------------------------------------------------------------##
+
+    ## preprocessing
+    GOmat <- RESgost
+
+    GOsource <- c("GO:BP", "GO:CC", "GO:MF", "KEGG")
+    GOcolors <- c("#CB2027", "#059748", "#EE7733", "#7B3A96")
+
+    rel6 <- ggplot2::rel(0.6)
+    rel7 <- ggplot2::rel(0.7)
+    rel8 <- ggplot2::rel(0.8)
+
+    ##-----------------------------------------------------------------------##
+    ## Preprocessing data.frame for graphs
+    GOmat$term_id <- factor(GOmat$term_id, levels=rev(GOmat$term_id))
+    GOmat$significant <- factor(GOmat$significant, levels=c("TRUE", "FALSE"))
+    GOmat$source <- factor(GOmat$source, levels=GOsource)
+
+    if (max(GOmat$p_value) == 1) {
+        GOmat <- GOmat[-which(GOmat$p_value == 1),]
+    }## if(max(GOmat$p_value)==1)
+
+    ##-----------------------------------------------------------------------##
+    ## data.frame for lolipop graph
+    DatLolipop <- GOmat[seq_len(min(c(MaxNumberGO, nrow(GOmat)))),
+                        c(1, 2, 4, 5, 3)]
+    ## we can use either base::substr or stringr::str_sub()
+    DatLolipop$term_name <- substr(DatLolipop$term_name, 1, 50)
+
+    index_dupliname <- which(duplicated(DatLolipop$term_name))
+    N_dupliname <- length(index_dupliname)
+    if (N_dupliname > 0) {
+        strlast <- sample(c(47, 48, 49), size=N_dupliname, replace=TRUE)
+        str_sample <- substr(DatLolipop$term_name[index_dupliname], 1, strlast)
+        DatLolipop$term_name[index_dupliname] <- str_sample
+    }## if (length(index_dupliname) > 0)
+
+    DatLolipop$term_name <- factor(DatLolipop$term_name,
+                                   levels=rev(DatLolipop$term_name))
+    ## length(which(duplicated(DatLolipop$term_name)))
+
+    ## Graph option
+    IntegerMaxLogPval <- ceiling(max(-log10(DatLolipop$p_value)))
+    SizeGOlabel <- min(1, (0.5*4*15)/nrow(DatLolipop))
+    ggaty_size <- ggplot2::rel(SizeGOlabel)
+
+    ##-----------------------------------------------------------------------##
+    lvlsSignificantL <- levels(DatLolipop$significant)
+    uniqueSignificantL <- unique(DatLolipop$significant)
+    LevelSignificant <- which(lvlsSignificantL%in%uniqueSignificantL)
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Lolipop graph ## term_name <-> term_id,
+    glolipop <- ggplot2::ggplot(DatLolipop,
+                                ggplot2::aes(x=term_name, y=-log10(p_value),
+                                             ymin=0,
+                                             ymax=IntegerMaxLogPval)) +
+        ggplot2::geom_point(ggplot2::aes(colour=significant),
+                            size=1.9, shape=19) +
+        ggplot2::coord_flip() +
+        ggplot2::geom_segment(ggplot2::aes(x=term_name, xend=term_name,
+                                           y=-log10(p_value), yend=0,
+                                           colour=significant),
+                              linewidth=1) +
+        ggplot2::geom_bar(stat="identity", color="black", size=0.5,
+                          ggplot2::aes(fill=source,
+                                       y=-0.10*(IntegerMaxLogPval*0.55))) +
+        ggplot2::geom_hline(yintercept=-log10(0.05), linetype="dashed",
+                            size=0.6) +
+        ggplot2::scale_color_manual(values=c("#E69F00",
+                                             "#56B4E9")[LevelSignificant]) +
+        ggplot2::scale_fill_manual(values=GOcolors, name="Source") +
+        ggplot2::xlab("") + ggplot2::ylab("-log10 (pvalue)") +
+        ggplot2::ggtitle("gprofiler2 enrichments analysis") +
+        ggplot2::labs(color = "Significant\n  (<0.05)") +
+        ggplot2::theme_bw() + ## theme_linedraw()+
+        ggplot2::theme(legend.position="right", legend.box="vertical",
+                       axis.text.y=ggplot2::element_text(face="bold",
+                                                         size=ggaty_size),
+                       legend.title=ggplot2::element_text(face="bold",
+                                                          size=rel8),
+                       legend.text=ggplot2::element_text(size=rel6),
+                       legend.key.size=ggplot2::unit(0.4, "cm"))
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## data.frame for Manhattan graph
+    if (length(which(GOmat$p_value == 1)) > 0) {
+        DatManhattan <- GOmat[-which(GOmat$p_value == 1), c(1, 2, 4, 5, 3)]
+    } else {
+        DatManhattan <- GOmat[, c(1, 2, 4, 5, 3)]
+    }## if(length(which(GOmat$p_value == 1)) > 0)
+
+    DatManhattan <- DatManhattan[order(DatManhattan$source,
+                                       DatManhattan$p_value),]
+    DatManhattan$xmh <- seq_len(nrow(DatManhattan))
+
+    DatManhattan$Color <- factor(DatManhattan$source, levels=GOsource)
+    levels(DatManhattan$Color) <- GOcolors
+
+    DatManhattan$Point <- DatManhattan$significant
+    levels(DatManhattan$Point) <- c(8, 16)
+
+    ##-----------------------------------------------------------------------##
+    ## Option for the Manhattan graph
+    NbPerGOw <- as.numeric(table(DatManhattan$source))
+
+    if (length(which(NbPerGOw == 0)) > 0) {
+        NbPerGOw <- NbPerGOw[-which(NbPerGOw == 0)]
+    }## if(length(which(NbPerGOw == 0))>0)
+
+    xGO <- cumsum(NbPerGOw) + 1 - ((NbPerGOw+1)/2)
+    SelMh <- seq_len(max(ceiling(nrow(DatManhattan)*0.05), 10))
+    ## 1:max(ceiling(nrow(DatManhattan)*0.05),10)
+    ## min(c(MaxNumberGO,nrow(DatManhattan)))
+
+    ##-----------------------------------------------------------------------##
+    lvlsSignificantM <- levels(DatManhattan$significant)
+    uniqueSignificantM <- unique(DatManhattan$significant)
+    LvlsSignificantManh <- which(lvlsSignificantM%in%uniqueSignificantM)
+    DatManhattan_repel <- DatManhattan[order(DatManhattan$p_value),][SelMh,]
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Manhattan plot ## term_name <-> term_id,
+    gManhattan <- ggplot2::ggplot(DatManhattan,
+                                  ggplot2::aes(x=xmh, y=-log10(p_value),
+                                               label=term_name, ymin=0,
+                                               ymax=IntegerMaxLogPval)) +
+        ggplot2::geom_point(ggplot2::aes(color=source, shape=significant),
+                            size=1.7) + ##alpha=0.8,
+        ggplot2::geom_line(ggplot2::aes(color=as.character(source)), size=0.4)+
+        ggplot2::geom_hline(yintercept=-log10(0.05), linetype="dashed",
+                            size=0.6) +
+        ggplot2::geom_area(ggplot2::aes(fill=as.character(source),
+                                        group=as.character(source)),
+                           alpha=0.2, position='identity') +
+        ggplot2::geom_bar(stat="identity", size=1.5,
+                          ggplot2::aes(fill=source,color=source,
+                                       y=-0.06*(IntegerMaxLogPval*0.55))) +
+        ggplot2::scale_fill_manual(values=GOcolors, name="Source")+
+        ggplot2::scale_color_manual(values=GOcolors, name="Source") +
+        ggplot2::scale_shape_manual(values=c(8, 16)[LvlsSignificantManh],
+                                    name="Significant\n   (<0.05)") +
+        ggrepel::geom_label_repel(data=DatManhattan_repel,
+                                  col=DatManhattan_repel$Color, size=2,
+                                  max.overlaps=nrow(DatManhattan),
+                                  box.padding=0.2, min.segment.length=0)+
+        ggplot2::scale_x_continuous(label=unique(DatManhattan$source),
+                                    breaks=xGO,
+                                    guide=ggplot2::guide_axis(angle=90)) +
+        ggplot2::scale_y_continuous(limits=c(-0.06*(IntegerMaxLogPval*0.55),
+                                             IntegerMaxLogPval),
+                                    expand=c(0, 0)) +
+        ggplot2::xlab("") + ggplot2::ylab("-log10 (pvalue)") +
+        ggplot2::ggtitle("Manhattan plot") +
+        ggplot2::theme_classic()+ ## theme_bw() +
+        ggplot2::theme(legend.position="right", legend.box="vertical",
+                       panel.border=ggplot2::element_blank(),
+                       panel.grid.major.x=ggplot2::element_blank(),
+                       panel.grid.minor.x=ggplot2::element_blank(),
+                       legend.title=ggplot2::element_text(face="bold",
+                                                          size=rel8),
+                       legend.text=ggplot2::element_text(size=rel7),
+                       legend.key.size=ggplot2::unit(0.5, "cm"))
+
+    ##-----------------------------------------------------------------------##
+    return(list(GSEAresults=GOmat,
+                glolipop=glolipop,
+                gManhattan=gManhattan))
+}## RESgprofiler2()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+myCollapse <- function(x) {
+    resCollapse <- paste0("(", paste(x, collapse=")_("), ")")
+    return(resCollapse)
+}## myCollapse()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrGprofiler2 <- function(Internet.Connection=FALSE,
+                          SEresDE,
+                          ColumnsCriteria=1, ColumnsLog2ordered=NULL,
+                          Set.Operation="union",
+                          MaxNumberGO=20, Background=FALSE,
+                          Display.plots=TRUE, Save.plots=FALSE) {
+    ##-----------------------------------------------------------------------##
+    ## SEresDE
+    Err1 <- ErrSEresDE(SEresDE=SEresDE)
+    Err2 <- ErrColumnsCriteria(ColumnsCriteria=ColumnsCriteria,
+                               Set.Operation=Set.Operation)
+    Err3 <- ErrNNIvector(NNIs=ColumnsLog2ordered, NNIname="ColumnsLog2ordered")
+    Err4 <- ErrNNI(NNI=MaxNumberGO, NNIname="MaxNumberGO")
+    Err5 <- ErrSaveDisplayPlot(Display.plots=Display.plots,
+                               Save.plots=Save.plots)
+
+    ##-----------------------------------------------------------------------##
+    if (!isTRUE(Internet.Connection) & !isFALSE(Internet.Connection)) {
+        stop("'Internet.Connection' must be TRUE or FALSE.")
+    }## if (!isTRUE(Internet.Connection) & !isFALSE(Internet.Connection))
+
+    if (!isTRUE(Background) & !isFALSE(Background)) {
+        stop("'Background' must be TRUE or FALSE.")
+    }## if (!isTRUE(Background) & !isFALSE(Background))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrGprofiler2()
+

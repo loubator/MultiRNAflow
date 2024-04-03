@@ -36,13 +36,6 @@
 #' [DATAprepSE()].
 #' If \code{sample.deletion=NULL} all samples will be used
 #' in the construction of the PCA.
-#' @param Supp.del.sample \code{TRUE} or \code{FALSE}.
-#' If \code{FALSE}, the samples selected with \code{sample.deletion} will
-#' be deleted.
-#' If \code{TRUE}, the samples selected with \code{sample.deletion} will
-#' be plotted.
-#' These individuals are called supplementary individuals in
-#' [FactoMineR::PCA()].
 #' @param Plot.PCA \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
 #' If \code{TRUE}, PCA graphs will be plotted.
 #' Otherwise no graph will be plotted.
@@ -67,7 +60,7 @@
 #' a color for each biological condition.
 #' If samples belong to different time points only,
 #' \code{Color.Group} will not be used.
-#' @param D3.mouvement \code{TRUE} or \code{FALSE}.
+#' @param motion3D \code{TRUE} or \code{FALSE}.
 #' If TRUE, the 3D PCA plots will also be plotted in a rgl window
 #' (see [plot3Drgl::plotrgl()])
 #' allowing to interactively rotate and zoom.
@@ -99,7 +92,8 @@
 #' \code{SEresNorm} with the outputs from the function
 #' [FactoMineR::PCA()],
 #' and plots several 2D and 3D PCA graphs depending
-#' on the experimental design (if \code{Plot.PCA=TRUE})
+#' on the experimental design (if \code{Plot.PCA=TRUE}),
+#' saved in the metadata \code{Results[[1]][[2]]} of \code{SEresNorm},
 #' * When samples belong only to different biological conditions,
 #' the function returns a 2D and two 3D PCA graphs.
 #' In each graph, samples are colored with different colors for different
@@ -135,7 +129,7 @@
 #'   The three others graphs are identical to the three previous ones
 #'   but without lines.
 #'
-#' The interactive 3D graphs will be plotted only if \code{D3.mouvement=TRUE}.
+#' The interactive 3D graphs will be plotted only if \code{motion3D=TRUE}.
 #'
 #' @seealso This function is called by our function
 #' [PCAanalysis()]
@@ -143,11 +137,10 @@
 #' [PCArealization()].
 #'
 #' @importFrom S4Vectors metadata
-#' @importFrom scales hue_pal
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom stats aggregate
 #' @importFrom FactoMineR plot.PCA
 #' @importFrom plot3D scatter3D text3D
+#' @importFrom ggplotify as.ggplot
 #' @importFrom graphics legend lines text
 #' @importFrom grDevices dev.off pdf recordPlot
 #' @importFrom plot3Drgl plotrgl
@@ -171,16 +164,15 @@
 #'                              Colored.By.Factors=FALSE)
 #' ## Color for each group
 #' GROUPcolor <- data.frame(Name=c("G1", "G2"), Col=c("black", "red"))
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' resPCAgraph <- PCAgraphics(SEresNorm=resNorm,
 #'                            DATAnorm=TRUE,
 #'                            gene.deletion=c("Gene1", "Gene5"),
 #'                            sample.deletion=c(2,6),
-#'                            Supp.del.sample=FALSE,
 #'                            Plot.PCA=TRUE,
 #'                            Mean.Accross.Time=FALSE,
 #'                            Color.Group=GROUPcolor,
-#'                            D3.mouvement=FALSE,
+#'                            motion3D=FALSE,
 #'                            Phi=25, Theta=140, Cex.label=0.7,
 #'                            Cex.point=0.7, epsilon=0.2,
 #'                            path.result=NULL, Name.file.pca=NULL)
@@ -189,118 +181,37 @@ PCAgraphics <- function(SEresNorm,
                         DATAnorm=TRUE,
                         gene.deletion=NULL,
                         sample.deletion=NULL,
-                        Supp.del.sample=FALSE,
                         Plot.PCA=TRUE,
                         Mean.Accross.Time=FALSE,
                         Color.Group=NULL,
-                        D3.mouvement=FALSE,
+                        motion3D=FALSE,
                         Phi=25, Theta=140, epsilon=0.2,
                         Cex.point=0.7, Cex.label=0.7,
                         path.result=NULL,
                         Name.file.pca=NULL) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check TRUE, FALSE
-    if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample)) {
-        stop("'Supp.del.sample' must be TRUE or FALSE.")
-    }## if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample))
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check inputs
+    resErr <- ErrPCAgraphics(Plot.PCA=Plot.PCA,
+                             Mean.Accross.Time=Mean.Accross.Time,
+                             motion3D=motion3D,
+                             Phi=Phi, Theta=Theta, epsilon=epsilon,
+                             Cex.point=Cex.point, Cex.label=Cex.label,
+                             path.result=path.result,
+                             Name.file.pca=Name.file.pca) ## Color.Group=NULL
 
-    if (!isTRUE(Plot.PCA) & !isFALSE(Plot.PCA)) {
-        stop("'Plot.PCA' must be TRUE or FALSE.")
-    }## if (!isTRUE(Plot.PCA) & !isFALSE(Plot.PCA))
-
-    if (!isTRUE(Mean.Accross.Time) & !isFALSE(Mean.Accross.Time)) {
-        stop("'Mean.Accross.Time' must be TRUE or FALSE.")
-    }## if (!isTRUE(Mean.Accross.Time) & !isFALSE(Mean.Accross.Time))
-
-    if (!isTRUE(D3.mouvement) & !isFALSE(D3.mouvement)) {
-        stop("'D3.mouvement' must be TRUE or FALSE.")
-    }## if (!isTRUE(D3.mouvement) & !isFALSE(D3.mouvement))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check numeric
-    if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon)) {
-        Err_a <- "'Phi', 'Theta' and 'epsilon' must be positive numeric values"
-        stop(Err_a)
-        if (min(c(Phi, Theta, epsilon))<0) {
-            stop(Err_a)
-        }## if (min(c(Phi, Theta, epsilon))<0)
-    }## if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon))
-
-    if (!is.numeric(Cex.point) | !is.numeric(Cex.label)) {
-        stop("'Cex.point' and 'Cex.label' must be positive numeric values")
-        if (min(c(Cex.point, Cex.label))<0) {
-            stop("'Cex.point' and 'Cex.label' must be positive numeric values")
-        }## if (min(c(Phi, Theta, epsilon))<0)
-    }## if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check deletion
-    if (!is.null(gene.deletion)) {
-        if (!is.character(gene.deletion)) {
-            if (!is.numeric(gene.deletion)) {
-                Err_delint <- paste("'gene.deletion' must be either NULL",
-                                    "either character or",
-                                    "non negative integers.")
-                stop(Err_delint)
-            } else {
-                if (sum(abs(floor(gene.deletion) - gene.deletion)) !=0) {
-                    stop(Err_delint)
-                }## if (floor(gene.deletion) != gene.deletion)
-                if (min(gene.deletion) <= 0) {
-                    stop(Err_delint)
-                }## if (min(gene.deletion) <= 0)
-            }## if (!is.numeric(gene.deletion))
-        }## if (!is.character(gene.deletion))
-    }## if (!is.null(gene.deletion))
-
-    ## Check deletion
-    if (!is.null(sample.deletion)) {
-        if (!is.character(sample.deletion)) {
-            if (!is.numeric(sample.deletion)) {
-                Err_delint <- paste("'sample.deletion' must be either NULL",
-                                    "either character or",
-                                    "non negative integers.")
-                stop(Err_delint)
-            } else{
-                if (sum(abs(floor(sample.deletion) - sample.deletion)) !=0) {
-                    stop(Err_delint)
-                }## if (floor(sample.deletion) != sample.deletion)
-                if (min(sample.deletion) <= 0) {
-                    stop(Err_delint)
-                }## if (min(sample.deletion) <= 0)
-            }## if (!is.numeric(sample.deletion))
-        }## if (!is.character(sample.deletion))
-    }## if (!is.null(sample.deletion))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check deletion
-    if (!is.null(path.result)) {
-        if (!is.character(path.result)) {
-            stop("'path.result' must be NULL or a character.")
-        }## if (!is.character(path.result))
-    }## if (!is.null(path.result))
-
-    if (!is.null(Name.file.pca)) {
-        if (!is.character(Name.file.pca)) {
-            stop("'Name.file.pca' must be NULL or a character.")
-        }## if (!is.character(Name.file.pca))
-    }## if (!is.null(Name.file.pca))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## PCA
     SEresPCA <- PCArealization(SEresNorm=SEresNorm,
                                DATAnorm=DATAnorm,
                                sample.deletion=sample.deletion,
                                gene.deletion=gene.deletion,
-                               Supp.del.sample=Supp.del.sample)
+                               Supp.del.sample=FALSE)
 
-    listFCTRS <- S4Vectors::metadata(SEresPCA)$PCA$List.Factors
-    res.PCA <- S4Vectors::metadata(SEresPCA)$PCA$res.pca
+    PCAlist <- S4Vectors::metadata(SEresPCA)$Results[[1]][[2]]
+    listFCTRS <- PCAlist$List.Factors
+    res.PCA <- PCAlist$PCAresults
 
     Vector.time <- listFCTRS$Vector.time
     Vector.group <- listFCTRS$Vector.group
@@ -310,880 +221,740 @@ PCAgraphics <- function(SEresNorm,
     PCAqualiSup <- res.PCA$call$quali.sup$quali.sup
     coordPCAind <- res.PCA$ind$coord
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    if (isTRUE(Plot.PCA) | !is.null(path.result)) {
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        ## Color assignment
-        if (!is.null(Vector.time) & is.null(Vector.group)) {
-            Tlevels <- as.character(levels(factor(Vector.time)))
-            Tlevels <- paste0("t", gsub("t", "", gsub("T", "", Tlevels)))
-            levels(PCAqualiSup$Quali.Sup.Time)<-Tlevels
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Color assignment
+    if (!is.null(Vector.time) & is.null(Vector.group)) {
+        Tlevels <- as.character(levels(factor(Vector.time)))
+        Tlevels <- paste0("t", gsub("t", "", gsub("T", "", Tlevels)))
+        levels(PCAqualiSup$Quali.Sup.Time)<-Tlevels
 
-            ##----------------------------------------------------------------#
-            Color.Time <- NULL
-            if (is.null(Color.Time)) {
-                TlevelsCOLOR <- c("#737373",## "#252525"
-                                  scales::hue_pal()(length(Tlevels)-1))
-                Color.Time <- data.frame(Name=Tlevels, Col=TlevelsCOLOR)
+        ##-------------------------------------------------------------------##
+        TlevelsCOLOR <- myPaletteT(Nt=length(Tlevels))
+        Color.Time <- data.frame(Name=Tlevels, Col=TlevelsCOLOR)
 
-                data.color <- rbind(Color.Time,
-                                    rep(NA, times=ncol(Color.Time)))
-                data.color <- data.color[-which(is.na(data.color$Col)),]
-            } else {
-                Id.LevelColT <- order(Color.Time[, 1])
-                Color.Time <- data.frame(Name=Tlevels,
-                                         Col=Color.Time[Id.LevelColT, 2])
+        data.color <- rbind(Color.Time, rep(NA, times=ncol(Color.Time)))
+        data.color <- data.color[-which(is.na(data.color$Col)),]
 
-                data.color <- rbind(Color.Time, rep(NA,times=ncol(Color.Time)))
-                data.color <- data.color[-which(is.na(data.color$Col)),]
-            }## if(is.null(Color.Time))
+        ind.color <- PCAqualiSup$Quali.Sup.Time
+        levels(ind.color) <- data.color[, 2]
+        LegendTitle <- "Time"
 
-            ind.color <- PCAqualiSup$Quali.Sup.Time
-            levels(ind.color) <- data.color[, 2]
-            LegendTitle <- "Time"
-            ##----------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
+        ## Color.Time <- NULL
+        ## if (is.null(Color.Time)) {
+        ##     TlevelsCOLOR <- c("#737373",## "#252525"
+        ##                       scales::hue_pal()(length(Tlevels)-1))
+        ##     Color.Time <- data.frame(Name=Tlevels, Col=TlevelsCOLOR)
+        ##     data.color <- rbind(Color.Time,
+        ##                         rep(NA, times=ncol(Color.Time)))
+        ##     data.color <- data.color[-which(is.na(data.color$Col)),]
+        ## } else {
+        ##     Id.LevelColT <- order(Color.Time[, 1])
+        ##     Color.Time <- data.frame(Name=Tlevels,
+        ##                              Col=Color.Time[Id.LevelColT, 2])
+        ##     data.color <- rbind(Color.Time, rep(NA,times=ncol(Color.Time)))
+        ##     data.color <- data.color[-which(is.na(data.color$Col)),]
+        ## }## if(is.null(Color.Time))
+
+        ##-------------------------------------------------------------------##
+    } else {
+        Glevels <- levels(factor(Vector.group))
+
+        if (is.null(Color.Group)) {
+            MypaletteG <- myPaletteBC(Nbc=length(Glevels))
+            Color.Group <- data.frame(Name=Glevels, Col=MypaletteG)
+
+            data.color <- rbind(Color.Group,
+                                rep(NA, times=ncol(Color.Group)))
+            data.color <- data.color[-which(is.na(data.color$Col)),]
         } else {
-            Glevels <- levels(factor(Vector.group))
+            Id.LevelCol.G <- order(Color.Group[, 1])
+            Color.Group <- data.frame(Name=Glevels,
+                                      Col=Color.Group[Id.LevelCol.G, 2])
 
-            if (is.null(Color.Group)) {
-                MypaletteG <- c(RColorBrewer::brewer.pal(8, "Dark2"),
-                                RColorBrewer::brewer.pal(8, "Set2"))
+            data.color <- rbind(Color.Group,
+                                rep(NA, times=ncol(Color.Group)))
+            data.color <- data.color[-which(is.na(data.color$Col)),]
+        }## if(is.null(Color.Group)==TRUE)
 
-                if (length(Glevels) > 16) {
-                    MypaG2 <- scales::hue_pal(l=90)(seq_len(length(Glevels)-1))
-                    MypaletteG <- c(MypaletteG, MypaG2)
-                }## if(length(Glevels)>16)
+        ind.color <- PCAqualiSup$Quali.Sup.Group
+        levels(ind.color) <- data.color[, 2]
+        LegendTitle <- "Group"
+    }## if(!is.null(Vector.time) & is.null(Vector.group))
 
-                MypaletteG <- MypaletteG[seq_len(length(Glevels))]
-                Color.Group <- data.frame(Name=Glevels, Col=MypaletteG)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    if (is.null(Name.file.pca)) {
+        Name.file.pca.f <- "Graph"
+    } else {
+        Name.file.pca.f <- Name.file.pca
+    }## if(is.null(Name.file.pca)==TRUE)
 
-                data.color <- rbind(Color.Group,
-                                    rep(NA, times=ncol(Color.Group)))
-                data.color <- data.color[-which(is.na(data.color$Col)),]
-            } else {
-                Id.LevelCol.G <- order(Color.Group[, 1])
-                Color.Group <- data.frame(Name=Glevels,
-                                          Col=Color.Group[Id.LevelCol.G, 2])
+    TitlePCA2D <- paste0(Name.file.pca.f, "_PCA2D.pdf")
+    TitlePCA3D <- paste0(Name.file.pca.f, "_PCA3D.pdf")
 
-                data.color <- rbind(Color.Group,
-                                    rep(NA, times=ncol(Color.Group)))
-                data.color <- data.color[-which(is.na(data.color$Col)),]
-            }## if(is.null(Color.Group)==TRUE)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## PCA plot from plot.PCA() ## Qualitative factor are in magenta
+    options(ggrepel.max.overlaps=30)
 
-            ind.color <- PCAqualiSup$Quali.Sup.Group
-            levels(ind.color) <- data.color[, 2]
-            LegendTitle <- "Group"
-        }## if(!is.null(Vector.time) & is.null(Vector.group))
+    ggPCA2d <- FactoMineR::plot.PCA(res.PCA, axes=c(1, 2),
+                                    choix="ind", habillage="ind",
+                                    col.hab=as.character(ind.color),
+                                    col.quali="magenta",
+                                    shadowtext=TRUE, autoLab="y", title="",
+                                    graph.type="ggplot", cex=Cex.label)
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        if (is.null(Name.file.pca) == TRUE) {
-            Name.file.pca.f <- "Graph"
-        } else {
-            Name.file.pca.f <- Name.file.pca
-        }## if(is.null(Name.file.pca)==TRUE)
+    options(ggrepel.max.overlaps=10)
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        ## PCA plot from plot.PCA() ## Qualitative factor are in magenta
-        options(ggrepel.max.overlaps=30)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## 3D PCA colored by biological condition or time points
+    ## par(mar=c(4.1, 4.1, 2.1, 2.1))#, xpd=TRUE)
+    data.3D <- coordPCAind[, c(1, 2, 3)]
 
-        g.2DPCA <- FactoMineR::plot.PCA(res.PCA, axes=c(1,2),
-                                        choix="ind", habillage="ind",
-                                        col.hab=as.character(ind.color),
-                                        col.quali="magenta",
-                                        shadowtext=TRUE, autoLab="y",
-                                        graph.type="ggplot", cex=Cex.label)
+    ggPCA3d <- ggplotify::as.ggplot(
+        function() PCAplot3D(PCAcoord3D=data.3D, matPCAeig=res.PCA$eig,
+                             colorINDfactor=ind.color,
+                             clabPCA=c("", data.color$Name), epsilon=0.2,
+                             Phi=25, Theta=140, Cex.point=0.7, Cex.label=0.7)
+    )
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        if (!is.null(path.result)) {
-            TitlePCA2D <- paste0(Name.file.pca.f, "_PCA2D.pdf")
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    if (!is.null(path.result)) {
+        grDevices::pdf(file=file.path(path.result, TitlePCA2D),
+                       width=11, height=8)
+        print(ggPCA2d)
+        grDevices::dev.off()
 
-            grDevices::pdf(file=file.path(path.result, TitlePCA2D),
-                           width=11, height=8)
-            print(g.2DPCA)
-            grDevices::dev.off()
+        grDevices::pdf(file=file.path(path.result, TitlePCA3D),
+                       width=11, height=8)
+        print(ggPCA3d)
+        grDevices::dev.off()
+    }## if(!is.null(path.result))
 
-            if (isTRUE(Plot.PCA)) {
-                print(g.2DPCA)
-            }## if(Plot.PCA==TRUE)
-
-        } else {
-            if (isTRUE(Plot.PCA)) {
-                print(g.2DPCA)
-            }## if(isTRUE(Plot.PCA))
-        }## if(!is.null(path.result))
-
-        options(ggrepel.max.overlaps=10)
-
-        ##--------------------------------------------------------------------#
-        ## 3D PCA colored by biological condition or time points
-        ## par(mar=c(4.1, 4.1, 2.1, 2.1))#, xpd=TRUE)
-        data.3D <- coordPCAind[, c(1, 2, 3)]
-
-        if (!is.null(path.result)) {
-            TitlePCA3D <- paste0(Name.file.pca.f, "_PCA3D.pdf")
-
-            grDevices::pdf(file=file.path(path.result, TitlePCA3D),
-                           width=11, height=8)
-
-            plot3D::scatter3D(data.3D[, 1], data.3D[, 3], data.3D[, 2],
-                              epsilon=epsilon, pch=20, colvar=NULL,
-                              col=as.character(ind.color), bty="b2",
-                              cex=Cex.point, clab=c("", data.color$Name),
-                              ticktype="detailed", theta=Theta, phi=Phi, d=2,
-                              xlab=paste0("dim1 (",
-                                         round(res.PCA$eig[, 2][1], digits=2),
-                                         "%)"),
-                              ylab=paste0("dim3 (",
-                                          round(res.PCA$eig[, 2][3], digits=2),
-                                         "%)"),
-                              zlab=paste0("dim2 (",
-                                         round(res.PCA$eig[, 2][2], digits=2),
-                                         "%)"))
-
-            plot3D::text3D(data.3D[, 1] + epsilon,
-                           data.3D[, 3] + epsilon,
-                           data.3D[, 2] + epsilon,
-                           labels=rownames(data.3D), add=TRUE, colkey=FALSE,
-                           col=as.character(ind.color), cex=Cex.label, font=2)
-
-            grDevices::dev.off()
-
-
-            if (isTRUE(Plot.PCA)) {
-                plot3D::scatter3D(data.3D[, 1], data.3D[, 3], data.3D[, 2],
-                                  pch=20, colvar=NULL, cex=Cex.point,
-                                  col=as.character(ind.color), bty="b2", d=2,
-                                  ticktype="detailed", theta=Theta, phi=Phi,
-                                  clab=c("", data.color$Name), epsilon=epsilon,
-                                  xlab=paste0("dim1 (",
-                                              round(res.PCA$eig[,2][1],
-                                                    digits=2), "%)"),
-                                  ylab=paste0("dim3 (",
-                                              round(res.PCA$eig[,2][3],
-                                                    digits=2), "%)"),
-                                  zlab=paste0("dim2 (",
-                                              round(res.PCA$eig[,2][2],
-                                                    digits=2), "%)"))
-
-                plot3D::text3D(data.3D[, 1] + epsilon,
-                               data.3D[, 3] + epsilon,
-                               data.3D[, 2] + epsilon,
-                               labels=rownames(data.3D), add=TRUE,
-                               col=as.character(ind.color), colkey=FALSE,
-                               cex=Cex.label, font=2)
-
-                ##------------------------------------------------------------#
-                ## 3D PCA in rgl windows
-                if (D3.mouvement==TRUE) {
-                    plot3Drgl::plotrgl()
-                }## if(D3.mouvement==TRUE)
-            }## Plot.PCA==TRUE
-
-        } else {
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            if (isTRUE(Plot.PCA)) {
-                plot3D::scatter3D(data.3D[, 1], data.3D[, 3], data.3D[, 2],
-                                  pch=20, colvar=NULL, theta=Theta, phi=Phi,
-                                  col=as.character(ind.color), epsilon=epsilon,
-                                  cex=Cex.point, bty="b2", ticktype="detailed",
-                                  d=2, clab=c("", data.color$Name),
-                                  xlab=paste0("dim1 (",
-                                              round(res.PCA$eig[, 2][1],
-                                                    digits=2), "%)"),
-                                  ylab=paste0("dim3 (",
-                                              round(res.PCA$eig[, 2][3],
-                                                    digits=2), "%)"),
-                                  zlab=paste0("dim2 (",
-                                              round(res.PCA$eig[, 2][2],
-                                                    digits=2), "%)"))
-
-                plot3D::text3D(data.3D[, 1] + epsilon,
-                               data.3D[, 3] + epsilon,
-                               data.3D[, 2] + epsilon,
-                               labels=rownames(data.3D), add=TRUE,
-                               col=as.character(ind.color), cex=Cex.label,
-                               colkey=FALSE, font=2)
-
-                ##------------------------------------------------------------#
-                ## 3D PCA in rgl windows
-                if (isTRUE(D3.mouvement)) {
-                    plot3Drgl::plotrgl()
-                }## if(D3.mouvement==TRUE)
-
-            }## Plot.PCA==TRUE
-        }## if(is.null(path.result)==FALSE)
-        ##--------------------------------------------------------------------#
-        ## graphics::legend("right", title=LegendTitle,
-        ##                  legend=data.color[,1],
-        ##                  pch=20, horiz=FALSE, xpd=TRUE,
-        ##                  cex=0.8, # inset=c(-0.015),
-        ##                  col=data.color[,2])
-        ##
-        ##
-        ##
-        ## s3d.all <- grDevices::recordPlot()
+    if (isTRUE(Plot.PCA)) {
         ## graphics::plot.new() ## clean up device
-        ##--------------------------------------------------------------------#
-        ### R plot without showing the graphic window
-        ## dev.control('enable') # enable display list
-        ## plot(rnorm(10))
-        ## obj = recordPlot()
-        ## dev.off()
-        ## replayPlot(obj)
+        print(ggPCA2d)
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        if (!is.null(Vector.time)) {
-            ##----------------------------------------------------------------#
-            coord.t <- PCAqualiSup$Quali.Sup.Time
-            n.row <- length(coord.t)
-            index.order <- seq_len(n.row)
-            nb.time <- length(unique(coord.t))
+        ## graphics::plot.new() ## clean up device
+        print(ggPCA3d)
+        if (isTRUE(motion3D)) { ## 3D PCA in rgl windows
+            plot3Drgl::plotrgl()
+        }## if(isTRUE(motion3D))
 
-            ##----------------------------------------------------------------#
-            if (!is.null(Vector.group)) {
-                col.link <- as.character(ind.color)
-            } else {
-                col.link <- rep("grey", times=length(as.character(ind.color)))
-            }## if(!is.null(Vector.group))
+    }## if(Plot.PCA==TRUE)
 
-            ##----------------------------------------------------------------#
-            NbPerCond <- as.numeric(table(Vector.patient))
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    if (!is.null(Vector.time)) {
+        ##-------------------------------------------------------------------##
+        coord.t <- PCAqualiSup$Quali.Sup.Time
+        ## n.row <- length(coord.t)
+        ## index.order <- seq_len(n.row)
+        ## nb.time <- length(unique(coord.t))
 
-            data.name <- data.frame(rep("Mean", times=nrow(PCAqualiSup)),
-                                    PCAqualiSup)
+        data.name <- data.frame(rep("Mean", times=nrow(PCAqualiSup)),
+                                PCAqualiSup)
 
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            if (!is.null(path.result)) {
-                TitlePCA2Dlk <- paste0(Name.file.pca.f, "_PCAlink2D.pdf")
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        resPCA2Dt <- PCAplot2Dt(PCAcoord2D=coordPCAind,
+                                matPCAeig=res.PCA$eig,
+                                coord.t=coord.t,
+                                data.name=data.name,
+                                Vector.group=Vector.group,
+                                Vector.time=Vector.time,
+                                Vector.patient=Vector.patient,
+                                Mean.Accross.Time=Mean.Accross.Time,
+                                colorINDfactor=ind.color,
+                                epsilon=epsilon,
+                                Cex.point=Cex.point,
+                                Cex.label=Cex.label)
 
-                grDevices::pdf(file=file.path(path.result, TitlePCA2Dlk),
-                               width=11, height=8)
+        resPCA3Dt <- ggplotify::as.ggplot(
+            function() PCAplot3Dt(PCAcoord3D=coordPCAind,
+                                  matPCAeig=res.PCA$eig,
+                                  coord.t=coord.t,
+                                  data.name=data.name,
+                                  Vector.group=Vector.group,
+                                  Vector.time=Vector.time,
+                                  Vector.patient=Vector.patient,
+                                  Mean.Accross.Time=Mean.Accross.Time,
+                                  colorINDfactor=ind.color,
+                                  epsilon=epsilon,
+                                  Phi=Phi, Theta=Theta,
+                                  Cex.point=Cex.point,
+                                  Cex.label=Cex.label)
+        )
 
-                plot(NA, type="c", col="green", #main="2D PCA",
-                     xlim=c(min(coordPCAind[, 1]) - epsilon,
-                            max(coordPCAind[, 1]) + epsilon),
-                     ylim=c(min(coordPCAind[, 2]) - epsilon,
-                            max(coordPCAind[, 2]) + epsilon),
-                     xlab=paste0("dim1 (",
-                                 round(res.PCA$eig[, 2][1], digits=2), "%)"),
-                     ylab=paste0("dim2 (",
-                                round(res.PCA$eig[, 2][2], digits=2), "%)"))
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        TitlePCA2Dlk <- paste0(Name.file.pca.f, "_PCA2D_linked.pdf")
+        TitlePCA3Dlk <- paste0(Name.file.pca.f, "_PCA3D_linked.pdf")
 
-                ##------------------------------------------------------------#
-                ##------------------------------------------------------------#
-                if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1) {
-                    ##--------------------------------------------------------#
-                    for (smpl in seq_len(length(LvlsPAT))) {
+        if (!is.null(path.result)) {
+            grDevices::pdf(file=file.path(path.result, TitlePCA2Dlk),
+                           width=11, height=8)
+            print(resPCA2Dt)
+            grDevices::dev.off()
 
-                        Smpl.sel <- LvlsPAT[smpl]
-                        IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+            grDevices::pdf(file=file.path(path.result, TitlePCA3Dlk),
+                           width=11, height=8)
+            print(resPCA3Dt)
+            grDevices::dev.off()
 
-                        graphics::lines(coordPCAind[coord.smpl, 1],
-                                        coordPCAind[coord.smpl, 2],
-                                        pch=22, type="c", lty=1,
-                                        col=col.link[coord.smpl])
-                        graphics::text(coordPCAind[coord.smpl, 1] + epsilon,
-                                       coordPCAind[coord.smpl, 2] + epsilon,
-                                       labels=row.names(coordPCAind[coord.smpl,
-                                                                    ]),
-                                       cex=Cex.label,#0.6,
-                                       col=as.character(ind.color)[coord.smpl])
-                    }## for(smpl in 1:length(LvlsPAT))
+        }## if(is.null(path.result)==FALSE)
 
-                } else {
 
-                    ##--------------------------------------------------------#
-                    for (smpl in seq_len(length(LvlsPAT))) {
-
-                        Smpl.sel <- LvlsPAT[smpl]
-                        IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
-
-                        graphics::points(coordPCAind[coord.smpl, 1],
-                                         coordPCAind[coord.smpl, 2],
-                                         pch=19,
-                                         cex=Cex.point,
-                                         col=col.link[coord.smpl])
-                        graphics::text(coordPCAind[coord.smpl, 1] + epsilon,
-                                       coordPCAind[coord.smpl, 2] + epsilon,
-                                       labels=row.names(coordPCAind[coord.smpl,
-                                                                    ]),
-                                       cex=Cex.label,
-                                       col=as.character(ind.color)[coord.smpl])
-                    }## for(smpl in 1:length(LvlsPAT))
-
-                    ##--------------------------------------------------------#
-                    ##--------------------------------------------------------#
-                    for (col in seq_len(length(levels(ind.color)))) {
-                        Id.col <- which(as.character(ind.color)==levels(ind.color)[col])
-                        Mean.t <- stats::aggregate(coordPCAind[Id.col, c(1,2)],
-                                                   list(coord.t[Id.col]), mean)
-                        New.Name.2D <- apply(unique(data.name[Id.col,]), 1,
-                                             paste, collapse="_")
-
-                        graphics::lines(Mean.t[, 2], Mean.t[, 3],
-                                        type="c", pch=22, lwd=2,
-                                        col=levels(ind.color)[col])
-                        graphics::text(Mean.t[, 2], Mean.t[, 3],
-                                       labels=New.Name.2D, cex=Cex.label*0.9,
-                                       col=levels(ind.color)[col])
-                    }## for(col in 1:length(levels(ind.color)))
-                }## if(Mean.Accross.Time==FALSE & max(NbPerCond)>1)
-                ##------------------------------------------------------------#
-                grDevices::dev.off()
-            }## if(is.null(path.result)==FALSE)
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            if (isTRUE(Plot.PCA)) {
-
-                plot(NA, type="c", col="green",
-                     xlim=c(min(coordPCAind[, 1]) - epsilon,
-                            max(coordPCAind[, 1]) + epsilon),
-                     ylim=c(min(coordPCAind[, 2]) - epsilon,
-                            max(coordPCAind[, 2]) + epsilon),
-                     xlab=paste0("dim1 (",
-                                round(res.PCA$eig[, 2][1], digits=2),"%)"),
-                     ylab=paste0("dim2 (",
-                                round(res.PCA$eig[, 2][2], digits=2),"%)"))
-                ##
-                ## xlegend<-max(coordPCAind[,1])
-                ##         +epsilon+(max(coordPCAind[, 1])+epsilon)/8
-                ##
-                ## graphics::legend(x=xlegend, y=0,
-                ##                  title=LegendTitle,
-                ##                  legend = data.color[, 1],
-                ##                  pch=20, horiz=FALSE, xpd = TRUE,
-                ##                  cex=0.8, #inset=c(-0.03),
-                ##                  col=data.color[, 2])
-
-                ##------------------------------------------------------------#
-                ##------------------------------------------------------------#
-                if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1) {
-                    ##--------------------------------------------------------#
-                    for (smpl in seq_len(length(LvlsPAT))) {
-
-                        Smpl.sel <- LvlsPAT[smpl]
-                        IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
-
-                        graphics::lines(coordPCAind[coord.smpl, 1],
-                                        coordPCAind[coord.smpl, 2],
-                                        pch=22, type="c", lty=1,
-                                        col=col.link[coord.smpl])
-                        graphics::text(coordPCAind[coord.smpl, 1] + epsilon,
-                                       coordPCAind[coord.smpl, 2] + epsilon,
-                                       labels=row.names(coordPCAind[coord.smpl,
-                                                                    ]),
-                                       cex=Cex.label,
-                                       col=as.character(ind.color)[coord.smpl])
-                    }## for(smpl in 1:length(LvlsPAT))
-
-                } else {
-                    ##--------------------------------------------------------#
-                    for (smpl in seq_len(length(LvlsPAT))) {
-                        Smpl.sel <- LvlsPAT[smpl]
-                        IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
-
-                        graphics::points(coordPCAind[coord.smpl, 1],
-                                         coordPCAind[coord.smpl, 2],
-                                         pch=19, cex=Cex.point,
-                                         col=col.link[coord.smpl])
-                        graphics::text(coordPCAind[coord.smpl, 1] + epsilon,
-                                       coordPCAind[coord.smpl, 2] + epsilon,
-                                       labels=row.names(coordPCAind[coord.smpl,
-                                                                    ]),
-                                       cex=Cex.label,
-                                       col=as.character(ind.color)[coord.smpl])
-                    }## for(smpl in 1:length(LvlsPAT))
-
-                    ##--------------------------------------------------------#
-                    ##--------------------------------------------------------#
-                    for (col in seq_len(length(levels(ind.color)))) {
-                        Id.col <- which(as.character(ind.color)==levels(ind.color)[col])
-                        Mean.t <- stats::aggregate(coordPCAind[Id.col, c(1,2)],
-                                                   list(coord.t[Id.col]), mean)
-                        New.Name.2D <- apply(unique(data.name[Id.col,]), 1,
-                                             paste, collapse="_")
-
-                        graphics::lines(Mean.t[, 2], Mean.t[, 3],
-                                        type="c", pch=22, lwd=2,
-                                        col=levels(ind.color)[col])
-                        graphics::text(Mean.t[, 2], Mean.t[, 3],
-                                       labels=New.Name.2D, cex=Cex.label*0.9,
-                                       col=levels(ind.color)[col]) ##*0.6,
-                    }## for(col in 1:length(levels(ind.color)))
-                }## if(Mean.Accross.Time==FALSE & max(NbPerCond)>1)
-            }## if(Plot.PCA==TRUE)
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            ##
-            ## g.2DPCA.t<-grDevices::recordPlot()
+        if (isTRUE(Plot.PCA)) {
             ## graphics::plot.new() ## clean up device
+            print(resPCA2Dt)
 
-            ##----------------------------------------------------------------#
-            if (!is.null(path.result)) {
-                TitlePCA3Dlk <- paste0(Name.file.pca.f, "_PCAlink3D.pdf")
+            ##graphics::plot.new() ## clean up device
+            print(resPCA3Dt)
 
-                grDevices::pdf(file=file.path(path.result, TitlePCA3Dlk),
-                               width=11, height=8)
-                ##------------------------------------------------------------#
-                if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1) {
-                    Smpl.sel <- LvlsPAT[1]
-                    IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                    times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                    coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+            if (isTRUE(motion3D)) {
+                plot3Drgl::plotrgl()
+            }## if (isTRUE(motion3D))
 
-                    ##--------------------------------------------------------#
-                    if (length(coord.smpl) == 1) {
-                        coord.smplf <- c(coord.smpl, NA)
-                    } else {
-                        coord.smplf <- coord.smpl
-                    }## if(length(coord.smpl)==1)
+        }## if(Plot.PCA==TRUE)
 
-                    #---------------------------------------------------------#
-                    ## s3d.2t<-
-                    plot3D::scatter3D(coordPCAind[coord.smplf, 1],
-                                      coordPCAind[coord.smplf, 3],
-                                      coordPCAind[coord.smplf, 2],
-                                      theta=Theta ,phi=Phi, colvar=NULL,
-                                      type="b", pch=20, bty="b2",
-                                      ticktype="detailed", cex=Cex.point,
-                                      col=col.link[coord.smpl],
-                                      xlim=c(min(coordPCAind[, 1]),
-                                             max(coordPCAind[, 1])),
-                                      ylim=c(min(coordPCAind[, 3]),
-                                             max(coordPCAind[, 3])),
-                                      zlim=c(min(coordPCAind[, 2]),
-                                             max(coordPCAind[, 2])),
-                                      xlab=paste0("dim1 (",
-                                                 round(res.PCA$eig[,2][1],
-                                                       digits=2),
-                                                 "%)"),
-                                      ylab=paste0("dim3 (",
-                                                 round(res.PCA$eig[,2][3],
-                                                       digits=2),
-                                                 "%)"),
-                                      zlab=paste0("dim2 (",
-                                                 round(res.PCA$eig[,2][2],
-                                                       digits=2),
-                                                 "%)"))
-                    #
-                    plot3D::text3D(coordPCAind[coord.smpl, 1],
-                                   coordPCAind[coord.smpl, 3],
-                                   coordPCAind[coord.smpl, 2],
-                                   labels=row.names(coordPCAind)[coord.smpl],
-                                   add=TRUE,
-                                   colkey=FALSE,
-                                   cex=Cex.label, pch=20,
-                                   col=as.character(ind.color)[coord.smpl])
+        ##--------------------------------------------------------------------#
+        ##--------------------------------------------------------------------#
+        listPCAplots <- vector(mode="list", length=4)
+        names(listPCAplots) <- c("PCA_2D", "PCA_3D",
+                                 "PCA_2DtemporalLinks",
+                                 "PCA_3DtemporalLinks")
+        listPCAplots[[1]] <- ggPCA2d
+        listPCAplots[[2]] <- ggPCA3d
+        listPCAplots[[3]] <- resPCA2Dt
+        listPCAplots[[4]] <- resPCA3Dt
+    } else {
+        listPCAplots <- vector(mode="list", length=2)
+        names(listPCAplots) <- c("PCA_2D", "PCA_3D")
+        listPCAplots[[1]] <- ggPCA2d
+        listPCAplots[[2]] <- ggPCA3d
+    }## if(is.null(Vector.time) == FALSE)
 
-                    ## graphics::legend("right", title=LegendTitle,
-                    ##                  legend=data.color[,1],
-                    ##                  pch=20, horiz=FALSE, xpd=TRUE,
-                    ##                  cex=0.8, # inset=c(-0.015),
-                    ##                  col=data.color[,2]) ##cex=Cex.point*0.9
+    SEresPCAgraph <- SEresPCA
+    PCAlist <- append(PCAlist, listPCAplots)
+    S4Vectors::metadata(SEresPCAgraph)$Results[[1]][[2]] <- PCAlist
 
-                    ##--------------------------------------------------------#
-                    for (smpl in seq(from=2, to=length(LvlsPAT), by=1)) {
+    ## grid::par(mar=c(5.1, 4.1, 4.1, 2.1))
+    ##------------------------------------------------------------------------#
+    ##------------------------------------------------------------------------#
+    ## Output
+    return(SEobj=SEresPCAgraph)
+}## PCAgraphics()
 
-                        Smpl.sel <- LvlsPAT[smpl]
-                        IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+##---------------------------------------------------------------------------##
+##--------------------ErrPCAgraphics-----------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 
-                        ##----------------------------------------------------#
-                        if (length(coord.smpl) == 1) {
-                            coord.smplf <- c(coord.smpl, NA)
-                        } else {
-                            coord.smplf <- coord.smpl
-                        }
+ErrPCAgraphics <- function(Plot.PCA=TRUE,
+                           Mean.Accross.Time=FALSE, ##Color.Group=NULL,
+                           motion3D=FALSE,
+                           Phi=25, Theta=140, epsilon=0.2,
+                           Cex.point=0.7, Cex.label=0.7,
+                           path.result=NULL,
+                           Name.file.pca=NULL) {
+    ##-----------------------------------------------------------------------##
+    ## Check TRUE, FALSE
+    if (!isTRUE(Plot.PCA) & !isFALSE(Plot.PCA)) {
+        stop("'Plot.PCA' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.PCA) & !isFALSE(Plot.PCA))
 
-                        ##----------------------------------------------------#
-                        plot3D::scatter3D(coordPCAind[coord.smplf, 1],
-                                          coordPCAind[coord.smplf, 3],
-                                          coordPCAind[coord.smplf, 2],
-                                          type="b", colvar=NULL, add=TRUE,
-                                          bty="b2", pch=20,
-                                          cex=Cex.point, ticktype="detailed",
-                                          col=col.link[coord.smpl])
+    if (!isTRUE(Mean.Accross.Time) & !isFALSE(Mean.Accross.Time)) {
+        stop("'Mean.Accross.Time' must be TRUE or FALSE.")
+    }## if (!isTRUE(Mean.Accross.Time) & !isFALSE(Mean.Accross.Time))
 
-                        plot3D::text3D(coordPCAind[coord.smpl, 1],
-                                       coordPCAind[coord.smpl, 3],
-                                       coordPCAind[coord.smpl, 2],
-                                       labels=row.names(coordPCAind)[coord.smpl],
-                                       add=TRUE, colkey=FALSE,
-                                       cex=Cex.label, pch=20,
-                                       col=as.character(ind.color)[coord.smpl])
-                    }## for(smpl in 2:length(LvlsPAT))
-                } else {
-                    ##--------------------------------------------------------#
-                    Smpl.sel <- LvlsPAT[1]
-                    IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                    times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                    coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+    ##-----------------------------------------------------------------------##
+    Err_PCAHCPCgraph <- ErrPCAHCPCgraphics(motion3D=motion3D, epsilon=epsilon,
+                                           Phi=Phi, Theta=Theta,
+                                           Cex.point=Cex.point,
+                                           Cex.label=Cex.label,
+                                           path.result=path.result)
 
-                    ##--------------------------------------------------------#
-                    if (length(coord.smpl)==1) {
-                        coord.smplf <- c(coord.smpl, NA)
-                    } else {
-                        coord.smplf <- coord.smpl
-                    }## if(length(coord.smpl)==1)
+    ##-----------------------------------------------------------------------##
+    if (!is.null(Name.file.pca)) {
+        if (!is.character(Name.file.pca)) {
+            stop("'Name.file.pca' must be NULL or a character.")
+        }## if (!is.character(Name.file.pca))
+    }## if (!is.null(Name.file.pca))
 
-                    ##--------------------------------------------------------#
-                    ## s3d.2t<-
-                    plot3D::scatter3D(coordPCAind[coord.smplf, 1],
-                                      coordPCAind[coord.smplf, 3],
-                                      coordPCAind[coord.smplf, 2],
-                                      theta=Theta ,phi=Phi, pch=20, bty="b2",
-                                      type="p", cex=Cex.point, colvar=NULL,
-                                      col=col.link[coord.smpl],
-                                      xlim=c(min(coordPCAind[, 1]),
-                                             max(coordPCAind[, 1])),
-                                      ylim=c(min(coordPCAind[, 3]),
-                                             max(coordPCAind[, 3])),
-                                      zlim=c(min(coordPCAind[, 2]),
-                                             max(coordPCAind[, 2])),
-                                      xlab=paste0("dim1 (",
-                                                  round(res.PCA$eig[, 2][1],
-                                                        digits=2),
-                                                  "%)"),
-                                      ylab=paste0("dim3 (",
-                                                  round(res.PCA$eig[, 2][3],
-                                                        digits=2),
-                                                  "%)"),
-                                      zlab=paste0("dim2 (",
-                                                  round(res.PCA$eig[, 2][2],
-                                                        digits=2),
-                                                  "%)"))
-                    ##
-                    plot3D::text3D(coordPCAind[coord.smpl, 1],
-                                   coordPCAind[coord.smpl, 3],
-                                   coordPCAind[coord.smpl, 2],
-                                   labels=row.names(coordPCAind)[coord.smpl],
-                                   add=TRUE, colkey=FALSE,
-                                   cex=Cex.label, pch=20, ##0.6,
-                                   col=as.character(ind.color)[coord.smpl])
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrPCAgraphics()
 
-                    ## graphics::legend("right", title=LegendTitle,
-                    ##                  legend = data.color[,1],
-                    ##                  pch = 20, horiz=FALSE, xpd = TRUE,
-                    ##                  cex=0.8, # inset=c(-0.015),
-                    ##                  col = data.color[,2])
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##--------------------ErrPCAHCPCgraphics-------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 
-                    ##--------------------------------------------------------#
-                    for (smpl in seq(from=2, to=length(LvlsPAT), by=1)) {
-                        Smpl.sel <- LvlsPAT[smpl]
-                        IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+ErrPCAHCPCgraphics <- function(motion3D=FALSE,
+                               Phi=25, Theta=140, epsilon=0.2,
+                               Cex.point=0.7, Cex.label=0.7,
+                               path.result=NULL) {
+    ##-----------------------------------------------------------------------##
+    if (!isTRUE(motion3D) & !isFALSE(motion3D)) {
+        stop("'motion3D' must be TRUE or FALSE.")
+    }## if (!isTRUE(motion3D) & !isFALSE(motion3D))
 
-                        ##----------------------------------------------------#
-                        if (length(coord.smpl) == 1) {
-                            coord.smplf<-c(coord.smpl, NA)
-                        }else{
-                            coord.smplf<-coord.smpl
-                        }## if(length(coord.smpl)==1)
+    ##-----------------------------------------------------------------------##
+    ## Check numeric
+    Err_a <- "'Phi', 'Theta' and 'epsilon' must be positive numeric values"
+    Err_cex <- "'Cex.point' and 'Cex.label' must be positive numeric values"
 
-                        ##----------------------------------------------------#
-                        plot3D::scatter3D(coordPCAind[coord.smplf, 1],
-                                          coordPCAind[coord.smplf, 3],
-                                          coordPCAind[coord.smplf, 2],
-                                          type="p", colvar=NULL, bty="b2",
-                                          add=TRUE, pch=20, cex=Cex.point,
-                                          col=col.link[coord.smpl])
-                        plot3D::text3D(coordPCAind[coord.smpl, 1],
-                                       coordPCAind[coord.smpl, 3],
-                                       coordPCAind[coord.smpl, 2],
-                                       labels=row.names(coordPCAind)[coord.smpl],
-                                       add=TRUE, colkey=FALSE,
-                                       cex=Cex.label, pch=20,
-                                       col=as.character(ind.color)[coord.smpl])
-                    }## for(smpl in 2:length(LvlsPAT))
+    if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon)) {
+        stop(Err_a)
+    }## if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon))
 
-                    ##--------------------------------------------------------#
-                    data.name <- data.frame(rep("Mean",
-                                                times=nrow(PCAqualiSup)),
-                                            PCAqualiSup)
+    if (min(c(Phi, Theta, epsilon))<0) {
+        stop(Err_a)
+    }## if (min(c(Phi, Theta, epsilon))<0)
 
-                    ##--------------------------------------------------------#
-                    for(col in seq_len(length(levels(factor(col.link))))){
-                        Id.col <- which(col.link==levels(factor(col.link))[col])
-                        Mean.t <- stats::aggregate(coordPCAind[Id.col,
-                                                               c(1, 2, 3)],
-                                                   list(coord.t[Id.col]), mean)
-                        New.Name.3D <- apply(unique(data.name[Id.col,]), 1,
-                                             paste,
-                                             collapse="_")
+    if (!is.numeric(Cex.point) | !is.numeric(Cex.label)) {
+        stop(Err_cex)
+    }## if (!is.numeric(Phi) | !is.numeric(Theta) | !is.numeric(epsilon))
 
-                        plot3D::scatter3D(Mean.t[,2], Mean.t[,4], Mean.t[,3],
-                                          type="b", colvar=NULL, cex=Cex.point,
-                                          add=TRUE, pch=20, bty="b2",
-                                          col=levels(factor(col.link))[col])
+    if (min(c(Cex.point, Cex.label))<0) {
+        stop(Err_cex)
+    }## if (min(c(Phi, Theta, epsilon))<0)
 
-                        plot3D::text3D(Mean.t[,2], Mean.t[,4], Mean.t[,3],
-                                       labels=New.Name.3D, cex=Cex.label,
-                                       col=levels(factor(col.link))[col],
-                                       add=TRUE, colkey=FALSE, pch=20)
-                    }## for(col in 1:length(levels(factor(col.link))))
-                }## if(Mean.Accross.Time==FALSE & max(NbPerCond)>1)
-                ##------------------------------------------------------------#
-                grDevices::dev.off()
-            }## if(is.null(path.result)==FALSE)
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            if (isTRUE(Plot.PCA)) {
-                if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1) {
-                    Smpl.sel <- LvlsPAT[1]
-                    IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                    times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                    coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+    ##-----------------------------------------------------------------------##
+    ## Check path.result
+    if (!is.null(path.result)) {
+        if (!is.character(path.result)) {
+            stop("'path.result' must be NULL or a character.")
+        }## if (!is.character(path.result))
+    }## if (!is.null(path.result))
 
-                    ##--------------------------------------------------------#
-                    if (length(coord.smpl) == 1) {
-                        coord.smplf <- c(coord.smpl, NA)
-                    } else {
-                        coord.smplf <- coord.smpl
-                    }## if(length(coord.smpl)==1)
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrPCAHCPCgraphics()
 
-                    ##--------------------------------------------------------#
-                    ## s3d.2t<-
-                    plot3D::scatter3D(coordPCAind[coord.smplf, 1],
-                                      coordPCAind[coord.smplf, 3],
-                                      coordPCAind[coord.smplf, 2],
-                                      theta=Theta ,phi=Phi, colvar=NULL,
-                                      type="b", pch=20, bty="b2",
-                                      ticktype="detailed", cex=Cex.point,#0.6,
-                                      col=col.link[coord.smpl],
-                                      xlim=c(min(coordPCAind[, 1]),
-                                             max(coordPCAind[, 1])),
-                                      ylim=c(min(coordPCAind[, 3]),
-                                             max(coordPCAind[, 3])),
-                                      zlim=c(min(coordPCAind[, 2]),
-                                             max(coordPCAind[, 2])),
-                                      xlab=paste0("dim1 (",
-                                                 round(res.PCA$eig[, 2][1],
-                                                       digits=2),
-                                                 "%)"),
-                                      ylab=paste0("dim3 (",
-                                                 round(res.PCA$eig[, 2][3],
-                                                       digits=2),
-                                                 "%)"),
-                                      zlab=paste0("dim2 (",
-                                                 round(res.PCA$eig[, 2][2],
-                                                       digits=2),
-                                                 "%)"))
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##--------------------PCAplot3D----------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 
-                    plot3D::text3D(coordPCAind[coord.smpl, 1],
-                                   coordPCAind[coord.smpl, 3],
-                                   coordPCAind[coord.smpl, 2],
-                                   labels=row.names(coordPCAind)[coord.smpl],
-                                   add=TRUE, colkey=FALSE,
-                                   cex=Cex.label, pch=20,
-                                   col=as.character(ind.color)[coord.smpl])
+PCAplot3D <- function(PCAcoord3D, matPCAeig,
+                      colorINDfactor, clabPCA,
+                      Phi=25, Theta=140, epsilon=0.2,
+                      Cex.point=0.7, Cex.label=0.7) {
+    ##-----------------------------------------------------------------------##
+    ## ## clean up device : important to avoid problems when plotting all plots
+    ## ## graphics::plot.new() ## put in main function
+    ## cur_dev <- grDevices::dev.cur() ## store current device
+    ## grDevices::pdf(file=NULL, width=11, height=8) ## open null device
+    ## grDevices::dev.control("enable") ## turn on recording for the null device
+    ## null_dev <- grDevices::dev.cur() ## store null device
+    ## ## make sure we always clean up properly, even if smthg causes an error
+    ## on.exit({
+    ##     grDevices::dev.off(null_dev)
+    ##     if (cur_dev > 1) grDevices::dev.set(cur_dev)
+    ##     ## previous line: only set cur device if not null device
+    ## })
+    ##-----------------------------------------------------------------------##
+    colorClust <- levels(colorINDfactor)
+    colInd <- as.character(colorINDfactor)
+    Nclust <- length(colorClust)
 
-                    ## graphics::legend("right", title=LegendTitle,
-                    ##                  legend=data.color[,1],
-                    ##                  pch=20, horiz=FALSE, xpd=TRUE,
-                    ##                  cex=0.8, # inset=c(-0.015),
-                    ##                  # cex = Cex.point*0.9
-                    ##                  col=data.color[,2])
+    matPCAeig <- round(matPCAeig, digits=2)
 
-                    ##--------------------------------------------------------#
-                    for(smpl in seq(from=2, to=length(LvlsPAT), by=1)){
-                        Smpl.sel <- LvlsPAT[smpl]
-                        IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+    ##-----------------------------------------------------------------------##
+    plot3D::scatter3D(PCAcoord3D[, 1], PCAcoord3D[, 3], PCAcoord3D[, 2],
+                      epsilon=epsilon, col=colInd,
+                      clab=clabPCA, cex=Cex.point, theta=Theta, phi=Phi, d=2,
+                      pch=20, colvar=NULL, bty="b2", ticktype="detailed",
+                      xlab=paste0("dim1 (", matPCAeig[1, 2], "%)"),
+                      ylab=paste0("dim3 (", matPCAeig[3, 2], "%)"),
+                      zlab=paste0("dim2 (", matPCAeig[2, 2], "%)"))
 
-                        ##----------------------------------------------------#
-                        if (length(coord.smpl) == 1) {
-                            coord.smplf <- c(coord.smpl, NA)
-                        } else {
-                            coord.smplf <- coord.smpl
-                        }## if (length(coord.smpl) == 1)
+    plot3D::text3D(PCAcoord3D[, 1] + epsilon,
+                   PCAcoord3D[, 3] + epsilon,
+                   PCAcoord3D[, 2] + epsilon,
+                   labels=rownames(PCAcoord3D), add=TRUE, colkey=FALSE,
+                   col=colInd, cex=Cex.label, font=2)
 
-                        ##----------------------------------------------------#
-                        plot3D::scatter3D(coordPCAind[coord.smplf, 1],
-                                          coordPCAind[coord.smplf, 3],
-                                          coordPCAind[coord.smplf, 2],
-                                          type="b", colvar=NULL,
-                                          add=TRUE, pch=20, cex=Cex.point,
-                                          bty="b2", ticktype="detailed",
-                                          col=col.link[coord.smpl])
+    ##-----------------------------------------------------------------------##
+    ## ggPCA3d <- grDevices::recordPlot()
+    ## return(ggPCA3d)
+}## PCAplot3D()
 
-                        plot3D::text3D(coordPCAind[coord.smpl, 1],
-                                       coordPCAind[coord.smpl, 3],
-                                       coordPCAind[coord.smpl, 2],
-                                       labels=row.names(coordPCAind)[coord.smpl],
-                                       add=TRUE, colkey=FALSE,
-                                       cex=Cex.label, pch=20,
-                                       col=as.character(ind.color)[coord.smpl])
-                    }## for(smpl in 2:length(LvlsPAT))
-                } else {
-                    ##--------------------------------------------------------#
-                    Smpl.sel <- LvlsPAT[1]
-                    IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                    times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                    coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##--------------------PCAplot2Dt---------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 
-                    ##--------------------------------------------------------#
-                    if (length(coord.smpl) == 1) {
-                        coord.smplf <- c(coord.smpl, NA)
-                    } else {
-                        coord.smplf <- coord.smpl
-                    }## if(length(coord.smpl)==1)
+PCAplot2Dt <- function(PCAcoord2D, matPCAeig, coord.t, data.name,
+                       Vector.group, Vector.time, Vector.patient,
+                       Mean.Accross.Time, colorINDfactor,
+                       epsilon=0.2, Cex.point=0.7, Cex.label=0.7) {
+    ##-----------------------------------------------------------------------##
+    ## Plot preprocessing
+    colorClust <- levels(colorINDfactor)
+    colInd <- as.character(colorINDfactor)
+    Nclust <- length(colorClust)
 
-                    ##--------------------------------------------------------#
-                    # s3d.2t<-
-                    plot3D::scatter3D(coordPCAind[coord.smplf, 1],
-                                      coordPCAind[coord.smplf, 3],
-                                      coordPCAind[coord.smplf, 2],
-                                      theta=Theta, phi=Phi, bty="b2", pch=20,
-                                      type="p", cex=Cex.point, colvar=NULL,
-                                      col=col.link[coord.smpl],
-                                      xlim=c(min(coordPCAind[, 1]),
-                                             max(coordPCAind[, 1])),
-                                      ylim=c(min(coordPCAind[, 3]),
-                                             max(coordPCAind[, 3])),
-                                      zlim=c(min(coordPCAind[, 2]),
-                                             max(coordPCAind[, 2])),
-                                      xlab=paste0("dim1 (",
-                                                 round(res.PCA$eig[, 2][1],
-                                                       digits=2),
-                                                 "%)"),
-                                      ylab=paste0("dim3 (",
-                                                 round(res.PCA$eig[, 2][3],
-                                                       digits=2),
-                                                 "%)"),
-                                      zlab=paste0("dim2 (",
-                                                 round(res.PCA$eig[, 2][2],
-                                                       digits=2),
-                                                 "%)"))
-                    #
-                    plot3D::text3D(coordPCAind[coord.smpl, 1],
-                                   coordPCAind[coord.smpl, 3],
-                                   coordPCAind[coord.smpl, 2],
-                                   labels=row.names(coordPCAind)[coord.smpl],
-                                   add=TRUE, colkey=FALSE,
-                                   cex=Cex.label, pch=20,
-                                   col=as.character(ind.color)[coord.smpl])
+    LvlsPAT <- levels(factor(Vector.patient))
+    NbPerCond <- as.numeric(table(Vector.patient))
+    colorPoints <- as.character(colorINDfactor)
 
-                    ## graphics::legend("right", title=LegendTitle,
-                    ##                  legend = data.color[,1],
-                    ##                  pch = 20, horiz=FALSE, xpd = TRUE,
-                    ##                  cex=0.8, # inset=c(-0.015),
-                    ##                  col = data.color[,2])
+    if (!is.null(Vector.group)) {
+        colorLinks <- as.character(colorINDfactor)
+        vectGroup <- as.character(Vector.group)
+    } else {
+        colorLinks <- rep("grey", times=length(as.character(colorINDfactor)))
+        vectGroup <- rep("G1", times=length(as.character(Vector.patient)))
+    }## if(!is.null(Vector.group)) colorLinks <- "#999999"
 
-                    ##--------------------------------------------------------#
-                    for(smpl in seq(from=2, to=length(LvlsPAT), by=1)){
-                        Smpl.sel <- LvlsPAT[smpl]
-                        IndexSmplSel <- which(Vector.patient == Smpl.sel)
-                        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
-                        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+    ##-----------------------------------------------------------------------##
+    framePCA2t <- data.frame(PCAcoord2D[,c(1, 2)],
+                             vGroup=vectGroup,
+                             vPAT=Vector.patient,
+                             vTime=Vector.time,
+                             vColor=colorPoints)
 
-                        ##----------------------------------------------------#
-                        if (length(coord.smpl) == 1) {
-                            coord.smplf <- c(coord.smpl, NA)
-                        } else {
-                            coord.smplf <- coord.smpl
-                        }## if(length(coord.smpl)==1)
+    SMPLorder <- order(framePCA2t$vGroup, framePCA2t$vPAT, framePCA2t$vTime)
+    colorLinks <- colorLinks[SMPLorder]
+    framePCA2t <- framePCA2t[SMPLorder,]
 
-                        ##----------------------------------------------------#
-                        plot3D::scatter3D(coordPCAind[coord.smplf, 1],
-                                          coordPCAind[coord.smplf, 3],
-                                          coordPCAind[coord.smplf, 2],
-                                          type="p", colvar=NULL, cex=Cex.point,
-                                          add=TRUE, pch=20, bty="b2",
-                                          col=col.link[coord.smpl])
+    if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1) {
+        framePCA2t_2D <- framePCA2t
+        framePCA2t_2D$vSizeP <-rep(Cex.point*3.5, times=nrow(framePCA2t_2D))
+        framePCA2t_2D$vSizeL <-rep(Cex.label*3.5, times=nrow(framePCA2t_2D))
+        framePCA2t_2D$vShape <-rep(16, times=nrow(framePCA2t_2D)) ## 16 <--> 19
+    } else {
+        name2D <- apply(unique(data.name[SMPLorder,]), 1, paste, collapse="_")
+        name2D <- sort(as.character(name2D))
 
-                        plot3D::text3D(coordPCAind[coord.smpl, 1],
-                                       coordPCAind[coord.smpl, 3],
-                                       coordPCAind[coord.smpl, 2],
-                                       labels=row.names(coordPCAind)[coord.smpl],
-                                       add=TRUE, colkey=FALSE,
-                                       cex=Cex.label, pch=20,
-                                       col=as.character(ind.color)[coord.smpl])
-                    }## for(smpl in 2:length(LvlsPAT))
+        Mean.t <- stats::aggregate(framePCA2t[,c(1, 2)],
+                                   list(framePCA2t[,6],
+                                        framePCA2t[,5]),
+                                   mean)
+        colnames(Mean.t)[c(1, 2)] <- c("vColor", "vTime")
 
-                    ##--------------------------------------------------------#
-                    data.name <- data.frame(rep("Mean",
-                                                times=nrow(PCAqualiSup)),
-                                            PCAqualiSup)
-
-                    ##--------------------------------------------------------#
-                    for (col in seq_len(length(levels(factor(col.link))))) {
-
-                        Id.col <- which(col.link==levels(factor(col.link))[col])
-                        Mean.t <- stats::aggregate(coordPCAind[Id.col,
-                                                               c(1, 2, 3)],
-                                                   list(coord.t[Id.col]), mean)
-                        New.Name.3D <- apply(unique(data.name[Id.col,]), 1,
-                                             paste, collapse="_")
-
-                        plot3D::scatter3D(Mean.t[,2], Mean.t[,4], Mean.t[,3],
-                                          type="b", colvar=NULL, cex=Cex.point,
-                                          add=TRUE, pch=20, bty="b2",
-                                          col=levels(factor(col.link))[col])
-                        plot3D::text3D(Mean.t[, 2], Mean.t[, 4], Mean.t[, 3],
-                                       labels=New.Name.3D, cex=Cex.label,
-                                       col=levels(factor(col.link))[col],
-                                       add=TRUE, colkey=FALSE, pch=20)
-                    }## for(col in 1:length(levels(factor(col.link))))
-                }## if(Mean.Accross.Time==FALSE & max(NbPerCond)>1)
-
-                ##------------------------------------------------------------#
-                ## 3D PCA in rgl window
-                if (D3.mouvement == TRUE) {
-                    plot3Drgl::plotrgl()
-                }## if(D3.mouvement==TRUE)
-            }## if(Plot.PCA==TRUE)
-
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
-            ## s3d.2t<-grDevices::recordPlot()
-            ## graphics::plot.new() ## clean up device
-            ##
-            ## List.plot.PCA<-vector(mode="list", length=4)
-            ## names(List.plot.PCA)<-c("PCA.2D", "PCA.3D",
-            ##                         "PCA.2D.temporal.links",
-            ##                         "PCA.3D.temporal.links")
-            ## List.plot.PCA[[1]]<-g.2DPCA
-            ## List.plot.PCA[[2]]<-s3d.all
-            ## List.plot.PCA[[3]]<-g.2DPCA.t
-            ## List.plot.PCA[[4]]<-s3d.2t
+        if (!is.null(Vector.group)) {
+            Mean.t <- Mean.t[order(Mean.t$vColor, Mean.t$vTime),]
         } else {
-            ## List.plot.PCA<-vector(mode="list", length=2)
-            ## names(List.plot.PCA)<-c("PCA.2D", "PCA.3D")
-            ## List.plot.PCA[[1]]<-g.2DPCA
-            ## List.plot.PCA[[2]]<-s3d.all
-        }## if(is.null(Vector.time)==FALSE)
+            Mean.t <- Mean.t[order(Mean.t$vTime),]
+        }## if (!is.null(Vector.group))
+
+        Mean.t <- data.frame(Mean.t[, c(3, 4)],
+                             vGroup=Mean.t$vColor,
+                             vPAT=name2D,
+                             Mean.t[,c(2, 1)])
+        row.names(Mean.t) <- name2D
+
+        if (!is.null(Vector.group)) {
+            colorLinks <- as.character(Mean.t$vColor)
+            MEANgroup <- 6
+        } else {
+            colorLinks <- rep("grey", times=nrow(Mean.t))
+            Mean.t$vGroup <- rep("G1", times=nrow(Mean.t))
+            MEANgroup <- 3
+        }## if(!is.null(Vector.group)) colorLinks <- "#999999"
+
+        framePCA2t_2D <- rbind(framePCA2t, Mean.t)
+        framePCA2t_2D$vSizeP <-c(rep(Cex.point*2.5, times=nrow(framePCA2t)),
+                                 rep(Cex.point*4, times=nrow(Mean.t)))
+        framePCA2t_2D$vSizeL <-c(rep(Cex.label*2.5, times=nrow(framePCA2t)),
+                                 rep(Cex.label*4, times=nrow(Mean.t)))
+        framePCA2t_2D$vShape <-c(rep(16, times=nrow(framePCA2t)),
+                                 rep(18, times=nrow(Mean.t))) ## 16 <--> 19
+    }## if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1)
+
+    matPCAeig <- round(matPCAeig, digits=2)
+
+    ##-----------------------------------------------------------------------##
+    ggPCAt_2D <- ggplot2::ggplot(framePCA2t_2D,
+                                 ggplot2::aes(x=framePCA2t_2D[, 1],
+                                              y=framePCA2t_2D[, 2],
+                                              group=framePCA2t_2D[, 4],
+                                              label=row.names(framePCA2t_2D))) +
+        ggplot2::theme_light() + ## ggplot2::theme_linedraw() +
+        ggplot2::geom_hline(yintercept=0, linetype="dashed", linewidth=0.2) +
+        ggplot2::geom_vline(xintercept=0, linetype="dashed", linewidth=0.2) +
+        ggplot2::xlab(paste0("dim1 (", matPCAeig[1, 2], "%)")) +
+        ggplot2::ylab(paste0("dim1 (", matPCAeig[2, 2], "%)")) +
+        ggplot2::geom_point(colour=framePCA2t_2D[, 6],
+                            size=framePCA2t_2D[, 7],
+                            shape=framePCA2t_2D[, 9])
+
+    if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1) {
+        ggPCAt_2D <- ggPCAt_2D +
+            ggplot2::geom_path(colour=colorLinks) + ##framePCA2t_2D[, 5]
+            ggrepel::geom_text_repel(data=framePCA2t_2D[, c(1, 2)],
+                                     col=framePCA2t_2D[, 6],
+                                     size=framePCA2t_2D[, 8],
+                                     box.padding=0.5,
+                                     max.overlaps=nrow(framePCA2t_2D)+2,
+                                     segment.linetype=3,
+                                     segment.colour=framePCA2t_2D[, 6],
+                                     segment.size=0.5,
+                                     min.segment.length=0)## "#7570b3",
+    } else {
+        ggPCAt_2D <- ggPCAt_2D +
+            ggrepel::geom_text_repel(data=framePCA2t_2D[, c(1, 2)],
+                                     col=framePCA2t_2D[, 6],
+                                     size=framePCA2t_2D[, 8],
+                                     box.padding=0.5,
+                                     max.overlaps=nrow(framePCA2t_2D)+2,
+                                     segment.linetype=3,
+                                     segment.colour=framePCA2t_2D[, 6],
+                                     segment.size=0.5,
+                                     min.segment.length=0) +
+            ggplot2::geom_path(data=Mean.t, inherit.aes=FALSE,
+                               mapping=ggplot2::aes(x=Mean.t[, 1],
+                                                    y=Mean.t[, 2],
+                                                    group=Mean.t[, MEANgroup]),
+                               colour=colorLinks)
+    }## if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1)
+
+    ##-----------------------------------------------------------------------##
+    return(ggPCAt_2D)
+}## PCAplot2Dt()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##--------------------PCAplot3Dt---------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+PCAplot3Dt <- function(PCAcoord3D, matPCAeig, coord.t, data.name,
+                       Vector.group, Vector.time, Vector.patient,
+                       Mean.Accross.Time, colorINDfactor,
+                       epsilon=0.2,
+                       Cex.point=0.7, Cex.label=0.7,
+                       Phi=25, Theta=140) {
+    ##-----------------------------------------------------------------------##
+    ## Plot preprocessing
+    colorClust <- levels(colorINDfactor)
+    colInd <- as.character(colorINDfactor)
+    Nclust <- length(colorClust)
+
+    LvlsPAT <- levels(factor(Vector.patient))
+    NbPerCond <- as.numeric(table(Vector.patient))
+
+    LvlsTime <- levels(factor(Vector.time))
+
+    if (!is.null(Vector.group)) {
+        colorLinks <- colInd
+    } else {
+        colorLinks <- rep("grey", times=length(colInd))
+    }## if(!is.null(Vector.group))
+
+    matPCAeig <- round(matPCAeig, digits=2)
+    PCArgAlpha <- 0.05
+
+    ##-----------------------------------------------------------------------##
+    ## ## clean up device : important to avoid problems when plotting all plots
+    ## ## graphics::plot.new() ## put in main function
+    ## cur_dev <- grDevices::dev.cur() ## store current device
+    ## grDevices::pdf(file=NULL, width=11, height=8) ## open null device
+    ## grDevices::dev.control("enable") ## turn on recording for the null device
+    ## null_dev <- grDevices::dev.cur() ## store null device
+    ## ## make sure we always clean up properly, even if smthg causes an error
+    ## on.exit({
+    ##     grDevices::dev.off(null_dev)
+    ##     if (cur_dev > 1) grDevices::dev.set(cur_dev)
+    ##     ## previous line: only set cur device if not null device
+    ## })
+    ##-----------------------------------------------------------------------##
+    if (isFALSE(Mean.Accross.Time) & max(NbPerCond) > 1) {
+        ##-------------------------------------------------------------------##
+        Smpl.sel <- LvlsPAT[1]
+        IndexSmplSel <- which(Vector.patient == Smpl.sel)
+        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
+        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+
+        if (length(coord.smpl) == 1) {
+            coord.smplf <- c(coord.smpl, NA)
+        } else {
+            coord.smplf <- coord.smpl
+        }## if(length(coord.smpl)==1)
+
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        plot3D::scatter3D(PCAcoord3D[coord.smplf, 1],
+                          PCAcoord3D[coord.smplf, 3],
+                          PCAcoord3D[coord.smplf, 2],
+                          theta=Theta ,phi=Phi, colvar=NULL, cex=Cex.point,
+                          type="b", pch=20, bty="b2", ticktype="detailed",
+                          col=colorLinks[coord.smpl],
+                          xlim=PCArange(PCAcoord3D[, 1], PCArgAlpha),
+                          ylim=PCArange(PCAcoord3D[, 3], PCArgAlpha),
+                          zlim=PCArange(PCAcoord3D[, 2], PCArgAlpha),
+                          xlab=paste0("dim1 (", matPCAeig[1, 2], "%)"),
+                          ylab=paste0("dim3 (", matPCAeig[3, 2], "%)"),
+                          zlab=paste0("dim2 (", matPCAeig[2 ,2], "%)"))
+
+        plot3D::text3D(PCAcoord3D[coord.smpl, 1],
+                       PCAcoord3D[coord.smpl, 3],
+                       PCAcoord3D[coord.smpl, 2],
+                       labels=row.names(PCAcoord3D)[coord.smpl],
+                       add=TRUE, colkey=FALSE, pch=20, cex=Cex.label,
+                       col=colInd[coord.smpl])
+
+        ## graphics::legend("right", title=LegendTitle, legend=data.color[,1],
+        ##                  pch=20, horiz=FALSE, xpd=TRUE, # inset=c(-0.015),
+        ##                  cex=0.8, col=data.color[,2 ]) ##cex=Cex.point*0.9
+
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        for (smpl in seq(from=2, to=length(LvlsPAT), by=1)) {
+            ##---------------------------------------------------------------##
+            Smpl.sel <- LvlsPAT[smpl]
+            IndexSmplSel <- which(Vector.patient == Smpl.sel)
+            times.smpl.sel <- factor(Vector.time[IndexSmplSel])
+            coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+
+            if (length(coord.smpl) == 1) {
+                coord.smplf <- c(coord.smpl, NA)
+            } else {
+                coord.smplf <- coord.smpl
+            }## if (length(coord.smpl) == 1)
+
+            ##---------------------------------------------------------------##
+            ##---------------------------------------------------------------##
+            plot3D::scatter3D(PCAcoord3D[coord.smplf, 1],
+                              PCAcoord3D[coord.smplf, 3],
+                              PCAcoord3D[coord.smplf, 2],
+                              type="b", colvar=NULL, add=TRUE, cex=Cex.point,
+                              bty="b2", pch=20, ticktype="detailed",
+                              col=colorLinks[coord.smpl])
+
+            plot3D::text3D(PCAcoord3D[coord.smpl, 1],
+                           PCAcoord3D[coord.smpl, 3],
+                           PCAcoord3D[coord.smpl, 2],
+                           labels=row.names(PCAcoord3D)[coord.smpl],
+                           add=TRUE, colkey=FALSE, cex=Cex.label, pch=20,
+                           col=as.character(colorINDfactor)[coord.smpl])
+        }## for(smpl in 2:length(LvlsPAT))
 
     } else {
-        ## List.plot.PCA<-NULL
-    }## if(Plot.PCA==TRUE | is.null(path.result)==FALSE)
-    ##
-    ## par(mar=c(5.1, 4.1, 4.1, 2.1))
+        ##-------------------------------------------------------------------##
+        Smpl.sel <- LvlsPAT[1]
+        IndexSmplSel <- which(Vector.patient == Smpl.sel)
+        times.smpl.sel <- factor(Vector.time[IndexSmplSel])
+        coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Output ## list(res.pca=res.PCA, List.plot.PCA=NULL)
-    return(SEobj=SEresPCA)
-}## PCAgraphics()
+        if (length(coord.smpl) == 1) {
+            coord.smplf <- c(coord.smpl, NA)
+        } else {
+            coord.smplf <- coord.smpl
+        }## if (length(coord.smpl) == 1)
+
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        plot3D::scatter3D(PCAcoord3D[coord.smplf, 1],
+                          PCAcoord3D[coord.smplf, 3],
+                          PCAcoord3D[coord.smplf, 2],
+                          theta=Theta, phi=Phi, cex=Cex.point,
+                          col=colorLinks[coord.smpl],
+                          colvar=NULL, pch=20, bty="b2", type="p",
+                          xlim=PCArange(PCAcoord3D[, 1], PCArgAlpha),
+                          ylim=PCArange(PCAcoord3D[, 3], PCArgAlpha),
+                          zlim=PCArange(PCAcoord3D[, 2], PCArgAlpha),
+                          xlab=paste0("dim1 (", matPCAeig[1, 2], "%)"),
+                          ylab=paste0("dim3 (", matPCAeig[3, 2], "%)"),
+                          zlab=paste0("dim2 (", matPCAeig[2 ,2], "%)"))
+
+        plot3D::text3D(PCAcoord3D[coord.smpl, 1],
+                       PCAcoord3D[coord.smpl, 3],
+                       PCAcoord3D[coord.smpl, 2],
+                       labels=row.names(PCAcoord3D)[coord.smpl],
+                       add=TRUE, colkey=FALSE, cex=Cex.label*0.67, pch=20,##0.6,
+                       col=colInd[coord.smpl])
+
+        ## graphics::legend("right", title=LegendTitle, legend=data.color[, 1],
+        ##                  pch=20, horiz=FALSE, xpd=TRUE, cex=0.8,
+        ##                  col=data.color[, 2]) ## inset=c(-0.015),
+
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        for (smpl in seq(from=2, to=length(LvlsPAT), by=1)) {
+            Smpl.sel <- LvlsPAT[smpl]
+            IndexSmplSel <- which(Vector.patient == Smpl.sel)
+            times.smpl.sel <- factor(Vector.time[IndexSmplSel])
+            coord.smpl <- IndexSmplSel[order(times.smpl.sel)]
+
+            if (length(coord.smpl) == 1) {
+                coord.smplf <- c(coord.smpl, NA)
+            } else {
+                coord.smplf <- coord.smpl
+            }## if(length(coord.smpl)==1)
+
+            ##---------------------------------------------------------------##
+            ##---------------------------------------------------------------##
+            plot3D::scatter3D(PCAcoord3D[coord.smplf, 1],
+                              PCAcoord3D[coord.smplf, 3],
+                              PCAcoord3D[coord.smplf, 2],
+                              add=TRUE, colvar=NULL, type="p", bty="b2",
+                              cex=Cex.point, col=colorLinks[coord.smpl], pch=20)
+            plot3D::text3D(PCAcoord3D[coord.smpl, 1],
+                           PCAcoord3D[coord.smpl, 3],
+                           PCAcoord3D[coord.smpl, 2],
+                           labels=row.names(PCAcoord3D)[coord.smpl],
+                           add=TRUE, colkey=FALSE, cex=Cex.label*0.67, pch=20,
+                           col=colInd[coord.smpl])
+        }## for(smpl in 2:length(LvlsPAT))
+
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
+        MEANseq <- seq_len(length(levels(factor(colorLinks))))
+
+        for (col in MEANseq) {
+            levelsLINKcol <- levels(factor(colorLinks))[col]
+            Id.col <- which(colorLinks == levelsLINKcol)
+
+            if (length(MEANseq) == 1) {
+                MEANcolor <- colorClust ## myPaletteT(length(LvlsTime))
+            } else {
+                MEANcolor <- levelsLINKcol
+            }## if (length(MEANseq) == 1)
+
+            Mean.t <- stats::aggregate(PCAcoord3D[Id.col, c(1, 2, 3)],
+                                       list(coord.t[Id.col]),
+                                       mean)
+            New.Name.3D <- apply(unique(data.name[Id.col,]), 1,
+                                 paste,
+                                 collapse="_")
+            New.Name.3D <- as.character(New.Name.3D)
+
+            plot3D::scatter3D(Mean.t[,2], Mean.t[,4], Mean.t[,3],
+                              add=TRUE, colvar=NULL, cex=Cex.point, type="b",
+                              pch=20, bty="b2", col=levelsLINKcol)
+
+            plot3D::text3D(Mean.t[,2], Mean.t[,4], Mean.t[,3],
+                           labels=New.Name.3D, cex=Cex.label,
+                           col=MEANcolor, add=TRUE, colkey=FALSE, pch=20)
+        }## for(col in 1:length(levels(factor(colorLinks))))
+    }## if(Mean.Accross.Time==FALSE & max(NbPerCond)>1)
+
+    ##-----------------------------------------------------------------------##
+    ## ggPCA3Dt <- grDevices::recordPlot()
+    ## return(ggPCA3Dt)
+}## PCAplot3Dt()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##--------------------PCArange-----------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+PCArange <- function(v, alpha) {
+    rg <- c(min(v) - alpha*(max(v) - min(v)), max(v) + alpha*(max(v) - min(v)))
+    return(rg)
+}## PCArange()
+
+
+

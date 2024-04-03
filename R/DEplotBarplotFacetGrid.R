@@ -29,6 +29,9 @@
 #' associated to each biological condition.
 #' If \code{Color.Legend=NULL}, the function will automatically attribute
 #' a color for each biological condition.
+#' @param LabsPlot Vector of two characters indicating the x-axis label and
+#' the y-axis label of the facet grid barplot.
+#' By default, \code{LabsPlot=c("", "")}.
 #'
 #' @return The function will plot a facet grid barplot.
 #' The function is called by our function
@@ -43,36 +46,36 @@
 #' [ggplot2::facet_grid()] and
 #' [ggplot2::geom_bar()].
 #'
-#' @importFrom rlang syms
-#' @importFrom ggplot2 ggplot facet_grid geom_bar element_blank theme
-#' element_rect element_text
+#' @importFrom ggplot2 ggplot aes facet_grid geom_bar xlab ylab theme
+#' element_rect element_text scale_x_discrete guide_axis guide_legend guides
+#' scale_fill_manual
 #' @importFrom stats as.formula
 #'
 #' @export
 #'
 #' @examples
-#' Group.ex<-c('G1', 'G2',' G3')
-#' Time.ex<-c('t1', 't2', 't3', 't4')
-#' Spe.sign.ex<-c("Pos","Neg")
-#' Nb.Spe<-sample(3:60, length(Group.ex)*length(Time.ex), replace=FALSE)
-#' Nb.Spe.sign<-sample(3:60, length(Group.ex)*length(Time.ex)*2, replace=FALSE)
-#' ##-------------------------------------------------------------------------#
-#' Melt.Dat.1<-data.frame(Group=rep(Group.ex,times=length(Time.ex)),
-#'                        Time=rep(Time.ex,each=length(Group.ex)),
-#'                        Nb.Spe.DE=Nb.Spe)
+#' Group.ex <- c('G1', 'G2', 'G3')
+#' Time.ex <- c('t1', 't2', 't3', 't4')
+#' Spe.sign.ex <- c("Pos", "Neg")
+#' GtimesT <- length(Group.ex)*length(Time.ex)
 #'
-#' DEplotBarplotFacetGrid(Data=Melt.Dat.1,Abs.col=2,Legend.col=2,
-#'                        Facet.col=1,Value.col=3,
-#'                        Color.Legend=NULL)
-#' DEplotBarplotFacetGrid(Data=Melt.Dat.1,Abs.col=1,Legend.col=1,
-#'                        Facet.col=2,Value.col=3,
-#'                        Color.Legend=NULL)
-#' ##-------------------------------------------------------------------------#
-#' Melt.Dat.2=data.frame(Group=rep(Group.ex,times=length(Time.ex)*2),
-#'                       Time=rep(Time.ex,each=length(Group.ex)*2),
-#'                       Spe.sign=rep(Spe.sign.ex,
-#'                                    times=length(Time.ex)*length(Group.ex)*2),
-#'                       Nb.Spe.DE=Nb.Spe.sign)
+#' Nb.Spe <- sample(3:60, GtimesT, replace=FALSE)
+#' Nb.Spe.sign <- sample(3:60, 2*GtimesT, replace=FALSE)
+#'
+#' ##------------------------------------------------------------------------##
+#' Melt.Dat.1 <- data.frame(Group=rep(Group.ex, times=length(Time.ex)),
+#'                          Time=rep(Time.ex, each=length(Group.ex)),
+#'                          Nb.Spe.DE=Nb.Spe)
+#'
+#' DEplotBarplotFacetGrid(Data=Melt.Dat.1, Abs.col=2, Legend.col=2,
+#'                        Facet.col=1, Value.col=3, Color.Legend=NULL)
+#' DEplotBarplotFacetGrid(Data=Melt.Dat.1, Abs.col=1, Legend.col=1,
+#'                        Facet.col=2, Value.col=3, Color.Legend=NULL)
+#' ##------------------------------------------------------------------------##
+#' Melt.Dat.2 <- data.frame(Group=rep(Group.ex, times=length(Time.ex)*2),
+#'                          Time=rep(Time.ex, each=length(Group.ex)*2),
+#'                          Spe.sign=rep(Spe.sign.ex, times=2*GtimesT),
+#'                          Nb.Spe.DE=Nb.Spe.sign)
 #'
 #' DEplotBarplotFacetGrid(Data=Melt.Dat.2,
 #'                        Abs.col=1,
@@ -86,58 +89,56 @@ DEplotBarplotFacetGrid <- function(Data,
                                    Legend.col,
                                    Facet.col,
                                    Value.col,
-                                   Color.Legend=NULL) {
-    ##------------------------------------------------------------------------#
+                                   Color.Legend=NULL,
+                                   LabsPlot=c("", "")) {
+    ##-----------------------------------------------------------------------##
     ## Data preprocessing for graph if 'Abs.col!=Legend.col'
-    if(Abs.col!=Legend.col){
-        if(!is.null(Color.Legend)){
-            Data[,Legend.col]<-factor(Data[,Legend.col],
-                                      levels=Color.Legend[,1])
-        }else{
-            Data[,Legend.col]<-factor(Data[,Legend.col])
+    if (Abs.col != Legend.col) {
+        if (!is.null(Color.Legend)) {
+            Data[,Legend.col] <- factor(Data[,Legend.col],
+                                        levels=Color.Legend[,1])
+        } else {
+            Data[,Legend.col] <- factor(Data[,Legend.col])
         }## if(!is.null(Color.Legend))
     }## if(Abs.col!=Legend.col)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    xeval <- eval(rlang::syms(colnames(Data)[Abs.col])[[1]], Data)
-    yeval <- eval(rlang::syms(colnames(Data)[Value.col])[[1]], Data)
+    ## xeval <- eval(rlang::syms(colnames(Data)[Abs.col])[[1]], Data)
+    ## yeval <- eval(rlang::syms(colnames(Data)[Value.col])[[1]], Data)
+    xeval <- as.character(Data[,Abs.col])
+    yeval <- as.numeric(Data[,Value.col])
     colq <- "dark grey"
     formulaCH <- paste(". ~", colnames(Data)[Facet.col])
 
-    ##------------------------------------------------------------------------#
-    q.dodged<-ggplot2::ggplot(Data, fill=Data[, Legend.col],
-                              ggplot2::aes(xeval, yeval))+
-        ggplot2::facet_grid(stats::as.formula(formulaCH))+
-        ggplot2::xlab("") + ggplot2::ylab("Number of genes") +
-        ggplot2::theme(panel.background=ggplot2::element_rect(colour=colq))+
-        ggplot2::theme(strip.text.x=ggplot2::element_text(size=22,face="bold"),
+    ##-----------------------------------------------------------------------##
+    q.dodged <- ggplot2::ggplot(Data, fill=Data[,Legend.col],
+                                ggplot2::aes(xeval, yeval)) +
+        ggplot2::facet_grid(stats::as.formula(formulaCH)) +
+        ggplot2::xlab(LabsPlot[1]) + ggplot2::ylab(LabsPlot[2]) +
+        ggplot2::theme(panel.background=ggplot2::element_rect(colour=colq)) +
+        ggplot2::theme(strip.text.x=ggplot2::element_text(size=22, face="bold"),
                        strip.background=ggplot2::element_rect(colour=colq))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
     if (Abs.col != Legend.col) {
         fbn <- colnames(Data)[Legend.col]
-        fillBarlot <- eval(rlang::syms(colnames(Data)[Legend.col])[[1]], Data)
-        q.dodged<-q.dodged+
+        fillBarlot <- as.factor(Data[,Legend.col])
+        ## fillBarlot<-eval(rlang::syms(colnames(Data)[Legend.col])[[1]], Data)
+        q.dodged <- q.dodged +
             ggplot2::geom_bar(ggplot2::aes(fill=fillBarlot),
-                              stat="identity", color="black")+
+                              stat="identity", color="black") +
             ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45)) +
-            ggplot2::guides(fill=guide_legend(title=fbn))
+            ggplot2::guides(fill=ggplot2::guide_legend(title=fbn))
 
         if (!is.null(Color.Legend)) {
-            q.dodged<-q.dodged+
-                ggplot2::scale_fill_manual(values=as.character(Color.Legend[,
-                                                                            2]))
+            colorLGD <- as.character(Color.Legend[,2])
+            q.dodged <- q.dodged + ggplot2::scale_fill_manual(values=colorLGD)
         }## if(!is.null(Color.Legend))
     } else {
-        q.dodged<-q.dodged+
+        q.dodged <- q.dodged+
             ggplot2::geom_bar(fill="#E69F00", color="black", stat="identity")+
             ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=90))
-    }## if(Abs.col!=Legend.col)
+    }## if(Abs.col != Legend.col)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Output
     return(Barplot.dodged.G.T=q.dodged)
 }## DEplotBarplotFacetGrid()

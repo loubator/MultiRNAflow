@@ -54,6 +54,11 @@
 #' \code{ColumnsCriteria} and \code{Set.Operation}.
 #' * The genes specified by \code{ColumnsCriteria} and \code{Set.Operation}.
 #'
+#' @importFrom SummarizedExperiment rowData colData rownames assays
+#' @importFrom S4Vectors metadata
+#' @importFrom utils write.table
+
+#'
 #' @export
 #'
 #' @examples
@@ -67,7 +72,7 @@
 #'                             Time.position=NULL,
 #'                             Individual.position=2)
 #'
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' ## Transformation of resDATAprepSE into results of DEanalysisGlobal
 #' resultsExamples <- data.frame(Gene=paste0("Gene", seq_len(5)),
 #'                               DE1=c(0, 1, 0, 0, 1),
@@ -78,7 +83,7 @@
 #' S4Vectors::metadata(resDATAprepSE)$DESeq2obj$pathNAME <- listPATHnameEx
 #' S4Vectors::metadata(resDATAprepSE)$DESeq2obj$SEidentification<-"SEresultsDE"
 #'
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' ## results of DEanalysisSubData
 #' resDEsub <- DEanalysisSubData(SEresDE=resDATAprepSE,
 #'                               ColumnsCriteria=c(2, 3),
@@ -89,8 +94,8 @@ DEanalysisSubData <- function(SEresDE,
                               ColumnsCriteria=1,
                               Set.Operation="union",
                               Save.SubData=FALSE){
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Check 1
     ## DATAprepSE
     Err_SE <- paste0("'SEresDE' mut be the results of the function ",
@@ -101,7 +106,7 @@ DEanalysisSubData <- function(SEresDE,
         stop(Err_SE)
     } else {
         DESeq2objList <- S4Vectors::metadata(SEresDE)$DESeq2obj
-        codeDEres <-DESeq2objList$SEidentification <-"SEresultsDE"
+        codeDEres <- DESeq2objList$SEidentification
 
         if (is.null(codeDEres)) {
             stop(Err_SE)
@@ -112,21 +117,22 @@ DEanalysisSubData <- function(SEresDE,
         }## if (codeDEres != SEresultsDE))
     }## if (!is(SEresDE, "SummarizedExperiment"))
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Check
     if (!Set.Operation%in%c("union", "intersect", "setdiff")) {
         stop("Set.Operation mut be 'union', 'intersect' or 'setdiff'")
     }## if(Set.Operation%in%c("union", "intersect", "setdiff")==FALSE)
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ## S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME
     resDESeq2obj <- S4Vectors::metadata(SEresDE)$DESeq2obj
-    resPATH <- resDESeq2obj$pathNAME$Path.result
+    resPATH <- resDESeq2obj$pathNAME
     DatRowSel <- SummarizedExperiment::rowData(SEresDE)
-    ncol.DatRowSel <- ncol(DatRowSel)
     nrow.DatRowSel <- Nb.rows.Data <- nrow(DatRowSel)
+    ncol.DatRowSel <- ncol(DatRowSel)
 
-    ##------------------------------------------------------------------------#
-    if (is.numeric(ColumnsCriteria) == TRUE) {
+    ##-----------------------------------------------------------------------##
+    if (is.numeric(ColumnsCriteria)) {
 
         if (sum(abs(floor(ColumnsCriteria)-ColumnsCriteria))>0) {
             stop("'ColumnsCriteria' must be integers or characters")
@@ -134,12 +140,13 @@ DEanalysisSubData <- function(SEresDE,
 
     } else {
 
-        if (is.character(ColumnsCriteria) == TRUE) {
+        if (is.character(ColumnsCriteria)) {
             ColumnsCriteria.2 <- rep(NA, times=length(ColumnsCriteria))
 
             for (i in seq_len(length(ColumnsCriteria))) {
                 lenCOLcriteria <- length(grep(pattern=ColumnsCriteria[i],
-                                              x=colnames(DatRowSel)))
+                                              x=colnames(DatRowSel),
+                                              fixed=TRUE))
                 if (lenCOLcriteria == 0) {
                     Stop.WrongNames <- paste("The element", i, "of",
                                              "'ColumnsCriteria'",
@@ -149,7 +156,8 @@ DEanalysisSubData <- function(SEresDE,
                 ### x=colnames(DatRowSel)))==0)
 
                 ColumnsCriteria.2[i] <- grep(pattern=ColumnsCriteria[i],
-                                             x=colnames(DatRowSel))
+                                             x=colnames(DatRowSel),
+                                             fixed=TRUE)
             }## for(i in 1:length(ColumnsCriteria))
 
             ColumnsCriteria <- sort(ColumnsCriteria.2)
@@ -158,29 +166,33 @@ DEanalysisSubData <- function(SEresDE,
         }## if(is.character(ColumnsCriteria)==TRUE)
     }## if(is.numeric(ColumnsCriteria)==TRUE)
 
-    ##------------------------------------------------------------------------#
-    if (ncol.DatRowSel == 1) {
-        ColumnsCriteria <- c(1)
-    }## if(ncol.DatRowSel==1)
+    ##-----------------------------------------------------------------------##
+    ## if (ncol.DatRowSel == 1) {
+    ##     ColumnsCriteria <- c(1)
+    ## }## if(ncol.DatRowSel==1)
 
     if (max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1) {
         Stop.WrongIntegers <- paste("Integers of 'ColumnsCriteria' must be",
-                                    "between 1 and", ncol.DatRowSel, sep=" ")
+                                    "between 1 and", ncol.DatRowSel)
         stop(Stop.WrongIntegers)
     }## if(max(ColumnsCriteria)>ncol.DatRowSel | min(ColumnsCriteria)<1)
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     if (length(ColumnsCriteria) == 1) {
         DEsel <- which(as.numeric(DatRowSel[, ColumnsCriteria])>0)
     }## if(length(ColumnsCriteria)==1)
 
     if (Set.Operation == "union" & length(ColumnsCriteria)>1) {
-        Sum.colsel <- apply(data.frame(DatRowSel[, ColumnsCriteria]), 1, sum)
+        Sum.colsel <- apply(X=data.frame(DatRowSel[, ColumnsCriteria]),
+                            MARGIN=1,
+                            FUN=sum)
         DEsel <- which(as.numeric(Sum.colsel)>0)
     }## if(Set.Operation=="union" & length(ColumnsCriteria)>1)
 
     if (Set.Operation == "intersect" & length(ColumnsCriteria)>1) {
-        Prod.colsel <- apply(data.frame(DatRowSel[, ColumnsCriteria]), 1, prod)
+        Prod.colsel <- apply(X=data.frame(DatRowSel[, ColumnsCriteria]),
+                             MARGIN=1,
+                             FUN=prod)
         DEsel <- which(as.numeric(Prod.colsel)>0)
     }## if(Set.Operation=="intersect" & length(ColumnsCriteria)>1)
 
@@ -193,8 +205,8 @@ DEanalysisSubData <- function(SEresDE,
 
     L.DEsel <- length(DEsel)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     listDEselected <- list(DEselectedGenes=DEsel,
                            ColumnsCriteria=ColumnsCriteria,
                            Set.Operation=Set.Operation)
@@ -229,48 +241,53 @@ DEanalysisSubData <- function(SEresDE,
         colNAMESini <- S4Vectors::metadata(SEresDE)$RAWcolnames
         colGene1 <- S4Vectors::metadata(SEresDE)$colGene
 
-        SEresSEsub <-DATAprepSE(RawCounts=COUNTsub,
-                                Column.gene=1,
-                                Group.position=NULL,
-                                Time.position=NULL,
-                                Individual.position=NULL,
-                                colData=data.frame(colSEsub))
+        SEresSEsub <- DATAprepSE(RawCounts=COUNTsub,
+                                 Column.gene=1,
+                                 Group.position=NULL,
+                                 Time.position=NULL,
+                                 Individual.position=NULL,
+                                 colData=data.frame(colSEsub))
 
         SummarizedExperiment::assays(SEresSEsub)$rle <- RLEsub[DEsel,]
         S4Vectors::metadata(SEresSEsub)$RAWcolnames <- colNAMESini
         S4Vectors::metadata(SEresSEsub)$colGene <- colGene1
         S4Vectors::metadata(SEresSEsub)$DEselection <- listDEselected
-        S4Vectors::metadata(SEresSEsub)$SEidentification <-"SEresNormalization"
+        S4Vectors::metadata(SEresSEsub)$SEidentification <- "SEresNormalization"
+
+        SummarizedExperiment::rowData(SEresSEsub) <- DatRowSel[DEsel,]
 
     }## if(L.DEsel>0 & L.DEsel<Nb.rows.Data)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Folder path and creation
     if (!isFALSE(Save.SubData)) {
-        if (Save.SubData == TRUE) {
-            path.result <- resPATH
+        if (isTRUE(Save.SubData)) {
+            path.result <- resPATH$Path.result
         } else {
             path.result <- Save.SubData
         }## if(Save.SubData==TRUE)
 
-        utils::write.table(SummarizedExperiment::assays(SEresSEsub)$rle,
-                           file=file.path(path.result, "Sub_DataRLE.csv"),
-                           sep=";", row.names=FALSE)
+        if (!is.null(path.result)) {
+            utils::write.table(SummarizedExperiment::assays(SEresSEsub)$rle,
+                               file=file.path(path.result, "Sub_DataRLE.csv"),
+                               sep=";", row.names=FALSE)
 
-        utils::write.table(SummarizedExperiment::assays(SEresSEsub)$counts,
-                           file=file.path(path.result,"Sub_RawCountsData.csv"),
-                           sep=";", row.names=FALSE)
+            utils::write.table(SummarizedExperiment::assays(SEresSEsub)$counts,
+                               file=file.path(path.result,
+                                              "Sub_RawCountsData.csv"),
+                               sep=";", row.names=FALSE)
 
-        utils::write.table(DatRowSel,
-                           file=file.path(path.result, "Sub_DEresults.csv"),
-                           sep=";", row.names=FALSE)
+            utils::write.table(DatRowSel,
+                               file=file.path(path.result, "Sub_DEresults.csv"),
+                               sep=";", row.names=FALSE)
+        }## if (!is.null(path.result))
     } else {
         path.result <- NULL
     }## if(isFALSE(Save.SubData)==FALSE)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Output
     ## list(SubData, SubDataCriteria=DatRowSel, RowsSelected=DEsel)
     return(SEresSEsub)

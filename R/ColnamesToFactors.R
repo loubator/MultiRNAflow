@@ -84,7 +84,7 @@
 #' ## Data simulated with our function RawCountsSimulation()
 #' Data.sim <- RawCountsSimulation(Nb.Group=3, Nb.Time=2, Nb.per.GT=3,
 #'                                 Nb.Gene=10)
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' res.test.colnames <- ColnamesToFactors(ExprData=Data.sim$Sim.dat,
 #'                                        Column.gene=1,
 #'                                        Group.position=1,
@@ -97,60 +97,31 @@ ColnamesToFactors <- function(ExprData,
                               Group.position,
                               Time.position,
                               Individual.position) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Every sample must have an indidual name
-    if (is.null(Individual.position)) {
-        stop("Every sample must have an indidual name (name or number).")
-    } else {
-        if(floor(Individual.position) != Individual.position){
-            stop("'Individual.position' must be an integer.")
-        }## if(floor(Individual.position) != Individual.position)
-    }## if(is.null(Individual.position))
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check inputs
+    resErr <- ErrColnamesToFactors(ExprData=ExprData,
+                                   Column.gene=Column.gene,
+                                   Group.position=Group.position,
+                                   Time.position=Time.position,
+                                   Individual.position=Individual.position)
 
-    ## Biological condition & Times point absent
-    if (is.null(Group.position) & is.null(Time.position)) {
-        stop("Samples must belong to at least one time or one group.")
-    }## if(is.null(Group.position) & is.null(Time.position))
-
-    if (!is.null(Column.gene)) {
-        if (floor(Column.gene) != Column.gene){
-            stop("'Column.gene' must be an integer.")
-        }## if (floor(Column.gene) != Column.gene)
-    }## if (!is.null(Column.gene))
-
-    if (!is.null(Group.position)) {
-        if (floor(Group.position) != Group.position){
-            stop("'Group.position' must be an integer.")
-        }## if (floor(Group.position) != Group.position)
-    }## if (!is.null(Group.position))
-
-    if (!is.null(Time.position)) {
-        if (floor(Time.position) != Time.position){
-            stop("'Time.position' must be an integer.")
-        }## if (floor(Time.position) != Time.position)
-    }## if (!is.null(Time.position))
-
-    if (!is.data.frame(ExprData)) {
-        stop("'ExprData' must be a matrix of class data.frame.")
-    }## if (!is.data.frame(ExprData))
-
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Column names with underscore
     colnames.with.underscore <- colnames(ExprData)
+
     ## Index of each sample
     if (is.null(Column.gene)) {
         ind.col.expr <- seq_len(length(colnames.with.underscore))
     } else {
         ind.col.expr <- seq_len(length(colnames.with.underscore))[-Column.gene]
     }## if(is.null(Column.gene))
-    ##
+
     Vect.colnames <- colnames.with.underscore[ind.col.expr]
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Transform colnames into a matrix containing in each row
     ## Individual information, Group information and or Time information
     Colnames.matrix.info <- matrix(unlist(strsplit(Vect.colnames,
@@ -158,30 +129,29 @@ ColnamesToFactors <- function(ExprData,
                                                    fixed=TRUE)),
                                    ncol=length(Vect.colnames))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Case when individual names are numbers
     Individual.Names <- Colnames.matrix.info[Individual.position,]
+
     if (!is.numeric(Individual.Names)) {
         Individual.info <- Individual.Names
     } else {
-        Individual.info <- paste("r",
-                                 CharacterNumbers(Individual.Names),
-                                 sep="")
+        Individual.info <- paste0("r", CharacterNumbers(Individual.Names))
     }## if(!is.numeric(Individual.Names))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Biological conditions & Times points present
     if (!is.null(Group.position) & !is.null(Time.position)) {
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Setting
         Tps.info.ini <- as.character(Colnames.matrix.info[Time.position,])
         Tps.info <- gsub("T", "", gsub("t", "", Tps.info.ini))
         Time.info.f <- paste0("t", CharacterNumbers(as.numeric(Tps.info)))
         Group.info <- as.character(Colnames.matrix.info[Group.position,])
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Cases when algorithm must stop
         Contingency.GT <- matrix(table(Group.info, Time.info.f),
                                  ncol=ncol(table(Group.info, Time.info.f)),
@@ -196,7 +166,7 @@ ColnamesToFactors <- function(ExprData,
                                                          Time.info.f)))
         Var.IT <- sum(apply(Contingency.IT, 1, stats::var))
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Check, stop
         if (Var.GT + Var.IT + max(Contingency.IT) - 1 > 0) {
             Stop.BC.T <- paste("Every individual must have a unique name,",
@@ -205,28 +175,28 @@ ColnamesToFactors <- function(ExprData,
                                ncol(Contingency.IT), "time measurements.")
             stop(Stop.BC.T)
         }## if(Var.GT + Var.IT + max(Contingency.IT)-1>0)
-        ##
+
         if (min(c(table(Group.info, Time.info.f))) < 2) {
             stop("Each group must have at least two individuals.")
         }## if(min(c(table(Group.info,Time.info.f)))<2)
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Final name
         Final.Name <- paste0(Group.info, ".",
                              Individual.info, ".",
                              Time.info.f)
-    }## if(is.null(Group.position)==FALSE & is.null(Time.position)==FALSE)
+    }## if (!is.null(Group.position) & !is.null(Time.position))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Biological condition present & Times points absent
     if (!is.null(Group.position) & is.null(Time.position)) {
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Setting
         Time.info.f <- Tps.info <- NULL
         Group.info <- as.character(Colnames.matrix.info[Group.position,])
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Cases when algorithm must stop
         Contingency.IG <- matrix(table(Individual.info, Group.info),
                                  ncol=ncol(table(Individual.info, Group.info)),
@@ -235,7 +205,7 @@ ColnamesToFactors <- function(ExprData,
         ##
         Var.IG <- stats::var(apply(Contingency.IG, 1, sum))
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Check, stop
         if (Var.IG + max(apply(Contingency.IG, 1, sum)) - 1 > 0) {
             stop("Every individual must be associated to only one group.")
@@ -243,25 +213,25 @@ ColnamesToFactors <- function(ExprData,
         ##
         if (min(apply(Contingency.IG, 2, sum)) < 2) {
             stop("Each group must have at least two individuals.")
-        }## if(min(apply(Contingency.IG,2,sum))<2)
+        }## if(min(apply(Contingency.IG, 2, sum))<2)
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Final name
         Final.Name <- paste(Group.info, ".", Individual.info, sep="")
-    }## if(is.null(Group.position)==FALSE & is.null(Time.position)==TRUE)
+    }## if (!is.null(Group.position) & is.null(Time.position))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Biological condition absent & Times points present
     if (is.null(Group.position) & !is.null(Time.position)) {
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Setting
         Tps.info.ini <- as.character(Colnames.matrix.info[Time.position,])
         Tps.info <- gsub("T", "", gsub("t", "", Tps.info.ini))
         Time.info.f <- paste0("t", CharacterNumbers(as.numeric(Tps.info)))
         Group.info <- NULL
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Cases when algorithm must stop
         if (length(Time.info.f) == length(unique(Time.info.f))) {
             Stop.Tinfo <- paste("The data must contain the temporal",
@@ -276,7 +246,7 @@ ColnamesToFactors <- function(ExprData,
                                                          Time.info.f)))
         Var.IT <- sum(apply(Contingency.IT, 1, stats::var))
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## Check, stop
         if (Var.IT + max(Contingency.IT) - 1 > 0) {
             Stop.T <- paste("Every individual must have a unique name and",
@@ -285,18 +255,18 @@ ColnamesToFactors <- function(ExprData,
             stop(Stop.T)
         }## if(Var.IT + max(Contingency.IT)-1>0)
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         Final.Name <- paste0(Individual.info, ".", Time.info.f)
-    }## if(is.null(Group.position)==TRUE & is.null(Time.position)==FALSE)
+    }## if (is.null(Group.position) & !is.null(Time.position))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Data with initial and final sample names
     data.code.names <- data.frame(Initial.name=Vect.colnames,
                                   Final.Name=Final.Name)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Output
     return(list(Final.Name=Final.Name,
                 Group.Info=Group.info,
@@ -304,3 +274,85 @@ ColnamesToFactors <- function(ExprData,
                 Individual.info=Individual.info,
                 Data.code.names=data.code.names))
 }## ColnamesToFactors()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrNNI <- function(NNI, NNIname) {
+    ##-----------------------------------------------------------------------##
+    NNImessage <- paste0("'", NNIname, "'", " must be a non-negative integer.")
+    if (!is.numeric(NNI)) {
+        stop(NNImessage)
+    }## if (!is.numeric(NNI))
+
+    if (floor(NNI) != NNI | NNI < 1) {
+        stop(NNImessage)
+    }## if (floor(NNI) != NNI | NNI < 1)
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrNonNegativeInteger
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrPosition <- function(Column.gene,
+                        Group.position,
+                        Time.position,
+                        Individual.position) {
+    ##-----------------------------------------------------------------------##
+    ## Every sample must have an indidual name
+    if (is.null(Individual.position)) {
+        stop("Every sample must have an indidual name (name or number).")
+    } else {
+        resI_ErrNNI <- ErrNNI(Individual.position, "Individual.position")
+    }## if(is.null(Individual.position))
+
+    ## Biological condition & Times point absent
+    if (is.null(Group.position) & is.null(Time.position)) {
+        stop("Samples must belong to at least one time or one group.")
+    }## if(is.null(Group.position) & is.null(Time.position))
+
+    if (!is.null(Column.gene)) {
+        resC_ErrNNI <- ErrNNI(Column.gene, "Column.gene")
+    }## if (!is.null(Column.gene))
+
+    if (!is.null(Group.position)) {
+        resG_ErrNNI <- ErrNNI(Group.position, "Group.position")
+    }## if (!is.null(Group.position))
+
+    if (!is.null(Time.position)) {
+        resT_ErrNNI <- ErrNNI(Time.position, "Time.position")
+    }## if (!is.null(Time.position))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrPosition()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrColnamesToFactors <- function(ExprData,
+                                 Column.gene,
+                                 Group.position,
+                                 Time.position,
+                                 Individual.position) {
+    ##-----------------------------------------------------------------------##
+    if (!is.data.frame(ExprData)) {
+        stop("'ExprData' must be a matrix of class data.frame.")
+    }## if (!is.data.frame(ExprData))
+
+    resErrPosition <- ErrPosition(Column.gene=Column.gene,
+                                  Group.position=Group.position,
+                                  Time.position=Time.position,
+                                  Individual.position=Individual.position)
+
+    ##-----------------------------------------------------------------------##
+    return(Message=resErrPosition)
+}## ErrColnamesToFactors()

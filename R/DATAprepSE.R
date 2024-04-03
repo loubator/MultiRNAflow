@@ -75,19 +75,38 @@
 #' \code{Individual.position} are filled, set \code{colData=NULL}.
 #' * If samples belong to different times point and different biological
 #' condition
-#'  * the first column must contain the biological condition for each sample.
-#'  The column name must be "Group".
-#'  * the second column must contain the time measurement for each sample.
-#'  The column name must be "Time".
-#'  * The third column must contain the individual name for each sample.
-#'  The column name must be "ID".
+#'   * the first column must contain the biological condition for each sample.
+#'   The column name must be "Group".
+#'   * the second column must contain the time measurement for each sample.
+#'   The column name must be "Time".
+#'   * The third column must contain the individual name for each sample.
+#'   The column name must be "ID".
 #' * If samples belong to different times point or different biological
 #' condition
-#'  * the first column must contain, either the biological condition
-#'  for each sample, or the time measurement for each sample..
-#'  The column name must be either "Group", or "Time".
-#'  * The second column must contain the individual name for each sample.
-#'  The column name must be "ID".
+#'   * the first column must contain, either the biological condition
+#'   for each sample, or the time measurement for each sample.
+#'   The column name must be either "Group", or "Time".
+#'   * The second column must contain the individual name for each sample.
+#'   The column name must be "ID".
+#' @param VARfilter Positive numeric value, 0 as default.
+#' All rows of \code{RawCounts} which the variance of counts is strictly under
+#' the threshold \code{VARfilter} are deleted
+#' @param SUMfilter Positive numeric value, 0 as default.
+#' All rows of \code{RawCounts} which the sum of counts is strictly under
+#' the threshold \code{SUMfilter} are deleted.
+#' @param RNAlength \code{NULL} or "hsapiens" or data.frame with two columns.
+#' \code{NULL} as default.
+#' * if \code{RNAlength} is a data.frame
+#'   * the first column must contain gene names
+#'   (similar to those of \code{RawCounts})
+#'   * the second columns must contain the median of the transcript length
+#'   of each gene of the first column
+#'   and all rows of \code{RawCounts} whose genes are not included in
+#'   the first column of \code{RNAlength} will be deleted.
+#' * if \code{RNAlength=NULL}, no rows will be deleted.
+#'
+#' If \code{RNAlength} is either "hsapiens" or a data.frame,
+#' \code{Column.gene} can not be \code{NULL}.
 #'
 #' @return The function returns a SummarizedExperiment object containing
 #' all information for exploratory (unsupervised) analysis and
@@ -122,117 +141,69 @@
 #'                                        replace=TRUE),
 #'                                 ncol=length(SampleNAMEex), nrow=10))
 #' colnames(RawCountEx) <- c("Gene.name", SampleNAMEex)
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' resDATAprepSE <- DATAprepSE(RawCounts=RawCountEx,
 #'                             Column.gene=1,
 #'                             Group.position=1,
 #'                             Time.position=3,
 #'                             Individual.position=2)
 #' ##
-#' ## colDataEx <- data.frame(Group=BCex, Time=TimeEx, ID=PATex)
+#' ## colDataEx <- data.frame(Group=BgCdEx, Time=TimeEx, ID=IndvEx)
 
 DATAprepSE <- function(RawCounts,
                        Column.gene,
                        Group.position,
                        Time.position,
                        Individual.position,
-                       colData=NULL) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check 1
-    if (is.null(Time.position) & is.null(Group.position) & is.null(colData)) {
-        Err_NULL <- paste0("'Time.position', 'Group.position' and colData ",
-                           "can not be all 'NULL'")
-        stop(Err_NULL)
-    }## if(is.null(Time.position) & is.null(Group.position) & is.null(colData))
+                       colData=NULL,
+                       VARfilter=0,
+                       SUMfilter=0,
+                       RNAlength=NULL) {
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check inputs
+    resErr <- ErrDATAprepSE(RawCounts=RawCounts, Column.gene=Column.gene,
+                            Group.position=Group.position,
+                            Time.position=Time.position,
+                            Individual.position=Individual.position,
+                            colData=colData, RNAlength=RNAlength,
+                            VARfilter=VARfilter, SUMfilter=SUMfilter)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check 2
-    if (is.null(colData)) {
-        ## Every sample must have an indidual name
-        if (is.null(Individual.position)) {
-            stop("Every sample must have an indidual name (name or number).")
-        } else {
-            if(floor(Individual.position) != Individual.position){
-                stop("'Individual.position' must be an integer.")
-            }## if(floor(Individual.position) != Individual.position)
-        }## if(is.null(Individual.position))
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## RNA length filter
+    resLength <- subRNAfilter(RawCounts=RawCounts, Column.gene=Column.gene,
+                              RNAlength=RNAlength)
+    RawCounts2 <- resLength$RawCounts
+    RNAfilter2 <- resLength$RNAfilter
 
-        if (!is.null(Column.gene)) {
-            if (floor(Column.gene) != Column.gene){
-                stop("'Column.gene' must be an integer.")
-            }## if (floor(Column.gene) != Column.gene)
-        }## if (!is.null(Column.gene))
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## RNA count filter
+    resCount <- subCOUNTfilter(RawCounts=RawCounts2, Column.gene=Column.gene,
+                               VARfilter=VARfilter, SUMfilter=SUMfilter)
+    RawCounts2 <- resCount$RawCounts
+    RNAfilter3 <- append(resCount$COUNTfilter, RNAfilter2)
 
-        if (!is.null(Group.position)) {
-            if (floor(Group.position) != Group.position){
-                stop("'Group.position' must be an integer.")
-            }## if (floor(Group.position) != Group.position)
-        }## if (!is.null(Group.position))
-
-        if (!is.null(Time.position)) {
-            if (floor(Time.position) != Time.position){
-                stop("'Time.position' must be an integer.")
-            }## if (floor(Time.position) != Time.position)
-        }## if (!is.null(Time.position))
-
-        if (!is.data.frame(RawCounts)) {
-            stop("'RawCounts' must be a matrix of class data.frame.")
-        }## if (!is.data.frame(RawCounts))
-    } else {
-        if (!is.data.frame(colData)) {
-            stop("'colData' must be a matrix of class data.frame.")
-        }## if (!is.data.frame(colData))
-        colData <- data.frame(colData)
-
-        if (ncol(colData) == 1 | ncol(colData) > 3) {
-            stop("'colData' must have two or three coulumns")
-        }## if (!is.null(colData))
-
-        if (ncol(colData) == 3) {
-            columnTest <- identical(colnames(colData),
-                                    c("Group" ,"Time", "ID"))
-            ##
-            if (!isTRUE(columnTest)) {
-                Err_colname <- paste0("The column names of 'colData' must be ",
-                                      "'Group' ,'Time', 'ID'")
-                stop(Err_colname)
-            }## if (!isTRUE(columnTest))
-        }## if (ncol(colData)==3)
-
-        if (ncol(colData) == 2) {
-            columnTestG <- identical(colnames(colData), c("Group" ,"ID"))
-            columnTestT <- identical(colnames(colData), c("Time", "ID"))
-            ##
-            if (!isTRUE(columnTestG) & !isTRUE(columnTestT)) {
-                Err_colname <- paste0("The column names of 'colData' must be ",
-                                      "either 'Group', 'ID'",
-                                      "either 'Time', 'ID'")
-                stop(Err_colname)
-            }## if (!isTRUE(columnTestG) & !isTRUE(columnTestT))
-        }## if (ncol(colData)==2)
-    }## if (!is.null(colData))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Pre-processing
     if (!is.null(colData)) {
-        dataColToFct <- data.frame(RawCounts)[c(1, 2),]
+        dataColToFct <- data.frame(RawCounts2)[c(1, 2),]
         colData1v <- as.character(apply(colData, 1, paste, collapse="_"))
 
-        if (nrow(colData) == ncol(RawCounts)) {
+        if (nrow(colData) == ncol(RawCounts2)) {
             colnames(dataColToFct) <- colData1v
         } else {
 
-            if (nrow(colData) != ncol(RawCounts)-1) {
+            if (nrow(colData) != ncol(RawCounts2)-1) {
                 Err_nrowcolData <- paste("The number of rows of 'colData'",
                                          "must be equal to the number of",
                                          "samples (numbers of column (Nc) of",
                                          "'RawCounts' if 'Column.gene==NULL',",
                                          "Nc - 1 otherwise).")
                 stop(Err_nrowcolData)
-            }
+            }## if (nrow(colData) != ncol(RawCounts2)-1)
 
             ColNameColToFct <- c(colData1v, NA)
             SeqGeneFct <- seq(Column.gene, nrow(colData))
@@ -240,7 +211,7 @@ DATAprepSE <- function(RawCounts,
             ColNameColToFct[Column.gene] <- "Gene"
 
             colnames(dataColToFct) <- ColNameColToFct
-        }## if(nrow(colData) == ncol(RawCounts))
+        }## if(nrow(colData) == ncol(RawCounts2))
 
         if (c("Group")%in%colnames(colData)) {
             Gposition <- which(colnames(colData)%in%c("Group"))
@@ -257,7 +228,7 @@ DATAprepSE <- function(RawCounts,
         Iposition <- ncol(colData)
 
     } else {
-        dataColToFct <- RawCounts
+        dataColToFct <- RawCounts2
         Gposition <- Group.position
         Tposition <- Time.position
         Iposition <- Individual.position
@@ -272,7 +243,7 @@ DATAprepSE <- function(RawCounts,
     Vect.time <- res.Factors$Time.Info
     Vect.id <- res.Factors$Individual.info
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Biological conditions and time present
     if (!is.null(Vect.group) & !is.null(Vect.time)) {
         Vect.time <- gsub("T" , "", gsub("t", "", as.character(Vect.time)))
@@ -281,14 +252,14 @@ DATAprepSE <- function(RawCounts,
         design.DESeq2 <- stats::as.formula(~ Time + Group + Time:Group)
     }## if(!is.null(Vect.group) & !is.null(Vect.time))
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Biological condition present & Time absent
     if (!is.null(Vect.group) & is.null(Vect.time)) {
         colData.DESeq2 <- data.frame(Group=as.factor(Vect.group))
         design.DESeq2 <- stats::as.formula(~ Group)
     }## if(!is.null(Vect.group) & is.null(Vect.time))
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Biological conditions absent & Time present
     if (is.null(Vect.group) & !is.null(Vect.time)) {
         Vect.time <- gsub("T", "", gsub("t", "", as.character(Vect.time)))
@@ -296,27 +267,21 @@ DATAprepSE <- function(RawCounts,
         design.DESeq2 <- stats::as.formula(~ Time)
     }## if(is.null(Vect.group) & !is.null(Vect.time))
 
-    ##------------------------------------------------------------------------#
-    ## Biological conditions and time absent
-    ## if (is.null(Vect.group) & is.null(Vect.time)) {
-    ##     colData.DESeq2 <- NULL
-    ##     design.DESeq2 <- stats::as.formula(~ 1)
-    ## }## if(is.null(Vect.group) & is.null(Vect.time))
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Data with only expression
     if (is.null(Column.gene)) {
-        ind.col.expr <- seq_len(ncol(RawCounts))
-        RowNamesRawCounts <- paste0("Gene", seq_len(nrow(RawCounts)))
+        ind.col.expr <- seq_len(ncol(RawCounts2))
+        RowNamesRawCounts <- paste0("Gene", seq_len(nrow(RawCounts2)))
     } else {
-        ind.col.expr <- seq_len(ncol(RawCounts))[-Column.gene]
-        RowNamesRawCounts <- RawCounts[, Column.gene]
+        ind.col.expr <- seq_len(ncol(RawCounts2))[-Column.gene]
+        RowNamesRawCounts <- RawCounts2[, Column.gene]
     }## if (is.null(Column.gene))
 
-    mat.Data <- as.matrix(RawCounts[, ind.col.expr])
+    mat.Data <- as.matrix(RawCounts2[, ind.col.expr])
     row.names(mat.Data) <- RowNamesRawCounts
     colnames(mat.Data) <- res.Factors$Final.Name
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Preparation of SummarizedExperiment object
     dds <- DESeq2::DESeqDataSetFromMatrix(countData=mat.Data,
                                           colData=colData.DESeq2,
@@ -327,31 +292,49 @@ DATAprepSE <- function(RawCounts,
 
 
     SEformula <- design.DESeq2
-    # SEformula <- stats::reformulate(as.character(design.DESeq2)[-1],
-    #                                 response="counts")
+    ## SEformula <- stats::reformulate(as.character(design.DESeq2)[-1],
+    ##                                 response="counts")
     colINFOnb <- ncol(colData.DESeq2) + 1
     nameINFO <- seq(from=colINFOnb+1, to=colINFOnb+2, by=1)
     listColDataINFO <- list(colINFOfactors=seq_len(colINFOnb),
                             colINFOname=nameINFO)
 
-    ##------------------------------------------------------------------------#
+    listResults_ini <- list(UnsupervisedAnalysis=list(Normalization=NULL,
+                                                      PCA=NULL,
+                                                      HCPC=NULL,
+                                                      Mfuzz=NULL,
+                                                      GenesExpression=NULL),
+                            SupervisedAnalysis=list(Normalization=NULL,
+                                                    DEanalysis=NULL,
+                                                    VolcanoMAplots=NULL,
+                                                    Heatmaps=NULL,
+                                                    Rgprofiler2=NULL))
+
+    ##-----------------------------------------------------------------------##
     ## Creation of SummarizedExperiment object ## design.DESeq2
     SEobj <- SEobjFUN(mat.Data, colDataSE)
 
     S4Vectors::metadata(SEobj)$RAWcolnames <- colnames(RawCounts)
     S4Vectors::metadata(SEobj)$colGene <- Column.gene
     S4Vectors::metadata(SEobj)$colDataINFO <- listColDataINFO
+    S4Vectors::metadata(SEobj)$RNAfiltering <- RNAfilter3
     S4Vectors::metadata(SEobj)$DESeq2obj <- list(formula=SEformula,
                                                  DESeq2preproceesing=dds)
+    S4Vectors::metadata(SEobj)$Results <- listResults_ini
     S4Vectors::metadata(SEobj)$SEidentification <- c("SEstep")
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Outputs ## Data.Expression=mat.Data,
     ## Factors.Info=data.frame(colData.DESeq2, Samples=Vect.id)
     ## Data.code.names=res.Factors$Data.code.names,
     return(SEobj=SEobj)
 }## DATAprepSE()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 
 SEobjFUN <- function(x, y, z=NULL) {
     rSE <- SummarizedExperiment::SummarizedExperiment(assays=list(counts=x),
@@ -359,4 +342,306 @@ SEobjFUN <- function(x, y, z=NULL) {
                                                       rowData=z)
     return(resSE=rSE)
 }## SEobjFUN()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+subCOUNTfilter <- function(RawCounts,
+                           Column.gene,
+                           VARfilter=0,
+                           SUMfilter=0) {
+    ##-----------------------------------------------------------------------##
+    ## Step 1
+    matCount <- RawCounts
+
+    if (!is.null(Column.gene)) {
+        matCount <- matCount[,-Column.gene]
+        Genes <- as.character(matCount[,Column.gene])
+    } else {
+        Genes <- seq_len(nrow(matCount))
+    }## if (is.null(Column.gene))
+
+    COUNTfilter <- list(SUMdeleted=NULL, VARdeleted=NULL)
+
+    ##-----------------------------------------------------------------------##
+    ## Counts filter
+    idVar <- idSum <- c()
+
+    if (SUMfilter > 0) {
+        idSum <- which(apply(matCount, 1 , sum) < SUMfilter)
+    }## if (SUMfilter>0)
+
+    if (VARfilter > 0) {
+        idVar <- which(apply(matCount, 1 , var) < VARfilter)
+    }## if (VARfilter>0)
+
+    ##-----------------------------------------------------------------------##
+    ## Filtering
+    if (length(idSum) + length(idVar) > 0) {
+        idFilter <- sort(unique(c(idSum, idVar)))
+        RawCounts2 <- RawCounts[-idFilter,]
+
+        if (length(idSum) > 0) {
+            COUNTfilter[[1]] <- Genes[-idSum]
+        }## if (length(idSum) > 0)
+        if (length(idVar) > 0) {
+            COUNTfilter[[2]] <- Genes[-idVar]
+        }## if (length(idVar) > 0)
+
+    } else {
+        RawCounts2 <- RawCounts
+    }## if (length(idSum) + length(idVar) > 0)
+
+    ##-----------------------------------------------------------------------##
+    return(list(RawCounts=RawCounts2,
+                COUNTfilter=COUNTfilter))
+}## subCOUNTfilter()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+subRNAfilter <- function(RawCounts, Column.gene, RNAlength=NULL) {
+    ##-----------------------------------------------------------------------##
+    ## Sub RawCounts
+    if (!is.null(RNAlength)) {
+
+        hspns <- "hsapiens"
+        hspns01 <- identical(RNAlength, hspns)
+
+        if (isTRUE(hspns01)) {
+            RNAlength <- get(utils::data("Transcript_HomoSapiens_Database",
+                                         package="MultiRNAflow"))
+        }## if (isTRUE(hspns01))
+
+        gene_rwctINtrlg <- which(RawCounts[,Column.gene]%in%RNAlength[,1])
+        Nsimilar <- length(gene_rwctINtrlg)
+
+        if (Nsimilar == 0) {
+            Err_RNA5 <- paste0("No corresponding genes.")
+            stop(Err_RNA5)
+        }## if (Nsimilar == 0)
+
+        if (Nsimilar == nrow(RawCounts) | is.null(RNAlength)) {
+            RawCounts2 <- RawCounts
+            delGenes <- "No deleted Genes"
+        } else {
+            RawCounts2 <- RawCounts[gene_rwctINtrlg,]
+            delGenes <- as.character(RawCounts[-gene_rwctINtrlg, Column.gene])
+
+            Ndel <- nrow(RawCounts) - Nsimilar
+            print(paste0(Ndel, " genes deleted."))
+        }## if (Nsimilar == nrow(RawCounts) | is.null(RNAlength))
+
+        gene_trlgINrwct <- which(RNAlength[,1]%in%RawCounts2[,Column.gene])
+        RNAlength2 <- RNAlength[gene_trlgINrwct,]
+
+        RawCounts2 <- RawCounts2[order(RNAlength2[,Column.gene]),]
+        RNAlength2 <- RNAlength2[order(RNAlength2[,1]),]
+
+        RNAfilter <- list(LENGTHdeleted=delGenes, RNAlength=RNAlength2)
+    } else {
+        RawCounts2 <- RawCounts
+        RNAlength2 <- NULL
+        RNAfilter <- list(LENGTHdeleted=NULL, RNAlength=NULL)
+    }## if (!is.null(RNAlength))
+
+    ##-----------------------------------------------------------------------##
+    return(list(RawCounts=RawCounts2,
+                RNAfilter=RNAfilter))
+}## subRNAfilter()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrcolData <- function(colData) {
+
+    if (!is.data.frame(colData)) {
+        stop("'colData' must be a matrix of class data.frame.")
+    }## if (!is.data.frame(colData))
+    colData <- data.frame(colData)
+
+    if (ncol(colData) == 1 | ncol(colData) > 3) {
+        stop("'colData' must have two or three coulumns")
+    }## if (!is.null(colData))
+
+    if (ncol(colData) == 3) {
+        columnTest <- identical(colnames(colData),
+                                c("Group" ,"Time", "ID"))
+        ##
+        if (!isTRUE(columnTest)) {
+            Err_colname <- paste0("The column names of 'colData' must be ",
+                                  "'Group' ,'Time', 'ID'")
+            stop(Err_colname)
+        }## if (!isTRUE(columnTest))
+    }## if (ncol(colData) == 3)
+
+    if (ncol(colData) == 2) {
+        columnTestG <- identical(colnames(colData), c("Group" ,"ID"))
+        columnTestT <- identical(colnames(colData), c("Time", "ID"))
+        ##
+        if (!isTRUE(columnTestG) & !isTRUE(columnTestT)) {
+            Err_colname <- paste0("The column names of 'colData' must be ",
+                                  "either 'Group', 'ID'",
+                                  "either 'Time', 'ID'")
+            stop(Err_colname)
+        }## if (!isTRUE(columnTestG) & !isTRUE(columnTestT))
+    }## if (ncol(colData) == 2)
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrcolData()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrFilter <- function(VARfilter=0,
+                      SUMfilter=0) {
+    ##-----------------------------------------------------------------------##
+    if (!is.numeric(SUMfilter)) {
+        Err_sum <- paste0("'SUMfilter' must be a positive numeric value")
+        stop(Err_sum)
+    }## if (!is.numeric(SUMfilter))
+
+    if (SUMfilter < 0) {
+        Err_sum <- paste0("'SUMfilter' must be a positive numeric value")
+        stop(Err_sum)
+    }## if (SUMfilter < 0)
+
+    if (!is.numeric(VARfilter)) {
+        Err_var <- paste0("'VARfilter' must be a positive numeric value")
+        stop(Err_var)
+    }## if (!is.numeric(VARfilter))
+
+    if (VARfilter < 0) {
+        Err_var <- paste0("'VARfilter' must be a positive numeric value")
+        stop(Err_var)
+    }## if (VARfilter < 0)
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrFilter()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrRNAlength <- function(Column.gene, RNAlength=NULL) {
+    ##-----------------------------------------------------------------------##
+    hspns01 <- identical(RNAlength, "hsapiens")
+
+    if (!is.null(RNAlength) & !hspns01 & !is.data.frame(RNAlength)) {
+        Err_RNA <- paste0("'RNAlength' must be either NULL, 'hsapiens' ",
+                          "or a two columns data.frame.")
+        stop(Err_RNA)
+    }## if (!is.null(RNAlength) & !hspns01 & !is.data.frame(RNAlength))
+
+    if (!is.null(RNAlength) & is.null(Column.gene)) {
+        Err_RNA2 <- paste0("If 'RNAlength' is not NULL, ",
+                           "'Column.gene' can not be NULL too.")
+        stop(Err_RNA2)
+    }## if (!is.null(RNAlength) & is.null(Column.gene))
+
+    if (is.data.frame(RNAlength)) {
+        if (ncol(RNAlength) != 2) {
+            Err_RNA3 <- paste0("'RNAlength' must be a two columns data.frame.")
+            stop(Err_RNA3)
+        }## if (ncol(RNAlength) != 2)
+
+        if (!is.character(RNAlength[,1]) | !is.numeric(RNAlength[,2])) {
+            Err_RNA4 <- paste0("The first column of 'RNAlength' must be ",
+                               "character and the second numeric.")
+            stop(Err_RNA4)
+        }## if (is.character(RNAlength[,1]) & is.numeric(RNAlength[,2]))
+    }## if (is.data.frame(RNAlength))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrRNAlength()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrRawCounts <- function(RawCounts,
+                         Column.gene){
+    ##-----------------------------------------------------------------------##
+    if (!is.data.frame(RawCounts)) {
+        stop("'RawCounts' must be a matrix of class data.frame.")
+    }## if (!is.data.frame(RawCounts))
+
+    ##-----------------------------------------------------------------------##
+    ## check duplicated row.names colnames
+    if (!is.null(Column.gene)) {
+        Genes <- as.character(RawCounts[, Column.gene])
+        dupliGene <- which(duplicated(Genes))
+        if (length(dupliGene) > 0) {
+            Err_dupliGene <- paste0("There are ", length(dupliGene),
+                                    " duplicated genes: ",
+                                    unique(Genes[dupliGene]))
+            stop(Err_dupliGene)
+        }## if (length(dupliGene) > 0)
+    }## if (!is.null(Column.gene))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrRawCounts()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrDATAprepSE <- function(RawCounts,
+                          Column.gene,
+                          Group.position,
+                          Time.position,
+                          Individual.position,
+                          colData=NULL,
+                          VARfilter=0,
+                          SUMfilter=0,
+                          RNAlength=NULL) {
+    ##-----------------------------------------------------------------------##
+    ## Check 1
+    if (is.null(Time.position) & is.null(Group.position) & is.null(colData)) {
+        Err_NULL <- paste0("'Time.position', 'Group.position' and 'colData' ",
+                           "can not be all 'NULL'")
+        stop(Err_NULL)
+    }## if(is.null(Time.position) & is.null(Group.position) & is.null(colData))
+
+    ##-----------------------------------------------------------------------##
+    ## Check 2
+    if (is.null(colData)) {
+        ## Every sample must have an individual name
+        res_ErrPosition <- ErrPosition(Column.gene=Column.gene,
+                                       Group.position=Group.position,
+                                       Time.position=Time.position,
+                                       Individual.position=Individual.position)
+    } else {
+        res_colData <- ErrcolData(colData=colData)
+    }## if (!is.null(colData))
+
+    ##-----------------------------------------------------------------------##
+    res_ErrRawCounts <- ErrRawCounts(RawCounts=RawCounts,
+                                     Column.gene=Column.gene)
+
+    ##-----------------------------------------------------------------------##
+    ## Check RNAlength, SUMfilter, VARfilter
+    res_ErrRNAlength <- ErrRNAlength(Column.gene=Column.gene,
+                                     RNAlength=RNAlength)
+
+    res_ErrFilter <- ErrFilter(VARfilter=VARfilter, SUMfilter=SUMfilter)
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrDATAprepSE()
 

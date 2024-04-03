@@ -49,7 +49,9 @@
 #' If \code{NULL}, the graph will not be saved in a folder.
 #' \code{NULL} as default.
 #'
-#' @return The function returns
+#' @return The function returns the same SummarizedExperiment class object
+#' \code{SEresNorm} with the different elements below,
+#' saved in the metadata \code{Results[[1]][[4]]} of \code{SEresNorm},
 #' * the optimal number of clusters for each biological condition
 #' (between 2 and \code{Max.clust}).
 #' * a data.frame with (\eqn{N_{bc}+1}) columns and \code{Max.clust} rows
@@ -92,6 +94,8 @@
 #' [MFUZZanalysis()].
 #'
 #' @importFrom stats kmeans
+#' @importFrom ggplot2 ggplot aes geom_line geom_point ylim scale_color_manual
+#' ylab guides guide_legend theme
 #' @importFrom FactoMineR HCPC
 #' @importFrom SummarizedExperiment colData assays
 #' @importFrom S4Vectors metadata
@@ -116,14 +120,14 @@
 #'                             "G1_t0_r2", "G1_t1_r2", "G1_t2_r2",
 #'                             "G2_t0_r3", "G2_t1_r3", "G2_t2_r3",
 #'                             "G2_t0_r4", "G2_t1_r4", "G2_t2_r4")
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' ## Plot the temporal expression of each individual
 #' graphics::matplot(t(rbind(DATAclustSIM[, 1:3], DATAclustSIM[, 4:6],
 #'                           DATAclustSIM[, 7:9], DATAclustSIM[, 10:12])),
 #'                   col=rep(c("black", "red"), each=6*10),
 #'                   xlab="Time", ylab="Gene expression", type=c("b"), pch=19)
 #'
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' ## Preprocessing step
 #' DATAclustSIM <- data.frame(DATAclustSIM)
 #'
@@ -138,7 +142,7 @@
 #'                              Plot.Boxplot=FALSE,
 #'                              Colored.By.Factors=FALSE)
 #'
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' resMFUZZcluster <- MFUZZclustersNumber(SEresNorm=resNorm,
 #'                                        DATAnorm=FALSE,
 #'                                        Method="hcpc",
@@ -153,135 +157,93 @@ MFUZZclustersNumber <- function(SEresNorm,
                                 Min.std=0.1,
                                 Plot.Cluster=TRUE,
                                 path.result=NULL) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check 1
-    ## DATAprepSE
-    Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
-                     "'DATAnormalization().'")
+    ##-----------------------------------------------------------------------##
+    ## To avoid "no visible binding for global variable" with devtools::check()
+    Nb.clust <- value <- variable <- NULL
 
-    if (!is(SEresNorm, "SummarizedExperiment")) {
-        stop(Err_SE)
-    } else {
-        codeDEres <- S4Vectors::metadata(SEresNorm)$SEidentification
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check
+    resErr <- ErrMFUZZclustersNumber(SEresNorm,
+                                     DATAnorm=DATAnorm,
+                                     Method=Method,
+                                     Max.clust=Max.clust,
+                                     Min.std=Min.std,
+                                     Plot.Cluster=Plot.Cluster,
+                                     path.result=path.result)
 
-        if (is.null(codeDEres)) {
-            stop(Err_SE)
-        }## if (is.null(codeDEres))
-
-        if (codeDEres != "SEresNormalization") {
-            stop(Err_SE)
-        }## if (codeDEres != "SEresNormalization")
-    }## if (!is(SEresNorm, "SummarizedExperiment"))
-
-    if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm)) {
-        stop("'DATAnorm' must be TRUE or FALSE.")
-    }## if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check 2
-    if (!Method%in%c("hcpc", "kmeans")) {
-        stop("'Method' must be 'hcpc' or 'kmeans'.")
-    }## if (!Method%in%c("hcpc", "kmeans"))
-
-    if (!isTRUE(Plot.Cluster) & !isFALSE(Plot.Cluster)) {
-        stop("'Plot.Cluster' must be TRUE or FALSE.")
-    }## if (!isTRUE(Plot.Cluster) & !isFALSE(Plot.Cluster))
-
-    if (!is.null(Max.clust)) {
-        if (floor(Max.clust) != Max.clust){
-            stop("'Max.clust' must be a non negative integer.")
-        }## if (floor(Max.clust) != Max.clust)
-    }## if (!is.null(Max.clust))
-
-    if (!is.null(path.result)) {
-        if (!is.character(path.result)) {
-            stop("'path.result' must be NULL or a character.")
-        }## if (!is.character(path.result))
-    }## if (!is.null(path.result))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Preprocessing
     cSEdat <- SummarizedExperiment::colData(SEresNorm)
 
     if (c("Time")%in%colnames(cSEdat)) {
         Vect.time <- as.character(cSEdat$Time)
-        Nb.time <- length(levels(as.factor(Vect.time)))
+        timeLevels <- levels(as.factor(Vect.time))
+        Nb.time <- length(timeLevels)
     } else {
         stop("Samples must belong to different times points.")
     }## if (c("Time")%in%colnames(cSEdat))
 
     if (c("Group")%in%colnames(cSEdat)) {
         Vect.group <- as.character(cSEdat$Group)
-        Nb.group <- length(levels(as.factor(Vect.group)))
+        groupLevels <- levels(as.factor(Vect.group))
+        Nb.group <- length(groupLevels)
+
+        colname.grp <- paste0(".", rep(groupLevels, each=Nb.time))
+        ClustOptTitle <- paste0("Mfuzz_OptimalClusterNumber_",
+                                paste0(groupLevels, collapse="_"), ".pdf")
     } else {
         Vect.group <- NULL
+        groupLevels <- NULL
         Nb.group <- 1
+
+        colname.grp <- ""
+        ClustOptTitle <- "Mfuzz_OptimalClusterNumber.pdf"
     }## if (c("Group")%in%colnames(cSEdat))
 
-    if (DATAnorm == TRUE) {
+    if (isTRUE(DATAnorm)) {
         aSE <- 2
     } else {
         aSE <- 1
-    }## if (DATAnorm == TRUE)
+    }## if (isTRUE(DATAnorm))
 
     ExprData <- SummarizedExperiment::assays(SEresNorm)[[aSE]]
     ExprData.f <- data.frame(ExprData)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Condition on Max.clust
-    if(Max.clust<2 | floor(Max.clust)!=Max.clust | Max.clust>=nrow(ExprData.f)){
-        Err_max <- paste0("'Max.clust' must be an integer ",
-                          "greater or equal to 2 and ",
-                          "lesser than the number of genes.")
-        stop(Err_max)
-    }## if(Max.clust<2 | floor(Max.clust)!=Max.clust)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Data for Mfuzz analysis and selection of the number of cluster
-    Data.mfuzz <- matrix(NA, ncol=Nb.time*Nb.group, nrow=nrow(ExprData.f))
-    row.names(Data.mfuzz) <- row.names(ExprData.f)
+    mfuzzData <- matrix(NA, ncol=Nb.time*Nb.group, nrow=nrow(ExprData.f))
+    row.names(mfuzzData) <- row.names(ExprData.f)
 
-    Tps.info <- paste0("t", gsub("T", "",
-                                 gsub("t", "", levels(as.factor(Vect.time)))))
-    Grp.info <- levels(as.factor(Vect.group))
+    Tps.info <- paste0("t", gsub("T", "", gsub("t", "", timeLevels)))
 
-    if (is.null(Vect.group)) {
-        colname.grp <- ""
-    } else {
-        colname.grp <- paste0(".", rep(Grp.info,each=Nb.time))
-    }## if(is.null(Vect.group)==TRUE)
+    colnames(mfuzzData) <- paste0("Mean_", rep(Tps.info, times=Nb.group),
+                                  colname.grp)
 
-    colnames(Data.mfuzz) <- paste0("Mean_", rep(Tps.info,times=Nb.group),
-                                   colname.grp)
-
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Filling the data
     for (g in seq_len(Nb.group)) {
         for (t in seq_len(Nb.time)) {
-            if (is.null(Vect.group)) {
-                Index.t<-which(Vect.time == levels(as.factor(Vect.time))[t])
-                Data.mfuzz[, t] <- apply(as.data.frame(ExprData.f[, Index.t]),
-                                         1,  mean)
-            } else {
-                Index.g <- which(Vect.group==levels(as.factor(Vect.group))[g])
-                Index.t <- which(Vect.time == levels(as.factor(Vect.time))[t])
-                ExprData.f.TG<-as.data.frame(ExprData.f[, intersect(Index.t,
-                                                                    Index.g)])
-                Data.mfuzz[, Nb.time*(g-1) + t] <- apply(ExprData.f.TG, 1,
-                                                         FUN=mean)
-            }## if(is.null(Vect.group)==TRUE)
-        }## for(t in 1:Nb.time)
-    }## for(g in 1:Nb.group)
+            Index.t <- which(Vect.time == timeLevels[t])
 
-    ##------------------------------------------------------------------------#
+            if (is.null(Vect.group)) {
+                mfuzzData[, t] <- apply(as.data.frame(ExprData.f[, Index.t]),
+                                        1, mean)
+            } else {
+                Index.g <- which(Vect.group == groupLevels[g])
+                Index.tg <- intersect(Index.t, Index.g)
+
+                DataTG <- as.data.frame(ExprData.f[, Index.tg])
+                mfuzzData[, Nb.time*(g-1) + t] <- apply(DataTG, 1, FUN=mean)
+            }## if (is.null(Vect.group))
+        }## for(t in seq_len(Nb.time))
+    }## for(g in seq_len(Nb.group))
+
+    ##-----------------------------------------------------------------------##
     ## Data which will contain the results of Kmeans
     Sum.nb.c <- data.frame(matrix(NA, nrow=Max.clust, ncol=Nb.group+1))
-    Nb.time <- length(levels(as.factor(Vect.time)))
 
     if (Method == "hcpc") {
         Score <- "Tot.withinss.scaled"
@@ -293,20 +255,18 @@ MFUZZclustersNumber <- function(SEresNorm,
         colnames(Sum.nb.c) <- c("Nb.clust", as.character(Score))
     } else {
         colnames(Sum.nb.c) <- c("Nb.clust",
-                                paste0(as.character(Score), "_",
-                                       levels(as.factor(Vect.group))))
+                                paste0(as.character(Score), "_", groupLevels))
     }## if(is.null(Vect.group)==TRUE)
 
-    Sum.nb.c[, 1] <- c(1, 2:Max.clust)
+    Sum.nb.c[, 1] <- c(1, seq(2, Max.clust))
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Kmeans
-    Opti.clust <- rep(NA, times=Nb.group)
-    col.c <- rep("black", times=Max.clust*Nb.group)
-    pch.c <- rep(3, times=Max.clust*Nb.group)
+    clustOPT <- rep(NA, times=Nb.group)
 
     for (g in seq_len(Nb.group)) {
-        Std.g <- apply(Data.mfuzz[,seq_len(Nb.time) + Nb.time*(g-1)], 1, sd)
+        ##-------------------------------------------------------------------##
+        Std.g <- apply(mfuzzData[,seq_len(Nb.time) + Nb.time*(g-1)], 1, sd)
         GeneInf.Min.std.g <- which(Std.g < Min.std)
 
         if (length(GeneInf.Min.std.g) > 0) {
@@ -315,14 +275,15 @@ MFUZZclustersNumber <- function(SEresNorm,
             GeneSelNbClust <- seq_len(length(Std.g))
         }## if(length(GeneInf.Min.std.g)>0)
 
-        Data.mfuzz.g <- data.frame(Data.mfuzz[GeneSelNbClust,
-                                              seq_len(Nb.time)+Nb.time*(g-1)])
+        mfuzzData.g <- data.frame(mfuzzData[GeneSelNbClust,
+                                            seq_len(Nb.time)+Nb.time*(g-1)])
 
+        ##-------------------------------------------------------------------##
         if (Method == "hcpc") {
-            Nb.gene <- nrow(Data.mfuzz.g)
+            Nb.gene <- nrow(mfuzzData.g)
 
             if (Nb.gene <= 200) {
-                res.pca <- FactoMineR::PCA(round(Data.mfuzz.g,digits=3),
+                res.pca <- FactoMineR::PCA(round(mfuzzData.g, digits=3),
                                            graph=FALSE)
                 res.hcpc <- FactoMineR::HCPC(res.pca, graph=FALSE,
                                              nb.clust=-1, consol=TRUE, min=2)
@@ -332,7 +293,7 @@ MFUZZclustersNumber <- function(SEresNorm,
 
                 options(warn=-1)
 
-                cl <- stats::kmeans(round(data.frame(scale(Data.mfuzz.g)),
+                cl <- stats::kmeans(round(data.frame(scale(mfuzzData.g)),
                                           digits=2),
                                     kkHCPC, iter.max=10)
                 res.hcpc <- FactoMineR::HCPC(round(data.frame(cl$centers),
@@ -341,7 +302,7 @@ MFUZZclustersNumber <- function(SEresNorm,
                                              consol=FALSE, min=3)
 
                 options(warn=0)
-            }## if(nrow(Data.mfuzz.g)<=200)
+            }## if(nrow(mfuzzData.g)<=200)
 
             ## rev(res.hc$height)
             Clust.height <- rev(res.hcpc$call$t$tree$height)
@@ -362,7 +323,7 @@ MFUZZclustersNumber <- function(SEresNorm,
 
         }## if(Method=="hcpc")
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         if (Method == "kmeans") {
             inertie.wihtin <- rep(0, times=Max.clust-1)
             cpt.clust <- 0
@@ -371,7 +332,7 @@ MFUZZclustersNumber <- function(SEresNorm,
 
             for (k in seq(from=2, to=Max.clust, by=1)) {
                 cpt.clust <- cpt.clust + 1
-                clus <- stats::kmeans(round(data.frame(scale(Data.mfuzz.g)),
+                clus <- stats::kmeans(round(data.frame(scale(mfuzzData.g)),
                                             digits=1),
                                       centers=k, nstart=5)
                 inertie.wihtin[cpt.clust] <- clus$tot.withinss
@@ -383,124 +344,126 @@ MFUZZclustersNumber <- function(SEresNorm,
             ## quot.DQ.within<-DQ.within[-length(inertie.wihtin)]/DQ.within[-1]
             DQ.within <- rev(cumsum(rev(c(clus$totss, inertie.wihtin))))
             quot.DQ.within <- DQ.within[-1]/DQ.within[-length(inertie.wihtin)]
-            Index.nb.clust <- which.min(quot.DQ.within)+1
+            Index.nb.clust <- which.min(quot.DQ.within) + 1
 
-            Sum.nb.c[, g+1] <- c(clus$totss, inertie.wihtin)/clus$totss
+            Sum.nb.c[, g + 1] <- c(clus$totss, inertie.wihtin)/clus$totss
         }## if(Method=="kmeans")
 
-        col.c[Index.nb.clust+Max.clust*(g-1)] <- "blue"
-        pch.c[Index.nb.clust+Max.clust*(g-1)] <- 19
-        Opti.clust[g] <- Index.nb.clust
-    }## for(g in 1:Nb.group)
+        ##-------------------------------------------------------------------##
+        clustOPT[g] <- Index.nb.clust
+    }## for(g in seq_len(Nb.group))
 
-    ##------------------------------------------------------------------------#
-    ## Save graph
-    if(Method=="hcpc"){
-        Ylab<-"Scaled height (ward)"
-    }else{
-        Ylab<-"Scaled within-cluster inertia"
-    }
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## cluster graph preprocess
+    NBsumCl <- Sum.nb.c
 
+    if (Method == "hcpc") {
+        Ylab <- "Scaled height (ward)"
+    } else {
+        Ylab <- "Scaled within-cluster inertia"
+    }## if (Method == "hcpc")
+
+    if (Nb.group > 1) {
+        for (g in seq_len(Nb.group-1)) {
+            NBsumCl[, g + 2] <- NBsumCl[, g + 2] + 0.1*g
+        }## for (g in seq_len(Nb.group-1))
+
+        varLevels <- groupLevels
+        datOPT <- data.frame(Nb.clust=clustOPT,
+                             value=diag(as.matrix(NBsumCl[clustOPT, -1])),
+                             variable=rep("Optimal cluster", times=Nb.group))
+    } else {
+        varLevels <- "G1"
+        datOPT <- data.frame(Nb.clust=clustOPT,
+                             value=as.numeric(NBsumCl[clustOPT, 2]),
+                             variable="Optimal cluster")
+    }## if (Nb.group > 1)
+
+    meltCL <- reshape2::melt(NBsumCl, id.vars=1)
+    meltCL$variable <- as.factor(meltCL$variable)
+    levels(meltCL$variable) <- varLevels
+
+    ##-----------------------------------------------------------------------##
+    ## cluster graph
+    ggNBcl <- ggplot2::ggplot(meltCL,
+                              ggplot2::aes(x=Nb.clust, y=value,
+                                           group=variable)) +
+        ggplot2::geom_line(ggplot2::aes(linetype=variable)) +
+        ggplot2::geom_point() + ## ggplot2::ylim(0, 1 + 0.15*(Nb.group-1)) +
+        ggplot2::geom_point(data=datOPT,
+                            ggplot2::aes(x=Nb.clust, y=value,
+                                         group=variable, color=variable),
+                            shape=18, size=4) +
+        ggplot2::scale_color_manual(values=c("blue"), guide="none") +
+        ggplot2::ylab(Ylab) + ggplot2::xlab("Number of clusters")
+
+    if (Nb.group > 1) {
+        ggNBttl <- "Biological conditions"
+        ggNBcl <- ggNBcl +
+            ggplot2::guides(linetype=ggplot2::guide_legend(order=1,
+                                                           title=ggNBttl),
+                            color=ggplot2::guide_legend(order=2, title=""))
+    } else {
+        ggNBcl <- ggNBcl +
+            ggplot2::guides(linetype="none",
+                            color=ggplot2::guide_legend(order=2, title=""))
+    }## if (Nb.group > 1)
+
+    ggNBcl <- ggNBcl+
+        ggplot2::theme(legend.position="bottom", legend.box="horizontal")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Save and plot graph
     if (!is.null(path.result)) {
-        ClustOptTitle <- paste0("Clustering_OptimalClusterNumber_",
-                                paste0(levels(as.factor(Vect.group)),
-                                       collapse="_"), ".pdf")
-
         grDevices::pdf(file=file.path(path.result, ClustOptTitle),
                        width=11, height=8)
-
-        plot(Sum.nb.c[, 1], Sum.nb.c[, 2], type="b",
-             ylim=c(0, 1 + 0.2*(Nb.group-1)),
-             pch=pch.c[seq_len(Max.clust)],
-             col=col.c[seq_len(Max.clust)],
-             xlab="Number of cluster", ylab=Ylab)
-
-        if (Nb.group > 1) {
-            for (g in seq_len(Nb.group-1)) {
-                ## Add a second line
-                graphics::lines(Sum.nb.c[, 1],
-                                Sum.nb.c[, g + 2] + 0.2*g,
-                                type="b", lty=g + 1,
-                                pch=pch.c[seq_len(Max.clust) + Max.clust*g],
-                                col=col.c[seq_len(Max.clust) + Max.clust*g])
-            }## for(g in 1:(Nb.group-1))
-
-            ## Add a legend to the plot
-            graphics::legend("topright", legend=levels(as.factor(Vect.group)),
-                             col=c("black"), lty=seq_len(Nb.group), cex=0.8)
-
-        }## if(Nb.group>1) ##inset=.02
-
-        graphics::legend("top", legend=c("Cluster optimal"),
-                         col=c("blue"), pch=19, cex=0.7) ## inset=c(0.5,0.02)
-
+        print(ggNBcl)
         grDevices::dev.off()
-    }## if(is.null(path.result) == FALSE)
+    }## if(!is.null(path.result))
 
-    ##------------------------------------------------------------------------#
-    if (Plot.Cluster==TRUE) {
+    if (isTRUE(Plot.Cluster)) {
+        print(ggNBcl)
+    }## if (isTRUE(Plot.Cluster))
 
-        plot(Sum.nb.c[, 1], Sum.nb.c[, 2], type="b",
-             ylim=c(0, 1 + 0.2*(Nb.group - 1)),
-             pch=pch.c[seq_len(Max.clust)],
-             col=col.c[seq_len(Max.clust)],
-             xlab="Number of cluster", ylab=Ylab)
-
-        if (Nb.group > 1) {
-            for (g in seq_len(Nb.group-1)) {
-                ## Add a second line
-                graphics::lines(Sum.nb.c[, 1],
-                                Sum.nb.c[, g + 2] + 0.2*g,
-                                type="b", lty=g + 1,
-                                pch=pch.c[seq_len(Max.clust) + Max.clust*g],
-                                col=col.c[seq_len(Max.clust) + Max.clust*g])
-            }## for(g in 1:(Nb.group-1))
-
-            ## Add a legend to the plot
-            graphics::legend("topright", legend=levels(as.factor(Vect.group)),
-                             col=c("black"), lty=seq_len(Nb.group), cex=0.8)
-
-        }## if(Nb.group>1) ## inset=.02
-
-        graphics::legend("top", legend=c("Cluster optimal"),
-                         col=c("blue"), pch=19, cex=0.7)## inset=c(0.5,0.02)
-
-        ## Number.Cluster.plot<-grDevices::recordPlot()
-        ## graphics::plot.new() ## clean up device
-    }## if(Plot.Cluster==TRUE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Data containing the number of cluster for each group
     if (is.null(Vect.group)) {
-        data.clust.kmeans <- data.frame(Name="OneGroupOnly",
-                                        ClusterKmeans=Opti.clust)
+        clustData <- data.frame(Name="OneGroupOnly", ClusterKmeans=clustOPT)
     } else {
-        data.clust.kmeans <- data.frame(Name=levels(as.factor(Vect.group)),
-                                        ClusterKmeans=Opti.clust)
+        clustData <- data.frame(Name=groupLevels, ClusterKmeans=clustOPT)
     }## if(is.null(Vect.group)==TRUE)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## SE Mfuzz
     listMFUZZ <- list(Summary.Nb.Cluster=Sum.nb.c,
-                      DataClustSel=data.clust.kmeans)
+                      DataClustSel=clustData,
+                      clustDATAplot=ggNBcl,
+                      MfuzzData=mfuzzData)
     SEprepMFUZZ <- SEresNorm
-    S4Vectors::metadata(SEprepMFUZZ)$MFUZZ <- listMFUZZ
+    S4Vectors::metadata(SEprepMFUZZ)$Results[[1]][[4]] <- listMFUZZ
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Output ## plotMUZZnumberCluster=Number.Cluster.plot
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Output
     return(SEobj=SEprepMFUZZ)
 }## MFUZZclustersNumber()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 
 NbClustKmeansHCPC <- function(NrowData, x1, y1, x2, y2){
     if (x2 <= x1 | y2 <= y1) {
         StopMfuzzMessage <- paste0("'x2' must be strictly greater than 'x1'",
-                                   "and",
+                                   " and ",
                                    "'y2' must be strictly greater than 'y1'")
         stop(StopMfuzzMessage)
-    }## if(x2<=x1 | y2<=y1)
+    }## if(x2 <= x1 | y2 <= y1)
 
     acoef <- log(y2/y1)/log(x2/x1)
     bcoef <- y2/(x2^acoef)
@@ -510,3 +473,57 @@ NbClustKmeansHCPC <- function(NrowData, x1, y1, x2, y2){
                 a=acoef,
                 b=bcoef))
 }## NbClustKmeansHCPC()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrMFUZZclustersNumber <- function(SEresNorm,
+                                   DATAnorm=TRUE,
+                                   Method="hcpc",
+                                   Max.clust=3,
+                                   Min.std=0.1,
+                                   Plot.Cluster=TRUE,
+                                   path.result=NULL) {
+    ##-----------------------------------------------------------------------##
+    ## Check SEresNorm (cf DATAplotExpressionGenes())
+    Err1_MfuzzNcl <- ErrSEresNorm(SEresNorm=SEresNorm,
+                                  DATAnorm=DATAnorm,
+                                  path.result=path.result)
+
+    Err2_MfuzzNcl <- ErrNNI(NNI=Max.clust, NNIname="Max.clust")
+
+    Ngenes <- length(S4Vectors::rownames(SEresNorm))
+    if(Max.clust<2 | floor(Max.clust)!=Max.clust | Max.clust>=Ngenes){
+        ## length(S4Vectors::rownames(resDATAnormFission))
+        Err_max <- paste0("'Max.clust' must be an integer ",
+                          "greater or equal to 2 and ",
+                          "lesser than the number of genes.")
+        stop(Err_max)
+    }## if(Max.clust<2 | floor(Max.clust)!=Max.clust | Max.clust>=Ngenes)
+
+    ##-----------------------------------------------------------------------##
+    if (!is.numeric(Min.std)) {
+        stop("'Min.std' must be positive numeric values")
+    }## if (!is.numeric(Min.std))
+
+    if (Min.std < 0) {
+        stop("'Min.std' must be positive numeric values")
+    }## if (Min.std < 0)
+
+    ##-----------------------------------------------------------------------##
+    ## Plot.Cluster
+    if (!isTRUE(Plot.Cluster) & !isFALSE(Plot.Cluster)) {
+        stop("'Plot.Cluster' must be TRUE or FALSE.")
+    }## if (!isTRUE(Plot.Cluster) & !isFALSE(Plot.Cluster))
+
+    ## Different Method
+    if (!Method%in%c("hcpc", "kmeans")) {
+        stop("'Method' must be 'hcpc' or 'kmeans'.")
+    }## if (!Method%in%c("hcpc", "kmeans"))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrMFUZZclustersNumber()
+

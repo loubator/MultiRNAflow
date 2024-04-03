@@ -26,20 +26,20 @@
 
 
 CharacterNumbers <- function(Vect.number) {
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Check
     if (!is.numeric(Vect.number)) {
         stop("'Vect.number' must be a numeric vector")
     }## if(!is.numeric(Vect.number))
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Setting
     vNBno0 <- Vect.number
     vNBno0[which(vNBno0 == 0)] <- 1.5
     ## because of log10 which is used to computed the maximum number of digits
     Max.digit <- floor(log10(abs(max(vNBno0)))) + 1
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Vector which will containsthe same numbers reshaped as character
     Ch.numb <- rep(NA, times=length(vNBno0))
     if (Max.digit == 1) {
@@ -55,10 +55,10 @@ CharacterNumbers <- function(Vect.number) {
             } else {
                 Ch.numb[I.dig] <- as.character(vNBno0[I.dig])
             }## if(dg<Max.digit)
-        }## for(dg in 1:Max.digit)
+        }## for (dg in seq_len(Max.digit))
     }## if(Max.digit==1) ## paste(..., sep = "") is equivalent to paste0(...)
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## return
     return(Ch.Number=gsub("1.5", "0", Ch.numb, fixed=TRUE))
 }## CharacterNumbers()

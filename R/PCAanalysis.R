@@ -34,13 +34,6 @@
 #' [DATAprepSE()].
 #' If \code{sample.deletion=NULL} all samples will be used
 #' in the construction of the PCA.
-#' @param Supp.del.sample \code{TRUE} or \code{FALSE}.
-#' If \code{FALSE}, the samples selected with \code{sample.deletion} will
-#' be deleted.
-#' If \code{TRUE}, the samples selected with \code{sample.deletion} will
-#' be plotted.
-#' These individuals are called supplementary individuals in
-#' [FactoMineR::PCA()].
 #' @param Plot.PCA \code{TRUE} or \code{FALSE}. \code{TRUE} as default.
 #' If \code{TRUE}, PCA graphs will be plotted.
 #' Otherwise no graph will be plotted.
@@ -65,7 +58,7 @@
 #' a color for each biological condition.
 #' If samples belong to different time points only,
 #' \code{Color.Group} will not be used.
-#' @param D3.mouvement \code{TRUE} or \code{FALSE}.
+#' @param motion3D \code{TRUE} or \code{FALSE}.
 #' If TRUE, the 3D PCA plots will also be plotted in a rgl window
 #' (see [plot3Drgl::plotrgl()])
 #' allowing to interactively rotate and zoom.
@@ -112,7 +105,8 @@
 #' \code{SEresNorm} with the outputs from the function
 #' [FactoMineR::PCA()],
 #' and several 2D and 3D PCA graphs depending on the experimental design
-#' (if \code{Plot.PCA=TRUE})
+#' (if \code{Plot.PCA=TRUE}),
+#' saved in the metadata \code{Results[[1]][[2]]} of \code{SEresNorm},
 #' * When samples belong only to different biological conditions,
 #' the function returns a 2D and two 3D PCA graphs.
 #' In each graph, samples are colored with different colors for different
@@ -148,7 +142,7 @@
 #'   The three others graphs are identical to the three previous ones
 #'   but without lines.
 #'
-#' The interactive 3D graphs will be plotted only if \code{D3.mouvement=TRUE}.
+#' The interactive 3D graphs will be plotted only if \code{motion3D=TRUE}.
 #'
 #' @seealso The function calls the R functions
 #' [PCAgraphics()] and
@@ -177,16 +171,15 @@
 #'                              Colored.By.Factors=FALSE)
 #' ## Color for each group
 #' GROUPcolor <- data.frame(Name=c("G1", "G2"), Col=c("black", "red"))
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' resPCAanalysis <- PCAanalysis(SEresNorm=resNorm,
 #'                               DATAnorm=TRUE,
 #'                               gene.deletion=c("Gene1", "Gene5"),
 #'                               sample.deletion=c(2, 6),
-#'                               Supp.del.sample=FALSE,
 #'                               Plot.PCA=TRUE,
 #'                               Mean.Accross.Time=FALSE,
 #'                               Color.Group=GROUPcolor,
-#'                               D3.mouvement=FALSE,
+#'                               motion3D=FALSE,
 #'                               Phi=25, Theta=140,
 #'                               Cex.label=0.7, Cex.point=0.7, epsilon=0.2,
 #'                               path.result=NULL, Name.folder.pca=NULL)
@@ -195,59 +188,35 @@ PCAanalysis <- function(SEresNorm,
                         DATAnorm=TRUE,
                         gene.deletion=NULL,
                         sample.deletion=NULL,
-                        Supp.del.sample=FALSE,
                         Plot.PCA=TRUE,
                         Mean.Accross.Time=FALSE,
                         Color.Group=NULL,
                         Phi=25, Theta=140, epsilon=0.2,
                         Cex.point=0.7, Cex.label=0.7,
-                        D3.mouvement=FALSE,
+                        motion3D=FALSE,
                         path.result=NULL,
                         Name.folder.pca=NULL) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check
-    ## DATAprepSE
-    Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
-                     "'DATAnormalization().'")
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check inputs
+    resErr <- ErrPCAanalysis(SEresNorm=SEresNorm, DATAnorm=DATAnorm,
+                             gene.deletion=gene.deletion,
+                             sample.deletion=sample.deletion,
+                             Plot.PCA=Plot.PCA, motion3D=motion3D,
+                             Mean.Accross.Time=Mean.Accross.Time,
+                             Phi=Phi, Theta=Theta, epsilon=epsilon,
+                             Cex.point=Cex.point, Cex.label=Cex.label,
+                             Color.Group=Color.Group, path.result=path.result,
+                             Name.folder.pca=Name.folder.pca)
 
-    if (!is(SEresNorm, "SummarizedExperiment")) {
-        stop(Err_SE)
-    } else {
-        codeDEres <- S4Vectors::metadata(SEresNorm)$SEidentification
-
-        if (is.null(codeDEres)) {
-            stop(Err_SE)
-        }## if (is.null(codeDEres))
-
-        if (codeDEres != "SEresNormalization") {
-            stop(Err_SE)
-        }## if (codeDEres != "SEresNormalization")
-    }## if (!is(SEresNorm, "SummarizedExperiment"))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check deletion
-    if (!is.null(path.result)) {
-        if (!is.character(path.result)) {
-            stop("'path.result' must be NULL or a character.")
-        }## if (!is.character(path.result))
-    }## if (!is.null(path.result))
-
-    if (!is.null(Name.folder.pca)) {
-        if (!is.character(Name.folder.pca)) {
-            stop("'Name.folder.pca' must be NULL or a character.")
-        }## if (!is.character(Name.folder.pca))
-    }## if (!is.null(Name.folder.pca))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Preprocessing
-    if (DATAnorm == TRUE) {
+    if (isTRUE(DATAnorm)) {
         aSE <- 2
     } else {
         aSE <- 1
-    }## if (DATAnorm == TRUE)
+    }## if (isTRUE(DATAnorm))
 
     cSEdat <- SummarizedExperiment::colData(SEresNorm)
 
@@ -267,8 +236,8 @@ PCAanalysis <- function(SEresNorm,
     Var.sample <- stats::var(tb.spinfoini)
     max.tb <- max(tb.spinfoini)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Folder creation if no existence
     if (is.null(Name.folder.pca)) {
         Name.folder.pca <- ""
@@ -276,63 +245,53 @@ PCAanalysis <- function(SEresNorm,
     } else {
         Name.folder.pca <- paste0("_", Name.folder.pca)
         SubFolder.name <- paste0("1_UnsupervisedAnalysis", Name.folder.pca)
-    }## if(is.null(Name.folder.pca)==TRUE)
+    }## if (is.null(Name.folder.pca))
+
+    SubFolderPCA <- paste0("1-2_PCAanalysis", Name.folder.pca)
 
     if (!is.null(path.result)) {
         if (!SubFolder.name%in%dir(path=path.result)) {
             print("Folder creation")
             dir.create(path=file.path(path.result, SubFolder.name))
-            path.result.f <- file.path(path.result, SubFolder.name)
-        } else {
-            path.result.f <- file.path(path.result, SubFolder.name)
         }## if(!SubFolder.name%in%dir(path=path.result))
+        path.result.f <- file.path(path.result, SubFolder.name)
     } else {
         path.result.f <- NULL
-    }## if(!is.null(path.result))
+    }## if (!is.null(path.result))
 
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     if (!is.null(Vector.group)) {
         if (!is.null(Vector.time)) {
-            Name.file.pca <- paste0("BothGroupTime", Name.folder.pca)
+            Name.file.pca <- paste0("allBiologicalConditions", Name.folder.pca)
         } else {
-            Name.file.pca <- paste0("Group", Name.folder.pca)
+            Name.file.pca <- paste0("BiologicalCondition", Name.folder.pca)
         }## if(!is.null(Vector.time))
     } else {
         Name.file.pca <- paste0("Time", Name.folder.pca)
     }## if(!is.null(Vector.group))
 
     if (!is.null(path.result.f)) {
-        nom.dossier.result <- paste0("1-2_PCAanalysis", Name.folder.pca)
-
-        if (!nom.dossier.result%in%dir(path=path.result.f)) {
-            dir.create(path=file.path(path.result.f, nom.dossier.result))
-            path.result.new <- file.path(path.result.f, nom.dossier.result)
-        } else {
-            path.result.new <- file.path(path.result.f, nom.dossier.result)
-        }## if(!nom.dossier.result%in%dir(path=path.result.f))
+        if (!SubFolderPCA%in%dir(path=path.result.f)) {
+            dir.create(path=file.path(path.result.f, SubFolderPCA))
+        }## if(!SubFolderPCA%in%dir(path=path.result.f))
+        path.result.new <- file.path(path.result.f, SubFolderPCA)
     } else {
         path.result.new <- NULL
     }## if(!is.null(path.result.f))
 
-    ##------------------------------------------------------------------------#
-    if (!isTRUE(Mean.Accross.Time) & !isFALSE(Mean.Accross.Time)) {
-        stop("'Mean.Accross.Time' must be TRUE or FALSE.")
-    }## if (!isTRUE(Mean.Accross.Time) & !isFALSE(Mean.Accross.Time))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Main results ##tb.spinfoini[1]>1
     if (isFALSE(Mean.Accross.Time) & Var.sample==0 & max.tb>1) {
         SEresPCA <- PCAgraphics(SEresNorm=SEresNorm,
                                 DATAnorm=DATAnorm,
                                 sample.deletion=sample.deletion,
-                                Supp.del.sample=Supp.del.sample,
                                 Plot.PCA=Plot.PCA,
                                 Mean.Accross.Time=FALSE,
                                 gene.deletion=gene.deletion,
                                 Color.Group=Color.Group,
-                                D3.mouvement=D3.mouvement,
-                                Phi=Phi,Theta=Theta, epsilon=epsilon,
+                                motion3D=motion3D,
+                                Phi=Phi, Theta=Theta, epsilon=epsilon,
                                 Cex.point=Cex.point, Cex.label=Cex.label,
                                 path.result=path.result.new,
                                 Name.file.pca=Name.file.pca)
@@ -340,37 +299,54 @@ PCAanalysis <- function(SEresNorm,
         SEresPCA <- PCAgraphics(SEresNorm=SEresNorm,
                                 DATAnorm=DATAnorm,
                                 sample.deletion=sample.deletion,
-                                Supp.del.sample=Supp.del.sample,
                                 gene.deletion=gene.deletion,
                                 Plot.PCA=Plot.PCA,
                                 Mean.Accross.Time=TRUE,
                                 Color.Group=Color.Group,
-                                D3.mouvement=D3.mouvement,
-                                Phi=Phi,Theta=Theta, epsilon=epsilon,
+                                motion3D=motion3D,
+                                Phi=Phi, Theta=Theta, epsilon=epsilon,
                                 Cex.point=Cex.point, Cex.label=Cex.label,
                                 path.result=path.result.new,
                                 Name.file.pca=Name.file.pca)
     }## if(Mean.Accross.Time==FALSE & Var.sample==0 & max.tb>1)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    PCAlist <- S4Vectors::metadata(SEresPCA)$Results[[1]][[2]]
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     if (!is.null(Vector.group) & !is.null(Vector.time)) {
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         Data1 <- data.frame(SummarizedExperiment::assays(SEresNorm)[[1]])
         Data2 <- data.frame(SummarizedExperiment::assays(SEresNorm)[[2]])
-        # NameG <- as.character(SummarizedExperiment::rownames(SEresNorm))
+        ## NameG <- as.character(SummarizedExperiment::rownames(SEresNorm))
 
-        ##--------------------------------------------------------------------#
         Tt.Del <- gsub("t", "", gsub("T", "", as.character(Vector.time)))
         Time.name <- levels(as.factor(paste0("T", Tt.Del)))
 
-        ##--------------------------------------------------------------------#
         Group.Levels <- levels(as.factor(Vector.group))
-        resPCAperG <- vector(mode="list", length=length(Group.Levels))
-        names(resPCAperG) <- paste0("PCA.results.Group_", Group.Levels)
 
+        if (!is.null(sample.deletion)) {
+            colG <- S4Vectors::metadata(SEresNorm)$colGene
+            RAWcolN <- S4Vectors::metadata(SEresNorm)$RAWcolnames
+            delIDsample <- delFUNsample(sample.deletion=sample.deletion,
+                                        RAWcolnames=RAWcolN, Column.gene=colG)
+        }## if (is.null(sample.deletion))
+
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
         for (g in seq_len(length(Group.Levels))) {
             Index.g <- which(Vector.group == Group.Levels[g])
+
+            if (is.null(sample.deletion)) {
+                sample.deletion_g <- NULL
+            } else {
+                interIDs_gDEL <- intersect(sort(delIDsample), Index.g)
+                if (length(interIDs_gDEL) == 0) {
+                    sample.deletion_g <- NULL
+                } else {
+                    sample.deletion_g <- interIDs_gDEL
+                }## if (length(interIDs_gDEL) == 0)
+            }## if (is.null(sample.deletion))
 
             Data1g <- as.matrix(Data1[, Index.g])
             Data2g <- as.matrix(Data2[, Index.g])
@@ -383,33 +359,28 @@ PCAanalysis <- function(SEresNorm,
             SEresNormg <- SEobjFUN(Data1g, cSEdatg)
             SummarizedExperiment::assays(SEresNormg)[[2]] <- Data2g
             names(SummarizedExperiment::assays(SEresNormg))[2] <- name2g
-            # SummarizedExperiment::rownames(SEresNormg) <- NameG
+            ## SummarizedExperiment::rownames(SEresNormg) <- NameG
             S4Vectors::metadata(SEresNormg) <- Meta1
             S4Vectors::metadata(SEresNormg)$formula <- formulag
             S4Vectors::metadata(SEresNormg)$SEidentification <- SEiden
 
-            # if (is.null(Column.gene)) {
-            #     Sub.data.g <- ExprData[, Index.g]
-            #     Index.g.f <- Index.g
-            # } else {
-            #     Sub.data.g <- cbind(ExprData[, Column.gene],
-            #                         ExprData[, -Column.gene][, Index.g])
-            # }## if(is.null(Column.gene))
+            Name.file.pca.g <- paste0("BiologicalCondition_", Group.Levels[g])
 
-            Name.file.pca.g <- paste0("Group_", Group.Levels[g])
+            # if (isTRUE(Plot.PCA)) {
+            #     graphics::plot.new() ## clean up device
+            # }## if (isTRUE(Plot.PCA))
 
-            ##----------------------------------------------------------------#
-            ##----------------------------------------------------------------#
+            ##---------------------------------------------------------------##
+            ##---------------------------------------------------------------##
             if(isFALSE(Mean.Accross.Time) & Var.sample==0 & tb.spinfoini[1]>1){
                 SEresPCAg <- PCAgraphics(SEresNorm=SEresNormg,
                                          DATAnorm=DATAnorm,
-                                         sample.deletion=sample.deletion,
-                                         Supp.del.sample=Supp.del.sample,
+                                         sample.deletion=sample.deletion_g,
                                          gene.deletion=gene.deletion,
                                          Plot.PCA=Plot.PCA,
                                          Mean.Accross.Time=FALSE,
                                          Color.Group=Color.Group,
-                                         D3.mouvement=D3.mouvement,
+                                         motion3D=motion3D,
                                          Phi=Phi, Theta=Theta, epsilon=epsilon,
                                          Cex.point=Cex.point,
                                          Cex.label=Cex.label,
@@ -418,13 +389,12 @@ PCAanalysis <- function(SEresNorm,
             } else {
                 SEresPCAg <- PCAgraphics(SEresNorm=SEresNormg,
                                          DATAnorm=DATAnorm,
-                                         sample.deletion=sample.deletion,
-                                         Supp.del.sample=Supp.del.sample,
+                                         sample.deletion=sample.deletion_g,
                                          gene.deletion=gene.deletion,
                                          Plot.PCA=Plot.PCA,
                                          Mean.Accross.Time=TRUE,
                                          Color.Group=Color.Group,
-                                         D3.mouvement=D3.mouvement,
+                                         motion3D=motion3D,
                                          Phi=Phi, Theta=Theta, epsilon=epsilon,
                                          Cex.point=Cex.point,
                                          Cex.label=Cex.label,
@@ -432,25 +402,100 @@ PCAanalysis <- function(SEresNorm,
                                          Name.file.pca=Name.file.pca.g)
             }## if(isFALSE(Mean.Accross.Time)&Var.sample==0&tb.spinfoini[1]>1)
 
-            resPCAg <- S4Vectors::metadata(SEresPCAg)$PCA$res.pca
-            names(resPCAg) <- paste0(names(resPCAg),".Group_", Group.Levels[g])
-            resPCAperG[[g]] <- resPCAg
-        }## for(g in 1:length(Group.Levels))
+            PCAlist_BC <- S4Vectors::metadata(SEresPCAg)$Results[[1]][[2]]
+            nPCAlist <- length(PCAlist)
 
-    } else {
-        resPCAperG <- NULL
-    }## if(!is.null(Vector.group) & !is.null(Vector.time))
+            PCAlist <- append(PCAlist, list(PCAlist_BC[-c(1, 2, 3)]))
+            names(PCAlist)[nPCAlist+1] <- paste0("PCA_BiologicalCondition_",
+                                                 Group.Levels[g])
+        }## for (g in seq_len(length(Group.Levels)))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    }## if (!is.null(Vector.group) & !is.null(Vector.time))
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## SE object
-    resPCA <- S4Vectors::metadata(SEresPCA)$PCA$res.pca
-    finalPCAmeta <- list(resPCAglobal=resPCA,
-                         resPCAperGroup=resPCAperG)
-    S4Vectors::metadata(SEresPCA)$PCA$res.pca <- finalPCAmeta
+    SEresPCAall <- SEresPCA
+    S4Vectors::metadata(SEresPCAall)$Results[[1]][[2]] <- PCAlist[-1]
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Output ## List.plot.PCA=res.PCA$List.plot.PCA
-    return(SEobj=SEresPCA)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Output
+    return(SEobj=SEresPCAall)
 }## PCAanalysis()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+delFUNsample <- function(sample.deletion=NULL,
+                         RAWcolnames="sample",
+                         Column.gene=NULL) {
+    ##-----------------------------------------------------------------------##
+    if (is.numeric(sample.deletion)) {
+        if (is.null(Column.gene)) {
+            delIDsample <- sample.deletion
+        } else {
+            ColSplDel <- RAWcolnames[sample.deletion]
+            delIDsample <- which(RAWcolnames[-Column.gene]%in%ColSplDel)
+            delIDsample <- delIDsample + 1
+        }## if(is.null(Column.gene))
+    } else {
+        if (is.null(Column.gene)) {
+            delIDsample <- which(RAWcolnames%in%sample.deletion)
+        } else {
+            delIDsample <- which(RAWcolnames[-Column.gene]%in%sample.deletion)
+            delIDsample <- delIDsample + 1
+        }## if(is.null(Column.gene))
+    }## if(is.numeric(sample.deletion))
+
+    ##-----------------------------------------------------------------------##
+    return(sort(delIDsample))
+}## delFUNsample()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrPCAanalysis <- function(SEresNorm,
+                           DATAnorm=TRUE,
+                           gene.deletion=NULL,
+                           sample.deletion=NULL,
+                           Plot.PCA=TRUE,
+                           Mean.Accross.Time=FALSE,
+                           Color.Group=NULL,
+                           Phi=25, Theta=140, epsilon=0.2,
+                           Cex.point=0.7, Cex.label=0.7,
+                           motion3D=FALSE,
+                           path.result=NULL,
+                           Name.folder.pca=NULL) {
+    ##-----------------------------------------------------------------------##
+    ## Check ErrPCArealization
+    resErr1 <- ErrPCArealization(SEresNorm=SEresNorm,
+                                 DATAnorm=DATAnorm,
+                                 gene.deletion=gene.deletion,
+                                 sample.deletion=sample.deletion,
+                                 Supp.del.sample=FALSE)
+
+    ##-----------------------------------------------------------------------##
+    ## Check ErrPCAgraphics
+    resErr2 <- ErrPCAgraphics(Plot.PCA=Plot.PCA,
+                              Mean.Accross.Time=Mean.Accross.Time,
+                              motion3D=motion3D,
+                              Phi=Phi, Theta=Theta, epsilon=epsilon,
+                              Cex.point=Cex.point, Cex.label=Cex.label,
+                              path.result=path.result)
+
+    ##-----------------------------------------------------------------------##
+    ## Check Name.folder.pca
+    if (!is.null(Name.folder.pca)) {
+        if (!is.character(Name.folder.pca)) {
+            stop("'Name.folder.pca' must be NULL or a character.")
+        }## if (!is.character(Name.folder.pca))
+    }## if (!is.null(Name.folder.pca))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrPCAanalysis()

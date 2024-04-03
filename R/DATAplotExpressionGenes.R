@@ -48,8 +48,11 @@
 #' Otherwise, the folder and sub folder names will respectively be
 #' "1_UnsupervisedAnalysis" and "1-5_ProfileExpression".
 #'
-#' @return The function plots for each gene selected with
-#' the input \code{Vector.row.gene}
+#' @return The function returns the same SummarizedExperiment class object
+#' \code{SEresNorm} with the a graph for each gene
+#' (depending on the experimental design)
+#' selected with the input \code{Vector.row.gene}
+#' (saved in the metadata \code{Results[[1]][[5]]} of \code{SEresNorm})
 #' * In the case where samples belong to different time points only :
 #' the evolution of the expression of each replicate across time and
 #' the evolution of the mean and the standard deviation of the expression
@@ -64,6 +67,9 @@
 #' biological conditions : the evolution of the expression of each replicate
 #' across time and the evolution of the mean and the standard deviation
 #' of the expression across time for each biological condition.
+#'
+#' The function plots the different graph if
+#' \code{Plot.Expression=TRUE}.
 #'
 #' @seealso The function calls our R function
 #' [DATAnormalization()]
@@ -92,7 +98,7 @@
 #'                              Normalization="rle",
 #'                              Plot.Boxplot=FALSE,
 #'                              Colored.By.Factors=FALSE)
-#' ##------------------------------------------------------------------------#
+#' ##-----------------------------------------------------------------------##
 #' resEVOgenes <- DATAplotExpressionGenes(SEresNorm=resNorm,
 #'                                        Vector.row.gene=c(1,3),
 #'                                        DATAnorm=TRUE,
@@ -108,10 +114,153 @@ DATAplotExpressionGenes <- function(SEresNorm,
                                     Plot.Expression=TRUE,
                                     path.result=NULL,
                                     Name.folder.profile=NULL) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Check
-    ## DATAprepSE
+    res1_Errprofile <- ErrSEresNorm(SEresNorm=SEresNorm,
+                                    DATAnorm=DATAnorm,
+                                    path.result=path.result)
+
+    res2_Errprofile <- ErrProfileGenes(Vector.row.gene=Vector.row.gene,
+                                       Color.Group=Color.Group,
+                                       Plot.Expression=Plot.Expression,
+                                       Name.folder.profile=Name.folder.profile)
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Folder creation if no existence
+    if (is.null(Name.folder.profile)) {
+        Name.folder.profile <- ""
+        SubFolder.name <- "1_UnsupervisedAnalysis"
+    } else {
+        Name.folder.profile <- paste0("_", Name.folder.profile)
+        SubFolder.name <- paste0("1_UnsupervisedAnalysis", Name.folder.profile)
+    }## if(is.null(Name.folder.profile))
+
+    nameRESfolder <- paste0("1-5_ProfileExpressionAnalysis",
+                            Name.folder.profile)
+    PDFprofile <- paste0("ProfileExpression_selectedGenes",
+                         Name.folder.profile, ".pdf")
+
+    if (!is.null(path.result)) {
+        if(!SubFolder.name%in%dir(path=path.result)){
+            print("Folder creation")
+            dir.create(path=file.path(path.result, SubFolder.name))
+        }## if (!is.null(path.result))
+        path.result.f <- file.path(path.result, SubFolder.name)
+    } else {
+        path.result.f <- NULL
+    }## if(!is.null(path.result)=)
+
+    if (!is.null(path.result.f)) {
+        if (!nameRESfolder%in%dir(path = path.result.f)) {
+            dir.create(path=file.path(path.result.f, nameRESfolder))
+        }## if(nameRESfolder%in%dir(path = path.result.f)==FALSE)
+        path.result.new <- file.path(path.result.f, nameRESfolder)
+    } else {
+        path.result.new <- NULL
+    }## if(is.null(path.result))
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## SUB SE object
+    if (isTRUE(DATAnorm)) {
+        aSE <- 2
+        Normalization <- names(SummarizedExperiment::assays(SEresNorm))[2]
+        YlabelNorm <- myYlabelNorm(Normalization=Normalization)
+    } else {
+        aSE <- 1
+        YlabelNorm <- "Gene expression"
+    }## if (isTRUE(DATAnorm))
+
+    NameG <- as.character(SummarizedExperiment::rownames(SEresNorm))
+    assaySE <- data.frame(SummarizedExperiment::assays(SEresNorm)[[aSE]])
+    cSEdat <- SummarizedExperiment::colData(SEresNorm)
+    metaSelect <- S4Vectors::metadata(SEresNorm)[c("RAWcolnames", "colGene",
+                                                   "colINFOfactors", "formula",
+                                                   "SEidentification")]
+
+    subSEnorm <- SEobjFUN(as.matrix(assaySE[Vector.row.gene,]), cSEdat)
+    S4Vectors::metadata(subSEnorm) <- metaSelect
+    ##-----------------------------------------------------------------------##
+    listProfiles <- vector(mode="list", length=length(Vector.row.gene))
+    names(listProfiles) <- paste0(NameG[Vector.row.gene], "_profile")
+
+    cpt <- 0
+    for (g.sel in Vector.row.gene) {
+        cpt <- cpt+1
+        PlotExpr1G <- DATAplotExpression1Gene(SEres=subSEnorm,
+                                              row.gene=cpt,
+                                              Color.Group=Color.Group,
+                                              ylabel=YlabelNorm)
+        listProfiles[[cpt]] <- PlotExpr1G
+    }## for(g.sel in Vector.row.gene)
+
+    S4Vectors::metadata(SEresNorm)$Results[[1]][[5]] <- listProfiles
+    ## S4Vectors::metadata(subSEnorm)$List.plots <- listProfiles
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Save of all graph in a pdf file
+    if (!is.null(path.result)) {
+        grDevices::pdf(file.path(path.result.new, PDFprofile),
+                       width=11, height=8, onefile=TRUE)
+
+        for (g.sel in seq_len(length(listProfiles))) {
+            print(listProfiles[[g.sel]])
+        }## for(g.sel in Vector.row.gene)
+
+        grDevices::dev.off()
+    }## if(is.null(path.result)==FALSE)
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    if (isTRUE(Plot.Expression)) {
+        for (g.sel in seq_len(length(listProfiles))) {
+            print(listProfiles[[g.sel]])
+        }## for(g.sel in Vector.row.gene)
+    }## if(isTRUE(Plot.Expression))
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Output
+    return(SEobj=SEresNorm)
+}## DATAplotExpressionGenes()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+myYlabelNorm <- function(Normalization) {
+    if (Normalization == "vst") {
+        YlabelNorm <- "vst normalized counts"
+    }## if(Normalization == "vst")
+
+    if (Normalization == "rlog") {
+        YlabelNorm <- "rlog normalized counts"
+    }## if(Normalization == "rlog")
+
+    if (Normalization == "rle") {
+        YlabelNorm <- "rle normalized counts"
+    }## if(Normalization == "rle")
+
+    if (Normalization == "rleRPKM") {
+        YlabelNorm <- "rle and RPKM normalized counts"
+    }## if(Normalization == "rleRPKM")
+
+    return(YlabelNorm)
+}## myYlabelNorm()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrSEresNorm <- function(SEresNorm,
+                         DATAnorm=TRUE,
+                         path.result=NULL) {
+    ##-----------------------------------------------------------------------##
     Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
                      "'DATAnormalization().'")
 
@@ -129,9 +278,32 @@ DATAplotExpressionGenes <- function(SEresNorm,
         }## if (codeDEres != "SEresNormalization")
     }## if (!is(SEresNorm, "SummarizedExperiment"))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check 2
+    ##-----------------------------------------------------------------------##
+    if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm)) {
+        stop("'DATAnorm' must be TRUE or FALSE.")
+    }## if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm))
+
+    if (!is.null(path.result)) {
+        if (!is.character(path.result)) {
+            stop("'path.result' must be NULL or a character.")
+        }## if (!is.character(path.result))
+    }## if (!is.null(path.result))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrSEresNorm()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrProfileGenes <- function(Vector.row.gene,
+                            Color.Group=NULL,
+                            Plot.Expression=TRUE,
+                            Name.folder.profile=NULL) {
+    ##-----------------------------------------------------------------------##
+    ## Check Vector.row.gene
     Err_integers <- paste("'Vector.row.gene' must be a vector",
                           "of non negative integers.")
     if (!is.numeric(Vector.row.gene) & !is.integer(Vector.row.gene)) {
@@ -146,10 +318,8 @@ DATAplotExpressionGenes <- function(SEresNorm,
         }## if (min(Vector.row.gene) <= 0)
     }## if(is.null(Individual.position))
 
-    if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm)) {
-        stop("'DATAnorm' must be TRUE or FALSE.")
-    }## if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm))
-
+    ##-----------------------------------------------------------------------##
+    ## Check 2
     if (!is.null(Color.Group)) {
         if (!is.data.frame(Color.Group)) {
             stop("'Color.Group' must be NULL or a data.frame.")
@@ -160,113 +330,13 @@ DATAplotExpressionGenes <- function(SEresNorm,
         stop("'Plot.Expression' must be TRUE or FALSE.")
     }## if (!isTRUE(Plot.Expression) & !isFALSE(Plot.Expression))
 
-    if (!is.null(path.result)) {
-        if (!is.character(path.result)) {
-            stop("'path.result' must be NULL or a character.")
-        }## if (!is.character(path.result))
-    }## if (!is.null(path.result))
-
     if (!is.null(Name.folder.profile)) {
         if (!is.character(Name.folder.profile)) {
             stop("'Name.folder.profile' must be NULL or a character.")
         }## if (!is.character(Name.folder.profile))
     }## if (!is.null(Name.folder.profile))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Folder creation if no existence
-    if (is.null(Name.folder.profile)) {
-        Name.folder.profile <- ""
-        SubFolder.name <- "1_UnsupervisedAnalysis"
-    } else {
-        Name.folder.profile <- paste0("_", Name.folder.profile)
-        SubFolder.name <- paste0("1_UnsupervisedAnalysis", Name.folder.profile)
-    }## if(is.null(Name.folder.profile))
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrDATAplotExpressionGenes()
 
-    if (!is.null(path.result)) {
-        if(!SubFolder.name%in%dir(path=path.result)){
-            print("Folder creation")
-            dir.create(path=file.path(path.result, SubFolder.name))
-            path.result.f <- file.path(path.result, SubFolder.name)
-        } else {
-            path.result.f <- file.path(path.result, SubFolder.name)
-        }## if (!is.null(path.result))
-    } else {
-        path.result.f <- NULL
-    }## if(!is.null(path.result)=)
-
-    if (!is.null(path.result.f)) {
-        nom.dossier.result <- paste0("1-5_ProfileExpressionAnalysis",
-                                     Name.folder.profile)
-        if (!nom.dossier.result%in%dir(path = path.result.f)) {
-            dir.create(path=file.path(path.result.f, nom.dossier.result))
-            path.result.new <- file.path(path.result.f, nom.dossier.result)
-        } else {
-            path.result.new <- file.path(path.result.f, nom.dossier.result)
-        }## if(nom.dossier.result%in%dir(path = path.result.f)==FALSE)
-    } else {
-        path.result.new <- NULL
-    }## if(is.null(path.result))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## SUB SE object
-    if (DATAnorm == TRUE) {
-        aSE <- 2
-    } else {
-        aSE <- 1
-    }## if (DATAnorm == TRUE)
-
-    NameG <- as.character(SummarizedExperiment::rownames(SEresNorm))
-    assaySE <- data.frame(SummarizedExperiment::assays(SEresNorm)[[aSE]])
-    cSEdat <- SummarizedExperiment::colData(SEresNorm)
-    metaSelect <- S4Vectors::metadata(SEresNorm)[c("RAWcolnames", "colGene",
-                                                   "colINFOfactors", "formula",
-                                                   "SEidentification")]
-
-    subSEnorm <- SEobjFUN(as.matrix(assaySE[Vector.row.gene,]), cSEdat)
-    S4Vectors::metadata(subSEnorm) <- metaSelect
-    ##------------------------------------------------------------------------#
-    List.All.G <- vector(mode="list", length=length(Vector.row.gene))
-    names(List.All.G) <- NameG[Vector.row.gene]
-
-    cpt <- 0
-    for (g.sel in Vector.row.gene) {
-        cpt <- cpt+1
-        PlotExpr1G <- DATAplotExpression1Gene(SEres=subSEnorm,
-                                              row.gene=cpt,
-                                              Color.Group=Color.Group)
-        List.All.G[[cpt]] <- PlotExpr1G
-    }## for(g.sel in Vector.row.gene)
-
-    S4Vectors::metadata(subSEnorm)$List.plots <- List.All.G
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Save of all graph in a pdf file
-    if (!is.null(path.result)) {
-        grDevices::pdf(file.path(path.result.new,
-                                 paste0("PlotsProfileGeneExpression",
-                                        Name.folder.profile, ".pdf")),
-                       width=11, height=8, onefile=TRUE)
-
-        for (g.sel in seq_len(length(List.All.G))) {
-            print(List.All.G[[g.sel]])
-        }## for(g.sel in Vector.row.gene)
-
-        grDevices::dev.off()
-    }## if(is.null(path.result)==FALSE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    if (isTRUE(Plot.Expression)) {
-        for (g.sel in seq_len(length(List.All.G))) {
-            print(List.All.G[[g.sel]])
-        }## for(g.sel in Vector.row.gene)
-    }## if(isTRUE(Plot.Expression))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Output
-    return(SEobj=subSEnorm)
-}## DATAplotExpressionGenes()

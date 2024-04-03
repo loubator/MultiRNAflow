@@ -20,8 +20,15 @@
 #' \code{FALSE} means the function uses the raw counts data.
 #'
 #'
-#' @return The function returns a SummarizedExperiment class object containing
-#' information and a reshape of the originally dataset for the PCA analysis.
+#' @return The function returns the same SummarizedExperiment class object
+#' \code{SEresNorm} with the different elements below
+#' * information for the functions
+#' \code{PCArealization()} and \code{PCAgraphics()}
+#' * a reshape of the originally dataset for the PCA analysis
+#' (realized by the function \code{PCArealization()})
+#'
+#' saved in the metadata \code{Results[[1]][[2]]} of \code{SEresNorm}.
+#'
 #' The reshaped dataset which corresponds to a data.frame with
 #' (\eqn{N_g+k}) columns and \eqn{N_s} rows, where
 #' \eqn{N_g} is the number of genes, \eqn{N_s} is the number of samples and
@@ -62,45 +69,25 @@
 #'                              Normalization="rle",
 #'                              Plot.Boxplot=FALSE,
 #'                              Colored.By.Factors=FALSE)
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' resPCAdata <- PCApreprocessing(SEresNorm=resNorm,
 #'                                DATAnorm=TRUE)
 
 PCApreprocessing <- function(SEresNorm,
                              DATAnorm=TRUE) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check 1
-    ## DATAprepSE
-    Err_SE <- paste0("'SEresNorm' mut be the results of the function ",
-                     "'DATAnormalization().'")
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check inputs
+    resErr <- ErrPCApreprocessing(SEresNorm=SEresNorm, DATAnorm=DATAnorm)
 
-    if (!is(SEresNorm, "SummarizedExperiment")) {
-        stop(Err_SE)
-    } else {
-        codeDEres <- S4Vectors::metadata(SEresNorm)$SEidentification
-
-        if (is.null(codeDEres)) {
-            stop(Err_SE)
-        }## if (is.null(codeDEres))
-
-        if (codeDEres != "SEresNormalization") {
-            stop(Err_SE)
-        }## if (codeDEres != "SEresNormalization")
-    }## if (!is(SEresNorm, "SummarizedExperiment"))
-
-    if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm)) {
-        stop("'DATAnorm' must be TRUE or FALSE.")
-    }## if (!isTRUE(DATAnorm) & !isFALSE(DATAnorm))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## preprocssing
-    if (DATAnorm == TRUE) {
+    if (isTRUE(DATAnorm)) {
         aSE <- 2
     } else {
         aSE <- 1
-    }## if (DATAnorm == TRUE)
+    }## if (isTRUE(DATAnorm))
 
     ExprData <- SummarizedExperiment::assays(SEresNorm)[[aSE]]
     ExprData <- data.frame(ExprData)
@@ -122,8 +109,8 @@ PCApreprocessing <- function(SEresNorm,
 
     Vector.patient <- cSEdat$ID
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     if (!is.null(Vector.time.ini)) {
         Tt.Del <- gsub("t", "", gsub("T", "", as.character(Vector.time.ini)))
         Vector.time <- paste0("t", Tt.Del)
@@ -131,15 +118,15 @@ PCApreprocessing <- function(SEresNorm,
         Vector.time <- Vector.time.ini
     }## if(!is.null(Vector.time.ini))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    null.index.vector<-which(c(is.null(Vector.group), is.null(Vector.time)))
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    null.index.vector <- which(c(is.null(Vector.group), is.null(Vector.time)))
     ## if (length(null.index.vector) == 2) {
     ##     stop("You need a qualitative variable")
     ## }## if(length(null.index.vector)==2)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     final.list <- list(Quali.Sup.Group=as.factor(Vector.group),
                        Quali.Sup.Time=as.factor(Vector.time))
 
@@ -148,46 +135,55 @@ PCApreprocessing <- function(SEresNorm,
     } else {
         final.list <- final.list[-null.index.vector]
         paste.quali.var <- as.character(unlist(final.list))
-    }## if(length(null.index.vector)==0)
+    }## if(length(null.index.vector) == 0)
 
     RownamesPCA <- paste0(Vector.patient, "_", paste.quali.var)
 
     data.f <- cbind.data.frame(final.list,
                                as.data.frame(t(ExprData)))
-
     row.names(data.f) <- RownamesPCA
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     Id.colname.gene <- - seq_len(ncol(data.f) - nrow(ExprData))
-    Nb.unique.gene <- length(unique(NameG))
-
-    if (Nb.unique.gene == nrow(ExprData)) {
-        colnames(data.f)[Id.colname.gene] <- NameG
-    } else {
-        colnames(data.f)[Id.colname.gene] <- paste0("Gene.",
-                                                    seq_len(nrow(ExprData)))
-    }## if(Nb.unique.gene == nrow(ExprData))
+    colnames(data.f)[Id.colname.gene] <- NameG
 
     ## order.row <- seq_len(length(Vector.patient))
     listFCTRS <- list(Vector.group=Vector.group,
                       Vector.time=Vector.time,
                       Vector.patient=Vector.patient)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## SE object
     NBcolINFO <- length(unlist(S4Vectors::metadata(SEresNorm)$colDataINFO))
 
     SEprepPCA <- SEresNorm
     SummarizedExperiment::colData(SEprepPCA)$PCA.name <- RownamesPCA
-    S4Vectors::metadata(SEprepPCA)$PCA <- list(data.to.pca=data.f,
-                                               nb.quali.var=length(final.list),
-                                               List.Factors=listFCTRS)
     S4Vectors::metadata(SEprepPCA)$colDataINFO$colINFOnamePCA <- NBcolINFO + 1
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    PCAlist <- list(data.to.pca=data.f,
+                    nb.quali.var=length(final.list),
+                    List.Factors=listFCTRS)
+    S4Vectors::metadata(SEprepPCA)$Results[[1]][[2]] <- PCAlist
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Output
     return(SEobj=SEprepPCA)
 }## PCApreprocessing()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrPCApreprocessing <- function(SEresNorm,
+                                DATAnorm=TRUE) {
+    ##-----------------------------------------------------------------------##
+    ## Check SEresNorm (cf DATAplotExpressionGenes())
+    res_ErrSEresNorm <- ErrSEresNorm(SEresNorm=SEresNorm, DATAnorm=DATAnorm,
+                                     path.result=NULL)
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrPCApreprocessing()

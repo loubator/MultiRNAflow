@@ -35,10 +35,13 @@
 #' If \code{NULL}, no suffix will be added.
 #'
 #' @importFrom SummarizedExperiment colData
-#' @importFrom grDevices dev.off pdf
+#' @importFrom grDevices pdf dev.off
 #'
-#' @return The function returns
-#' * a data.frame (output \code{Results}) which contains
+#' @return The function returns the same DESeqDataSet class object
+#' \code{DESeq.result} with the following results,
+#' saved in the metadata \code{DEresultsGroup} of \code{DESeq.result}:
+#' * a data.frame (output \code{DEsummary} of \code{DEresultsGroup})
+#' which contains
 #'   * gene names
 #'   * pvalues, log2 fold change and DE genes between each pairs of
 #'   biological conditions.
@@ -67,8 +70,9 @@
 #'   BC1 are lower than in the other biological conditions.
 #'   A '0' in one of these columns means the gene is not specific to the
 #'   biological condition associated to the given column.
-#' * A contingency matrix (output \code{Summary.DEanalysis}) which gives
-#' for each biological condition the number of genes categorized as
+#' * A contingency matrix (output \code{Summary.DEanalysis}
+#' of \code{DEresultsGroup}) which gives for each biological condition
+#' the number of genes categorized as
 #' "Upregulated", "DownRugulated" and "Other".
 #' A gene is categorized as 'Other', for a given biological condition,
 #' if the gene is not specific to the given biological condition.
@@ -112,7 +116,7 @@
 #' DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEmus1)$DESeq2obj
 #' DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
 #'
-#' ##------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' dds.DE.G <- DESeq2::DESeq(DESeq2obj, quiet=TRUE, betaPrior=FALSE)
 #'
 #' res.sum.group <- DEanalysisGroup(DESeq.result=dds.DE.G,
@@ -130,14 +134,14 @@ DEanalysisGroup <- function(DESeq.result,
                             Plot.DE.graph=TRUE,
                             path.result=NULL,
                             SubFile.name=NULL){
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     if (!is(DESeq.result, 'DESeqDataSet')) {
         stop("Res.DE.analysis must be a 'DESeqDataSet' object")
     }## if(!is(classDeseq2, 'DESeqDataSet'))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## 1) Summary DESeq2 results
     Fct.group <- data.frame(SummarizedExperiment::colData(DESeq.result))[,1]
     Fct.group <- as.factor(as.character(Fct.group))
@@ -148,111 +152,108 @@ DEanalysisGroup <- function(DESeq.result,
                                     LRT.supp.info=LRT.supp.info,
                                     log.FC.min=log.FC.min,
                                     pval.min=pval.min)
+    listDEresultGroup <- S4Vectors::metadata(SumDEanalysisG)$DEresultsGroup
 
-    Sum.DE.analysis.G <- S4Vectors::metadata(SumDEanalysisG)$DEresultGroup
+    Cont.per.group <- listDEresultGroup$Contingence.per.group
+    DEper2G <- listDEresultGroup$DE.per.pair.G
 
-    Cont.per.group <- Sum.DE.analysis.G$Contingence.per.group
-    DEper2G <- Sum.DE.analysis.G$DE.per.pair.G
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## 2) Barplot and Upset plot
     if (nb.pair.of.group > 1) {
-        List.plots.DE.group <- vector(mode="list", length=3)
-        names(List.plots.DE.group) <- c("VennBarplot",
-                                        "NumberDEgenes_SpecificAndNoSpecific",
-                                        "NumberDEgenes_SpecificGenes")
+        listDEplotsGROUP <- vector(mode="list", length=3)
+        names(listDEplotsGROUP) <- c("VennBarplot",
+                                     "NumberDEgenes_SpecificAndNoSpecific",
+                                     "NumberDEgenes_SpecificGenes")
 
         G.Upset <- DEplotVennBarplotGroup(Mat.DE.pair.group=DEper2G)
         Spe.NoSpe.Barplot <- DEplotBarplot(Cont.per.group, dodge=FALSE)
         Spe.Barplot <- DEplotBarplot(Cont.per.group[-3,], dodge=FALSE)
 
-        List.plots.DE.group[[1]] <- G.Upset$Upset.global
-        List.plots.DE.group[[2]] <- Spe.NoSpe.Barplot
-        List.plots.DE.group[[3]] <- Spe.Barplot
+        listDEplotsGROUP[[1]] <- G.Upset$Upset.global
+        listDEplotsGROUP[[2]] <- Spe.NoSpe.Barplot
+        listDEplotsGROUP[[3]] <- Spe.Barplot
     } else {
-        List.plots.DE.group <- vector(mode="list", length=1)
-        names(List.plots.DE.group) <- c("NumberDEgenes_UpDownRegulated")
+        listDEplotsGROUP <- vector(mode="list", length=1)
+        names(listDEplotsGROUP) <- c("NumberDEgenes_UpDownRegulated")
 
         Spe.NoSpe.Barplot <- DEplotBarplot(Cont.per.group, dodge=FALSE)
-        List.plots.DE.group[[1]] <- Spe.NoSpe.Barplot
+        listDEplotsGROUP[[1]] <- Spe.NoSpe.Barplot
     }## if(nb.pair.of.group>1)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## 6) Save
     if (!is.null(SubFile.name)) {
         SubFile.name <- paste0("_", SubFile.name)
     }## if(is.null(SubFile.name)==TRUE)
 
     if (nb.pair.of.group == 1) {
+        OvUnd2Gfile <- paste0("Plot_NumberDEgenes_UpDownRegulated",
+                              SubFile.name, "_OverUnder_DE_2groups", ".pdf")
+
         if (!is.null(path.result)) {
-            OvUnd2Gfile <- paste0("Plot_NumberDEgenes_UpDownRegulated",
-                                  SubFile.name, "_OverUnder_DE_2groups",
-                                  ".pdf")
             grDevices::pdf(file=file.path(path.result, OvUnd2Gfile),
                            width=11, height=8)
             print(Spe.NoSpe.Barplot)
             grDevices::dev.off()
-        } else {
-            if (Plot.DE.graph == TRUE) {
-                print(Spe.NoSpe.Barplot)
-            }## if(Plot.DE.graph==TRUE)
         }## if(is.null(path.result)==FALSE)
+
+        if (Plot.DE.graph == TRUE) {
+            print(Spe.NoSpe.Barplot)
+        }## if(Plot.DE.graph==TRUE)
+
     }## if(nb.pair.of.group==1)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     if (nb.pair.of.group > 1) {
-        if (!is.null(path.result)) {
-            VennFile <- paste0("Plot_VennBarplot",  SubFile.name, ".pdf")
+        VennFile <- paste0("Plot_VennBarplot",  SubFile.name, ".pdf")
+        SpeFile <- paste0("Plot_NumberDEgenes_",
+                          "SpecificAndNoSpecific_perBiologicalCondition",
+                          SubFile.name, ".pdf")
+        UDregulates <- paste0("Plot_NumberSpecificGenes_",
+                              "UpDownRegulated_perBiologicalCondition",
+                              SubFile.name, ".pdf")
 
+        if (!is.null(path.result)) {
             grDevices::pdf(file=file.path(path.result, VennFile),
                            width=11, height=8)
             print(G.Upset$Upset.global)
             grDevices::dev.off()
 
-            ##----------------------------------------------------------------#
-            SpeFile <- paste0("Plot_NumberDEgenes_",
-                              "SpecificAndNoSpecific_perBiologicalCondition",
-                              SubFile.name, ".pdf")
-
+            ##---------------------------------------------------------------##
             grDevices::pdf(file=file.path(path.result, SpeFile),
                            width=11, height=8)
             print(Spe.NoSpe.Barplot)
             grDevices::dev.off()
 
-            ##----------------------------------------------------------------#
-            UDregulates <- paste0("Plot_NumberSpecificGenes_",
-                                  "UpDownRegulated_perBiologicalCondition",
-                                  SubFile.name, ".pdf")
-
+            ##---------------------------------------------------------------##
             grDevices::pdf(file=file.path(path.result, UDregulates),
                            width=11, height=8)
             print(Spe.Barplot)
             grDevices::dev.off()
-        } else {
-            if (Plot.DE.graph == TRUE) {
-                print(G.Upset$Upset.global)
-                # print(G.Upset$Upset.threshold)
-                print(Spe.NoSpe.Barplot)
-                print(Spe.Barplot)
-            }## if (Plot.DE.graph == TRUE)
         }## if(is.null(path.result)==FALSE)
+
+        if (isTRUE(Plot.DE.graph)) {
+            print(G.Upset$Upset.global)
+            # print(G.Upset$Upset.threshold)
+            print(Spe.NoSpe.Barplot)
+            print(Spe.Barplot)
+        }## if (Plot.DE.graph == TRUE)
+
     }## if(nb.pair.of.group>1)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## SE final
-    resSummary <- Sum.DE.analysis.G$Results
-    resCont <- Sum.DE.analysis.G$Contingence.per.group
     DESeqclass <- SumDEanalysisG
+    listDEresultGroup <- append(listDEresultGroup, listDEplotsGROUP)
+    S4Vectors::metadata(DESeqclass)$DEresultsGroup <- listDEresultGroup
 
-    S4Vectors::metadata(DESeqclass)$DEresultGroup$Results <- resSummary
-    S4Vectors::metadata(DESeqclass)$DEresultGroup$Summary.DEanalysis <- resCont
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## 6) End
-    ## List.Plots.DE.Group=List.plots.DE.group
+    ## listDEplotsGROUP=listDEplotsGROUP
     return(DESeqclass=DESeqclass)
 }## DEanalysisGroup()

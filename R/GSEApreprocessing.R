@@ -7,26 +7,32 @@
 #'
 #' @details We have the following three cases:
 #' * If \code{Set.Operation="union"} then the rows extracted from
-#' the different datasets included in \code{SEresDE}
+#' the different datasets (raw counts, normalized data and
+#' \code{SummarizedExperiment::rowData(SEresDE)})
+#' included in the SummarizedExperiment class object \code{SEresDE}
 #' are those such that the sum of the selected columns of
 #' \code{SummarizedExperiment::rowData(SEresDE)}
-#' by \code{ColumnsCriteria} is >0.
-#' For example, the selected genes can be those DE at least at t1 or t2
-#' (versus the reference time t0).
+#' given in \code{ColumnsCriteria} is >0.
+#' This means that the selected genes are those having at least one ’1’
+#' in one of the selected columns.
 #' * If \code{Set.Operation="intersect"} then the rows extracted from
-#' the different datasets included in \code{SEresDE}
+#' the different datasets (raw counts, normalized data and
+#' \code{SummarizedExperiment::rowData(SEresDE)})
+#' included in the SummarizedExperiment class object \code{SEresDE}
 #' are those such that the product of the selected columns of
 #' \code{SummarizedExperiment::rowData(SEresDE)}
-#' by \code{ColumnsCriteria} is >0.
-#' For example, the selected genes can be those DE at times t1 and t2
-#' (versus the reference time t0).
+#' given in \code{ColumnsCriteria} is >0.
+#' This means that the selected genes are those having ’1’
+#' in all of the selected columns.
 #' * If \code{Set.Operation="setdiff"} then the rows extracted from
-#' the different datasets included in \code{SEresDE}
+#' the different datasets (raw counts, normalized data and
+#' \code{SummarizedExperiment::rowData(SEresDE)})
+#' included in the SummarizedExperiment class object \code{SEresDE}
 #' are those such that only one element of the selected columns of
 #' \code{SummarizedExperiment::rowData(SEresDE)}
-#' by \code{ColumnsCriteria} is >0.
-#' For example, the selected genes can be those DE at times t1 only and
-#' at times t2 only (versus the reference time t0).
+#' given in \code{ColumnsCriteria} is >0.
+#' This means that the selected genes are those having ’1’
+#' in only one of the selected columns.
 #'
 #'
 #' @param SEresDE A SummarizedExperiment class object. Output from
@@ -83,14 +89,14 @@
 #' data(RawCounts_Antoszewski2022_MOUSEsub500)
 #' ## No time points. We take only two groups for the speed of the example
 #' RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[, seq_len(7)]
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' ## Preprocessing
 #' resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
 #'                             Column.gene=1,
 #'                             Group.position=1,
 #'                             Time.position=NULL,
 #'                             Individual.position=2)
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' ## DE analysis
 #' resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
 #'                               pval.min=0.05,
@@ -101,161 +107,160 @@
 #'                               path.result=NULL,
 #'                               Name.folder.DE=NULL)
 #'
-#' ##-------------------------------------------------------------------------#
-#' resGp<-GSEApreprocessing(SEresDE=resDET1wt,
-#'                          ColumnsCriteria=2,
-#'                          Set.Operation="union",
-#'                          Rnk.files=TRUE,
-#'                          Save.files=FALSE)
+#' ##------------------------------------------------------------------------##
+#' resGp <- GSEApreprocessing(SEresDE=resDET1wt,
+#'                            ColumnsCriteria=2,
+#'                            Set.Operation="union",
+#'                            Rnk.files=TRUE,
+#'                            Save.files=FALSE)
 
 GSEApreprocessing <- function(SEresDE,
                               ColumnsCriteria,
                               Set.Operation,
                               Rnk.files=TRUE,
                               Save.files=FALSE) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check 1
-    ## DATAprepSE
-    Err_SE <- paste0("'SEresDE' mut be the results of the function ",
-                     "'DEanalysisGlobal()'.")
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check
+    resErr <- ErrGSEApreprocessing(SEresDE=SEresDE,
+                                   ColumnsCriteria=ColumnsCriteria,
+                                   Set.Operation=Set.Operation,
+                                   Rnk.files=Rnk.files,
+                                   Save.files=Save.files)
 
-    ## DATAprepSE
-    if (!is(SEresDE, "SummarizedExperiment")) {
-        stop(Err_SE)
-    } else {
-        DESeq2objList <- S4Vectors::metadata(SEresDE)$DESeq2obj
-        codeDEres <-DESeq2objList$SEidentification <-"SEresultsDE"
-
-        if (is.null(codeDEres)) {
-            stop(Err_SE)
-        }## if (is.null(codeDEres))
-
-        if (codeDEres != "SEresultsDE") {
-            stop(Err_SE)
-        }## if (codeDEres != SEresultsDE))
-    }## if (!is(SEresDE, "SummarizedExperiment"))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Preprocessing
     scaled.data <- round(SummarizedExperiment::assays(SEresDE)$rle, digits=3)
     NameAllG <- as.character(SummarizedExperiment::rownames(SEresDE))
     resPATH <- S4Vectors::metadata(SEresDE)$DESeq2obj$pathNAME
     resInputs <- S4Vectors::metadata(SEresDE)$DESeq2obj$Summary.Inputs
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Selection of DE gene
-    ReDEsel<-DEanalysisSubData(SEresDE=SEresDE,
-                               ColumnsCriteria=ColumnsCriteria,
-                               Set.Operation=Set.Operation)
+    ReDEsel <- DEanalysisSubData(SEresDE=SEresDE,
+                                 ColumnsCriteria=ColumnsCriteria,
+                                 Set.Operation=Set.Operation)
 
     # Norm.dat<-ReDEsel$SubData
     Name.G <- as.character(SummarizedExperiment::rownames(ReDEsel))
     Norm.dat <- round(SummarizedExperiment::assays(ReDEsel)$rle, digits=3)
     row.names(Norm.dat) <- Name.G
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    if(isTRUE(Save.files) & !is.null(resPATH$Path.result)){
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Preprocessing 2
+    if (ncol(resInputs$FactorsInfo) == 3) {
+        TnumFct <- gsub("T", "", resInputs$FactorsInfo[,2], fixed=TRUE)
+        TnumFct <- gsub("t", "", TnumFct, fixed=TRUE)
 
-        if(Save.files==TRUE){
-            path.result<-resPATH$Path.result
-        }else{
-            path.result<-Save.files
-        }## if(Save.files==TRUE)
+        FactorBoxplt <- as.factor(paste(resInputs$FactorsInfo[,1],
+                                        paste0("t", TnumFct), sep="."))
+    } else {
+        FactorBoxplt <- as.factor(resInputs$FactorsInfo[,1])
+    }## if(ncol(resInputs$FactorsInfo) == 3)
 
-        if(!is.null(resPATH$Folder.result)){
-            SufixDE<-paste0("_", resPATH$Folder.result)
-        }else{
-            SufixDE<-NULL
-        }## if(is.null(resPATH$Folder.result)==FALSE)
+    IndexOrder <- order(as.character(FactorBoxplt))
 
-        if(Save.files==TRUE){
-            SuppPlotFolder<-paste0("2-5_Enrichment_analysis", SufixDE)
+    LevelsFct <- levels(FactorBoxplt)
+    VectFct <- as.vector(FactorBoxplt)[IndexOrder]
+    level <- LevelsFct[match(LevelsFct, unique(VectFct))]
 
-            if(!SuppPlotFolder%in%dir(path=path.result)){
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Preprocessing 3
+    Norm.dat <- Norm.dat[,IndexOrder]
+
+    if (isTRUE(Rnk.files)) {
+        MNallg <- stats::aggregate(t(Norm.dat), by=list(VectFct), FUN=mean)
+        SDallg <- stats::aggregate(t(Norm.dat), by=list(VectFct), FUN=sd)
+        NperFct <- as.numeric(table(VectFct))
+    }## if (isTRUE(Rnk.files))
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    if (isTRUE(Save.files) & !is.null(resPATH$Path.result)) {
+
+        if (isTRUE(Save.files)) {
+            path.result <- resPATH$Path.result
+        } else {
+            path.result <- Save.files
+        }## if(isTRUE(Save.files))
+
+        if (!is.null(resPATH$Folder.result)) {
+            SufixDE <- paste0("_", resPATH$Folder.result)
+        } else {
+            SufixDE <- NULL
+        }## if (!is.null(resPATH$Folder.result))
+
+        if (isTRUE(Save.files)) {
+            SuppPlotFolder <- paste0("2-5_Enrichment_analysis", SufixDE)
+
+            if (!SuppPlotFolder%in%dir(path=path.result)) {
                 print("Folder creation")
                 dir.create(path=file.path(path.result, SuppPlotFolder))
-                path.result.f<-file.path(path.result, SuppPlotFolder)
-            }else{
-                path.result.f<-file.path(path.result, SuppPlotFolder)
-            }## if(SuppPlotFolder%in%dir(path = path.result)==FALSE)
+            }## if (!SuppPlotFolder%in%dir(path=path.result))
 
-            if(!"2-5-2_EnrichmentGO_software_preprocessing"%in%dir(path=path.result.f)){
+            path.result.f <- file.path(path.result, SuppPlotFolder)
+            GOpreproFolder <- "2-5-2_EnrichmentGO_software_preprocessing"
+
+            if (!GOpreproFolder%in%dir(path=path.result.f)) {
                 ## print("Folder creation")
-                dir.create(path=file.path(path.result.f,
-                                          "2-5-2_EnrichmentGO_software_preprocessing"))
-            }
+                dir.create(path=file.path(path.result.f, GOpreproFolder))
+            }## if(!GOpreproFolder%in%dir(path=path.result.f))
 
-            path.resultf<-file.path(path.result.f,
-                                    "2-5-2_EnrichmentGO_software_preprocessing")
-        }else{
-            SuppPlotFolder<-paste0("EnrichmentGO_software_preprocessing",
-                                   SufixDE)
+            path.resultf <- file.path(path.result.f, GOpreproFolder)
+        } else {
+            SuppPlotFolder <- paste0("EnrichmentGO_software_preprocessing",
+                                     SufixDE)
 
-            if(SuppPlotFolder%in%dir(path = path.result)==FALSE){##GOFolder%in%
+            if (!SuppPlotFolder%in%dir(path=path.result)) {##GOFolder%in%
                 ## print("Folder creation")
                 dir.create(path=file.path(path.result, SuppPlotFolder))
-            }## if(SuppPlotFolder%in%dir(path=path.result)==FALSE)
+            }## if (!SuppPlotFolder%in%dir(path=path.result))
 
-            path.resultf<-file.path(path.result, SuppPlotFolder)
+            path.resultf <- file.path(path.result, SuppPlotFolder)
 
-        }## if(Save.files==TRUE)
+        }## if (isTRUE(Save.files))
 
-        ##--------------------------------------------------------------------#
-        if(!"GSEA"%in%dir(path=path.resultf)){
+        ##-------------------------------------------------------------------##
+        if (!"GSEA"%in%dir(path=path.resultf)) {
             dir.create(path=file.path(path.resultf, "GSEA"))
         }## if(!"GSEA"%in%dir(path=path.resultf))
 
-        if(!"GSEApreranked"%in%dir(path=file.path(path.resultf, "GSEA"))){
+        if (!"GSEApreranked"%in%dir(path=file.path(path.resultf, "GSEA"))) {
             dir.create(path=file.path(path.resultf, "GSEA", "GSEApreranked"))
         }## if(!"GSEApreranked"%in%dir(path=file.path(path.resultf, "GSEA")))
 
-        ##--------------------------------------------------------------------#
-        if(!"Webgestalt"%in%dir(path=path.resultf)){
+        ##-------------------------------------------------------------------##
+        if (!"Webgestalt"%in%dir(path=path.resultf)) {
             dir.create(path=file.path(path.resultf, "Webgestalt"))
         }## if(!"Webgestalt"%in%dir(path=path.resultf))
 
-        path.resultw<-file.path(path.resultf, "Webgestalt")
+        path.resultw <- file.path(path.resultf, "Webgestalt")
 
-        if(!"ORA_NTA_analysis"%in%dir(path=path.resultw)){
+        if (!"ORA_NTA_analysis"%in%dir(path=path.resultw)) {
             dir.create(path=file.path(path.resultw, "ORA_NTA_analysis"))
         }## if(!"ORA_NTA_analysis"%in%dir(path=path.resultw))
 
-        if(!"GSEA_analysis"%in%dir(path = path.resultw)){
+        if (!"GSEA_analysis"%in%dir(path = path.resultw)) {
             dir.create(path=file.path(path.resultw, "GSEA_analysis"))
-        }# if("GSEA_analysis"%in%dir(path = path.resultw)==FALSE)
+        }# if (!"GSEA_analysis"%in%dir(path = path.resultw))
 
-        ##--------------------------------------------------------------------#
-        OtherEnrichGO<-"DAVID_gProfiler_Panther_ShinyGO_Enrichr_GOrilla"
+        ##-------------------------------------------------------------------##
+        OtherEnrichGO <- "DAVID_gProfiler_Panther_ShinyGO_Enrichr_GOrilla"
 
-        if(!OtherEnrichGO%in%dir(path=path.resultf)){
+        if (!OtherEnrichGO%in%dir(path=path.resultf)) {
             dir.create(path=file.path(path.resultf, OtherEnrichGO))
         }## if(!OtherEnrichGO%in%dir(path=path.resultf))
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
-        if(ncol(resInputs$FactorsInfo)==3){
-            TnumFct<-gsub("t", "", gsub("T", "",
-                                        resInputs$FactorsInfo[,2],
-                                        fixed=TRUE))
-            FactorBoxplt<-as.factor(paste(resInputs$FactorsInfo[,1],
-                                          paste0("t", TnumFct),
-                                          sep="."))
-        }else{
-            FactorBoxplt<-as.factor(resInputs$FactorsInfo[,1])
-        }## if(ncol(resInputs$FactorsInfo)==3)
-
-        ##--------------------------------------------------------------------#
-        IndexOrder<-order(as.character(FactorBoxplt))
-        Norm.dat<-Norm.dat[,IndexOrder]
-
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
         ## GCT file for GSEA
         options(warn=-1)
 
-        filename.Norm<-file.path(path.resultf, "GSEA", "ScaledData.gct")
+        filename.Norm <- file.path(path.resultf, "GSEA", "ScaledData.gct")
 
         cat("#1.2", "\n", sep="\t", file=filename.Norm)
         cat(nrow(Norm.dat), ncol(Norm.dat), "\n", sep="\t",
@@ -266,22 +271,18 @@ GSEApreprocessing <- function(SEresDE,
                            quote=FALSE, sep="\t", append=TRUE)
         options(warn=0)# suppressWarnings(utils::write.table())
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         # CLS file for GSEA
-        LevelsFct<-levels(FactorBoxplt)
-        VectFct<-as.vector(FactorBoxplt)[IndexOrder]
-        level<-LevelsFct[match(LevelsFct, unique(VectFct))]
-
-        filenameFct<-file.path(path.resultf, "GSEA", "Factors.cls")
+        filenameFct <- file.path(path.resultf, "GSEA", "Factors.cls")
 
         cat(c(length(VectFct), length(level), 1), "\n", sep=" ",
             file=filenameFct)
         cat(c("#", level), "\n", sep=" ", file=filenameFct, append=TRUE)
         cat(VectFct, sep=" ", file=filenameFct, append=TRUE)
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## txt files for OtherEnrichGO
-        filepathOtherEnrichGO<-file.path(path.resultf, OtherEnrichGO)
+        filepathOtherEnrichGO <- file.path(path.resultf, OtherEnrichGO)
 
         utils::write.table(data.frame(Name.G),
                            file=file.path(filepathOtherEnrichGO,
@@ -292,10 +293,10 @@ GSEApreprocessing <- function(SEresDE,
                                           "BackgroungGene.txt"),
                            row.names=FALSE, col.names=FALSE, quote=FALSE)
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## txt file for webgestalt (ORA)
-        filenameORA<-file.path(path.resultw, "ORA_NTA_analysis",
-                               "WebgestaltORANTATargetGene.txt")
+        filenameORA <- file.path(path.resultw, "ORA_NTA_analysis",
+                                 "WebgestaltORANTATargetGene.txt")
 
         utils::write.table(data.frame(Name.G), file=filenameORA,
                            row.names=FALSE, col.names=FALSE, quote=FALSE)
@@ -305,412 +306,465 @@ GSEApreprocessing <- function(SEresDE,
                                           "BackgroungGene.txt"),
                            row.names=FALSE, col.names=FALSE, quote=FALSE)
 
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
         ## rnk file for webgestalt (GSEA)
         ## http://www.webgestalt.org
-        if(Rnk.files==TRUE){
-            MNallg<-stats::aggregate(t(Norm.dat), by=list(VectFct), FUN=mean)
-            SDallg<-stats::aggregate(t(Norm.dat), by=list(VectFct), FUN=sd)
-            NperFct<-as.numeric(table(VectFct))
+        if (isTRUE(Rnk.files)) {
+            for (fc in seq_len(length(LevelsFct)-1)) {
+                for (fnc in seq(from=(fc+1), to=length(LevelsFct), by=1)) {
+                    Dmn <- as.numeric(MNallg[fnc, -1] - MNallg[fc, -1])
 
-            for(fc in seq_len(length(LevelsFct)-1)){
-                for(fnc in seq(from=(fc+1), to=length(LevelsFct), by=1)){
-                    Dmn<-as.numeric(MNallg[fnc,-1]-MNallg[fc,-1])
-                    Dsd<-as.numeric(sqrt((SDallg[fnc,-1]^2)/NperFct[fnc]+(SDallg[fc,-1]^2)/NperFct[fc]))
+                    Dsd <- (SDallg[fnc, -1]^2)/NperFct[fnc]
+                    Dsd <- Dsd + (SDallg[fc, -1]^2)/NperFct[fc]
+                    Dsd <- as.numeric(sqrt(Dsd))
 
-                    FileWGSEArnk<-paste0("WebgestaltGSEATargetGene_",
-                                         paste("Tscore", LevelsFct[fnc],
-                                               "versus",
-                                               LevelsFct[fc], sep="_"),
-                                         ".rnk")
+                    Dmn_Dsd <- round(Dmn/Dsd, digits=4)
 
-                    filenameWGSEA<-file.path(path.resultw, "GSEA_analysis",
-                                             FileWGSEArnk)
+                    FileWGSEArnk <- paste0("WebgestaltGSEATargetGene_",
+                                           paste("Tscore", LevelsFct[fnc],
+                                                 "versus",
+                                                 LevelsFct[fc], sep="_"),
+                                           ".rnk")
 
-                    utils::write.table(data.frame(Gene=Name.G,
-                                                  Score=round(Dmn/Dsd,
-                                                              digits=4)),
-                                       sep="\t",
+                    filenameWGSEA <- file.path(path.resultw, "GSEA_analysis",
+                                               FileWGSEArnk)
+
+                    utils::write.table(data.frame(Gene=Name.G, Score=Dmn_Dsd),
                                        file=filenameWGSEA, row.names=FALSE,
-                                       col.names=FALSE, quote = FALSE)
+                                       col.names=FALSE, quote=FALSE, sep="\t")
 
-                    PreRKfile<-paste0("WebgestaltGSEATargetGene_",
-                                      paste("Tscore",LevelsFct[fnc],
-                                            "versus",
-                                            LevelsFct[fc], sep="_"),
-                                      ".rnk")
+                    PreRKfile <- paste0("WebgestaltGSEATargetGene_",
+                                        paste("Tscore",LevelsFct[fnc],
+                                              "versus",
+                                              LevelsFct[fc], sep="_"),
+                                        ".rnk")
 
-                    Prerankedpath<-file.path(path.resultf, "GSEA",
-                                             "GSEApreranked", PreRKfile)
+                    Prerankedpath <- file.path(path.resultf, "GSEA",
+                                               "GSEApreranked", PreRKfile)
 
-                    utils::write.table(data.frame(Gene=Name.G,
-                                                  Score=round(Dmn/Dsd,
-                                                              digits=4)),
-                                       sep="\t",
+                    utils::write.table(data.frame(Gene=Name.G, Score=Dmn_Dsd),
                                        file=Prerankedpath, row.names=FALSE,
-                                       col.names=FALSE, quote = FALSE)
-                }# end for(fnc in (fc+1):length(LevelsFct))
-            }# end for(fc in 1:(length(LevelsFct)-1))
-        }## if(Rnk.files==TRUE)
+                                       col.names=FALSE, quote=FALSE, sep="\t")
+                }## for (fnc in seq(from=(fc+1), to=length(LevelsFct), by=1))
+            }## for (fc in seq_len(length(LevelsFct)-1))
+        }## if (isTRUE(Rnk.files))
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
         # Creation file Readme
-        fileRdme<-file.path(path.resultf, "ReferenceEnrichmentGO.txt")
-        ReferenceEnrichmentGOtxt(path.fileRdme=fileRdme)
-    }# if(is.FALSE(Save.files)==FALSE)
+        fileRdme <- file.path(path.resultf, "ReferenceEnrichmentGO.txt")
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    } else {
+        fileRdme <- NULL
+    }## if(isTRUE(Save.files) & !is.null(resPATH$Path.result))
+
+    resGOenrichRef <- ReferenceEnrichmentGOtxt(path.fileRdme=fileRdme)
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Output
     return(list(TargetDEGene=Name.G,
                 BackgroungGene=NameAllG))
-}# GSEApreprocessing()
+}## GSEApreprocessing()
 
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 
-ReferenceEnrichmentGOtxt<-function(path.fileRdme){
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+ErrGSEApreprocessing <- function(SEresDE,
+                                 ColumnsCriteria,
+                                 Set.Operation,
+                                 Rnk.files=TRUE,
+                                 Save.files=FALSE) {
+    ##-----------------------------------------------------------------------##
+    ## Check 1
+    Err1 <- ErrSEresDE(SEresDE=SEresDE)
+    Err2 <- ErrColumnsCriteria(ColumnsCriteria=ColumnsCriteria,
+                               Set.Operation=Set.Operation)
+
+    ##-----------------------------------------------------------------------##
+    if (!isTRUE(Rnk.files) & !isFALSE(Rnk.files)) {
+        stop("'Rnk.files' must be TRUE or FALSE.")
+    }## if (!isTRUE(Rnk.files) & !isFALSE(Rnk.files))
+
+    if (!isTRUE(Save.files) & !isFALSE(Save.files)) {
+        stop("'Save.files' must be TRUE or FALSE.")
+    }## if (!isTRUE(Save.files) & !isFALSE(Save.files))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrGSEApreprocessing
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ReferenceEnrichmentGOtxt <- function(path.fileRdme) {
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## List Creation
+    listGO <- vector(mode="list", length=136)
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ##  GSEA
+    GSEAtitle <- "   GSEA: http://www.gsea-msigdb.org/gsea/index.jsp"
+
+    listGO[[1]] <- paste(rep("=", times=75), collapse="")
+    listGO[[2]] <- paste(rep("=", times=75), collapse="")
+    listGO[[3]] <- paste(paste(rep("=", times=5), collapse=""), GSEAtitle)
+    listGO[[4]] <- paste(rep("=", times=75), collapse="")
+    listGO[[5]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[6]] <- c("* Link of the article associated with GSEA:")
+    listGO[[7]] <- paste("  - Title: Gene set enrichment analysis:",
+                         "a knowledge-based approach for interpreting",
+                         "genome-wide expression profiles.")
+    listGO[[8]] <- paste("  - Number of citations: 31586",
+                         "(from 25/10/2005 to 22/04/2022),",
+                         "mean rate = 1914 citations per year")
+    listGO[[9]] <- c("  - https://pubmed.ncbi.nlm.nih.gov/16199517/")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[10]] <- paste(rep("-", times=75), collapse="")
+    listGO[[11]] <- c("* VIDEO 1 from the youtube channel 'IUSM-CCBB'")
+    listGO[[12]] <- paste("  - TITLE: B4B: Module 4 - Functional Analysis",
+                          "- GSEA (theory)")
+    listGO[[13]] <- c("  - https://www.youtube.com/watch?v=ibyyUpgG4Wo")
+    listGO[[14]] <- c("  - Youtube description: No real youtube description.")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[15]] <- paste(rep("-", times=75), collapse="")
+    listGO[[16]] <- c("* VIDEO 2 from the youtube channel 'IUSM-CCBB'")
+    listGO[[17]] <- paste("  - TITLE: B4B: Module 4 - Functional Analysis",
+                          "- GSEA (hands on)")
+    listGO[[18]] <- c("  - https://www.youtube.com/watch?v=JIMZipAPKkk")
+    listGO[[19]] <- c("  - Youtube description: No real youtube description.")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[20]] <- paste(rep("-", times=75), collapse="")
+    listGO[[21]] <- c("* VIDEO 3 from the youtube channel 'Genomics Gurus'")
+    listGO[[22]] <- paste("  - TITLE: HOW TO PERFORM GSEA - A tutorial",
+                          "on gene set enrichment analysis for RNA-seq")
+    listGO[[23]] <- c("  - https://www.youtube.com/watch?v=KY6SS4vRchY")
+    listGO[[24]] <- paste("  - Youtube description: In this tutorial,",
+                          "we explain what gene set enrichment analysis (GSEA)",
+                          "is and what it offers you. We show you how to run",
+                          "the analysis on your computer and take you through",
+                          "how to interpret the outputs.",
+                          "The tutorial also covers leading edge analysis and",
+                          "analysis of gene networks with Cytoscape.")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[25]] <- paste(rep("-", times=75), collapse="")
+    listGO[[26]] <- paste("* VIDEO 4 from the youtube channel",
+                          "'Online Faculty Mentoring Network to Develop",
+                          "Video Tutorials for Computational Genomics'")
+    listGO[[27]] <- c("  - TITLE: GSEAtheory")
+    listGO[[28]] <- c("  - https://www.youtube.com/watch?v=bT00oJh2x_4")
+    listGO[[29]] <- paste("  - Youtube description: Brief introduction to",
+                          "how gene set enrichment analysis works.")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## DAVID
+    DAVIDtitle <- "   DAVID: https://david.ncifcrf.gov/"
+
+    listGO[[30]] <- paste(rep("=", times=75), collapse="")
+    listGO[[31]] <- paste(rep("=", times=75), collapse="")
+    listGO[[32]] <- paste(paste(rep("=", times=5), collapse=""), DAVIDtitle)
+    listGO[[33]] <- paste(rep("=", times=75), collapse="")
+    listGO[[34]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[35]] <- c("* Link of the article associated with DAVID:")
+    listGO[[36]] <- paste("  - Title: Systematic and integrative analysis of",
+                          "large gene lists using DAVID bioinformatics",
+                          "resources.")
+    listGO[[37]] <- paste("  - Number of citations : 23137 (from 18/12/2008",
+                          "to 22/04/2022), mean rate = 1629 citations per year")
+    listGO[[38]] <- c("  - https://www.nature.com/articles/nprot.2008.211")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[39]] <- paste(rep("-", times=75), collapse="")
+    listGO[[40]] <- c("* VIDEO 1 from the youtube channel 'Sanbomics'")
+    listGO[[42]] <- paste("  - TITLE: Simple gene ontology and",
+                          "pathway enrichment from a gene list")
+    listGO[[43]] <- c("  - https://www.youtube.com/watch?v=XLRA0A5qsoE")
+    listGO[[44]] <- paste("  - Youtube description: Here I show you how",
+                          "to use the DAVID functional annotation resource",
+                          "to easily do gene ontology and KEGG pathway",
+                          "enrichment from a gene list.",
+                          "This method takes genes in almost any format and",
+                          "is incredibly easy to use. This requires",
+                          "no programatic skills and barely any thinking")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[39]] <- paste(rep("-", times=75), collapse="")
+    listGO[[40]] <- c("* VIDEO 2 from the youtube channel 'Bioinformatics'")
+    listGO[[42]] <- paste("  - TITLE: How to do Gene Ontology (GO)",
+                          "enrichment analysis with DAVID")
+    listGO[[43]] <- c("  - https://www.youtube.com/watch?v=9zFqtviLUzQ")
+    listGO[[44]] <- paste("  - Youtube description: Basic usage of DAVID:",
+                          "finding GO Direct pathways of Biological Process",
+                          "(BP), Cellular Component (CC),",
+                          "and Molecular Function (MF).",
+                          "How to select a set of single list of genes",
+                          "on spread sheet, and paste the list on DAVID.")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[39]] <- paste(rep("-", times=75), collapse="")
+    listGO[[40]] <- c("* VIDEO 3 from the youtube channel 'Bioinformatics'")
+    listGO[[42]] <- paste("TITLE: using DAVID to convert gene IDs",
+                          "to official gene symbols.")
+    listGO[[43]] <- c("  - https://www.youtube.com/watch?v=NwPMVlqzNUg")
+    listGO[[44]] <- c("  - Youtube description: No real youtube description.")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## WebGestalt
+    WebGestalttitle <- "   WebGestalt: http://www.webgestalt.org"
+
+    listGO[[45]] <- paste(rep("=", times=75), collapse="")
+    listGO[[46]] <- paste(rep("=", times=75), collapse="")
+    listGO[[47]] <- paste(paste(rep("=", times=5), collapse=""),
+                          WebGestalttitle)
+    listGO[[48]] <- paste(rep("=", times=75), collapse="")
+    listGO[[49]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[50]] <- c("* Link of the article associated with WebGestalt:")
+    listGO[[51]] <- paste("  - Title: WebGestalt 2019: gene set analysis",
+                          "toolkit with revamped UIs and APIs.")
+    listGO[[52]] <- paste("  - Number of citations : 1079 (from 02/07/2019",
+                          "to 22/04/2022), mean rate = 600 citations per year")
+    listGO[[53]] <- paste0("  - https://academic.oup.com/nar/article/",
+                           "47/W1/W199/5494758")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[54]] <- paste(rep("-", times=75), collapse="")
+    listGO[[55]] <- "* VIDEO 1 from the youtube channel 'IIT Bombay July 2018'"
+    listGO[[56]] <- c("  - TITLE: Lecture 49 : WebGestalt - I")
+    listGO[[57]] <- c("  - https://www.youtube.com/watch?v=zDNWc9YiKpo")
+    listGO[[58]] <- c("  - Youtube description: No real youtube description.")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[59]] <- paste(rep("-", times=75), collapse="")
+    listGO[[60]] <- "* VIDEO 2 from the youtube channel 'IIT Bombay July 2018'"
+    listGO[[61]] <- c("  - TITLE: Lecture 50 : WebGestalt - II")
+    listGO[[62]] <- c("  - https://www.youtube.com/watch?v=OCmO_H6MoLo")
+    listGO[[63]] <- c("  - Youtube description: No real youtube description.")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Panther
+    Pantherttitle <- c("   Panther: http://pantherdb.org/")
+
+    listGO[[64]] <- paste(rep("=", times=75), collapse="")
+    listGO[[65]] <- paste(rep("=", times=75), collapse="")
+    listGO[[66]] <- paste(paste(rep("=", times=5), collapse=""), Pantherttitle)
+    listGO[[67]] <- paste(rep("=", times=75), collapse="")
+    listGO[[68]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[69]] <- c("* Link of the article associated with Panther:")
+    listGO[[70]] <- paste("  - Title: PANTHER version 16:",
+                          "a revised family classification,",
+                          "tree-based classification tool,",
+                          "enhancer regions and extensive API.")
+    listGO[[71]] <- paste("  - Number of citations : 323 (from 08/01/2021",
+                          "to 22/04/2022), mean rate = 323 citations per year")
+    listGO[[72]] <- paste0("  - https://academic.oup.com/nar/article/",
+                           "49/D1/D394/6027812?login=false")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[73]] <- paste(rep("-", times=75), collapse="")
+    listGO[[74]] <- "* VIDEO 1 from the youtube channel 'Bioinformatics World'"
+    listGO[[75]] <- paste("  - TITLE: PANTHER database | PANTHER tutorial |",
+                          "Bioinformatics tutorial |")
+    listGO[[76]] <- c("  - https://www.youtube.com/watch?v=Xqp-sNb8PBY")
+    listGO[[77]] <- c("  - Youtube description: No real youtube description.")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## g:profiler
+    gprofilertitle <- c("   g:profiler: https://biit.cs.ut.ee/gprofiler/gost")
+
+    listGO[[78]] <- paste(rep("=", times=75), collapse="")
+    listGO[[79]] <- paste(rep("=", times=75), collapse="")
+    listGO[[80]] <- paste(paste(rep("=", times=5), collapse=""), gprofilertitle)
+    listGO[[81]] <- paste(rep("=", times=75), collapse="")
+    listGO[[82]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[83]] <- c("* Link of the article associated with g:profiler:")
+    listGO[[84]] <- paste("  - Title: g:Profiler: a web server for",
+                          "functional enrichment analysis and",
+                          "conversions of gene lists")
+    listGO[[85]] <- paste("  - Number of citations : 834 (from 02/07/2019",
+                          "to 22/04/2022), mean rate = 298 citations per year")
+    listGO[[86]] <- c("  - https://pubmed.ncbi.nlm.nih.gov/31066453/")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[87]] <- paste(rep("-", times=75), collapse="")
+    listGO[[88]] <- "* VIDEO 1 from the youtube channel 'Saniya Khullar'"
+    listGO[[89]] <- paste("  - TITLE: Overview of gProfiler Tools for",
+                          "Bioinformatics/Biological Analysis")
+    listGO[[90]] <- c("  - https://www.youtube.com/watch?v=QH8dD0tcNpg")
+    listGO[[91]] <- paste("  - Youtube description: Please note that gProfiler",
+                          "is a tool for functional enrichment analysis,",
+                          "gene identifier conversion, mapping homologous",
+                          "genes across related organisms, and mapping SNPs",
+                          "to functional effects and target genes.",
+                          "There are 4 key tools available on gProfiler,",
+                          "such as:  GOSt, Convert, Orth, and SNPense.",
+                          "Please note that Saniya has dedicated videos",
+                          "on each of these 4 tools.")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[92]] <- paste(rep("-", times=75), collapse="")
+    listGO[[93]] <- "* VIDEO 1 from the youtube channel 'Saniya Khullar'"
+    listGO[[94]] <- "  - TITLE: g:Profiler for Gene-Set Enrichment Analysis"
+    listGO[[95]] <- c("  - https://www.youtube.com/watch?v=Ymu7EruyIeE&t=0s")
+    listGO[[96]] <- paste("  - Youtube description:",
+                          "Please note that in this video,",
+                          "Saniya goes through how you can use g:Profiler",
+                          "(https://biit.cs.ut.ee/gprofiler/gost)",
+                          "to perform gene-set enrichment analysis (GSEA),",
+                          "along with other functions, and also download",
+                          "gene data sources as .gmt files.",
+                          "That is, for a given list of genes ",
+                          "(gene names and/or gene Entrez IDs or Ensembl IDs),",
+                          "you can use g:Profiler to uncover biological",
+                          "pathways, networks, functions, associations,",
+                          "tissues, etc. that are enriched (have a",
+                          "statistically significant overlap with our)",
+                          "gene list for our list of genes. In short,",
+                          "through Metascape (1 of many tools out there),",
+                          "we can query hundreds of different biological",
+                          " gene lists (across a variety of databases and",
+                          "atlases like Gene Ontology, biological pathways",
+                          "(e.g. KEGG, Reactome, WikiPathways), regulatory",
+                          "motifs in DNA (e.g. TRANSFAC, miRTarBase), protein",
+                          "databases (like Human Protein Atlas or CORUM),",
+                          "human phenotype ontology (e.g. HP) to determine",
+                          "what significant biological results are there",
+                          "for our gene list. Saniya also explains how",
+                          "results differ for different gene sets.")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Enrichr
+    Enrichrttitle <- c("   Enrichr: https://maayanlab.cloud/Enrichr/")
+
+    listGO[[97]] <- paste(rep("=", times=75), collapse="")
+    listGO[[98]] <- paste(rep("=", times=75), collapse="")
+    listGO[[99]] <- paste(paste(rep("=", times=5), collapse=""), Enrichrttitle)
+    listGO[[100]] <- paste(rep("=", times=75), collapse="")
+    listGO[[101]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[102]] <- c("* Link of the article associated with Enrichr:")
+    listGO[[103]] <- paste("  - Title: Enrichr: a comprehensive gene set",
+                           "enrichment analysis web server")
+    listGO[[104]] <- paste("  - Number of citations : 4598 (from 03/05/2016",
+                           "to 22/04/2022), mean rate = 766 citations per year")
+    listGO[[105]] <- "  - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4987924/"
+
+    ##-----------------------------------------------------------------------##
+    listGO[[106]] <- paste(rep("-", times=75), collapse="")
+    listGO[[107]] <- "* VIDEO 1 from the youtube channel 'de.STAIR'"
+    listGO[[108]] <- c("  - TITLE: Enrichment analysis with Enrichr")
+    listGO[[109]] <- c("  - https://www.youtube.com/watch?v=qTfOXAObNwo")
+    listGO[[110]] <- paste("  - Youtube description:",
+                           "In this short video we show the use of Enrichr",
+                           "(Chen et al. 2013, Kuleshov et al. 2016)",
+                           "to carry out the enrichment analysis of a list of",
+                           "differtially expressed genes, which we obtained",
+                           "from the RNA-Seq analysis of two NGS",
+                           "Human breast cancer data sets.")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## ShinyGO
+    ShinyGOttitle <- c("   ShinyGO: http://bioinformatics.sdstate.edu/go/")
+
+    listGO[[111]] <- paste(rep("=", times=75), collapse="")
+    listGO[[112]] <- paste(rep("=", times=75), collapse="")
+    listGO[[113]] <- paste(paste(rep("=", times=5), collapse=""), ShinyGOttitle)
+    listGO[[114]] <- paste(rep("=", times=75), collapse="")
+    listGO[[115]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[116]] <- c("* Link of the article associated with ShinyGO:")
+    listGO[[117]] <- paste("  - Title: ShinyGO: a graphical gene-set",
+                           "enrichment tool for animals and plants")
+    listGO[[118]] <- paste("  - Number of citations : 424 (from 15/04/2009",
+                           "to 22/04/2022), mean rate = 212 citations per year")
+    listGO[[119]] <- paste0("  - https://academic.oup.com/bioinformatics/",
+                            "article/36/8/2628/5688742")
+    listGO[[120]] <- paste0("  - https://www.biorxiv.org/content/biorxiv/",
+                            "suppl/2018/05/04/315150.DC1/315150-1.pdf")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[121]] <- paste(rep("-", times=75), collapse="")
+    listGO[[122]] <- paste("* VIDEO 1 from the youtube channel",
+                           "'Dr. Asif's Mol. Biology'")
+    listGO[[123]] <- paste("  - Title: Gene ontology : GO enrichment analysis",
+                           "| shiny GO | Web tool")
+    listGO[[124]] <- c("  - https://www.youtube.com/watch?v=Xqp-sNb8PBY")
+    listGO[[125]] <- paste("  - Youtube description: In this video,",
+                           "I have explained how can we use an online tool for",
+                           "generating gene ontology enrichment graphs?",
+                           "Go shiny is a web tool and can make GO enrichment",
+                           "graphs, PPI and KEGG pathways in seconds.")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## GOrilla
+    GOrillattitle <- c("   GOrilla: http://cbl-gorilla.cs.technion.ac.il")
+
+    listGO[[126]] <- paste(rep("=", times=75), collapse="")
+    listGO[[127]] <- paste(rep("=", times=75), collapse="")
+    listGO[[128]] <- paste(paste(rep("=", times=5), collapse=""), GOrillattitle)
+    listGO[[129]] <- paste(rep("=", times=75), collapse="")
+    listGO[[130]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[131]] <- c("* Link of the article associated with GOrilla:")
+    listGO[[132]] <- paste("  - Title: GOrilla: A Tool For Discovery And",
+                           "Visualization of Enriched GO Terms",
+                           "in Ranked Gene Lists")
+    listGO[[133]] <- paste("  - Number of citations : 3044 (from 03/02/2009",
+                           "to 22/04/2022), mean rate = 154 citations per year")
+    listGO[[134]] <- paste0("  - https://bmcbioinformatics.biomedcentral.com/",
+                            "articles/10.1186/1471-2105-10-48")
+
+    ##-----------------------------------------------------------------------##
+    listGO[[135]] <- listGO[[136]] <- paste(rep("=", times=75), collapse="")
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## File path
-    fileRdme<-path.fileRdme
+    fileRdme <- path.fileRdme
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c(rep("=", times=5),"   GSEA: http://www.gsea-msigdb.org/gsea/index.jsp"),
-        "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
+    if (!is.null(fileRdme)) {
+        cat(rep("=", times=75), "\n", sep="", file=fileRdme)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(c("* Link of the article associated with GSEA:"), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    cat(c("  - Title: Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles."),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Number of citations : 31586 (from 25/10/2005 to 22/04/2022)",
-          "mean rate = 1914 citations per year"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://pubmed.ncbi.nlm.nih.gov/16199517/"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
+        for (l in seq(2, 136, 1)) { length(listGO)
+            cat(listGO[[l]], "\n", sep="", file=fileRdme, append=TRUE)
+        }## for (l in seq(2, 136, 1))
+    }## if (!is.null(fileRdme))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 1 from the youtube channel 'IUSM-CCBB'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","B4B: Module 4 - Functional Analysis - GSEA (theory)"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=ibyyUpgG4Wo", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsGSEA1<-"No real youtube description."
-    cat(c("  - Youtube description:", AbsGSEA1), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Output
+    return(listGO)
+}## ReferenceEnrichmentGOtxt()
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 2 from the youtube channel 'IUSM-CCBB'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","B4B: Module 4 - Functional Analysis - GSEA (hands on)"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=JIMZipAPKkk", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsGSEA2<-"No real youtube description."
-    cat(c("  - Youtube description:", AbsGSEA2),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 3 from the youtube channel 'Genomics Gurus'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","HOW TO PERFORM GSEA - A tutorial on gene set enrichment analysis for RNA-seq"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=KY6SS4vRchY", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsGSEA3<-"In this tutorial, we explain what gene set enrichment analysis (GSEA) is and what it offers you. We show you how to run the analysis on your computer and take you through how to interpret the outputs. The tutorial also covers leading edge analysis and analysis of gene networks with Cytoscape."
-    cat(c("  - Youtube description:", AbsGSEA3), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 4 from the youtube channel",
-          "'Online Faculty Mentoring Network to Develop Video Tutorials for Computational Genomics'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","GSEAtheory"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=bT00oJh2x_4", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsGSEA4<-"Brief introduction to how gene set enrichment analysis works."
-    cat(c("  - Youtube description:", AbsGSEA4), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c(rep("=", times=5),"   DAVID: https://david.ncifcrf.gov/"), "\n",
-        sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(c("* Link of the article associated with DAVID:"), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    cat(c("  - Title: Systematic and integrative analysis of large gene lists using DAVID bioinformatics resources."),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Number of citations : 23137 (from 18/12/2008 to 22/04/2022)",
-          "mean rate = 1629 citations per year"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://www.nature.com/articles/nprot.2008.211"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 1 from the youtube channel 'Sanbomics'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","Simple gene ontology and pathway enrichment from a gene list"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=XLRA0A5qsoE", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    AbsDavid1<-"Here I show you how to use the DAVID functional annotation resource to easily do gene ontology and KEGG pathway enrichment from a gene list. This method takes genes in almost any format and is incredibly easy to use. This requires no programatic skills and barely any thinking"
-    cat(c("  - Youtube description:", AbsDavid1), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 2 from the youtube channel 'Bioinformatics'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","How to do Gene Ontology (GO) enrichment analysis with DAVID"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=9zFqtviLUzQ", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsDavid2<-"Basic usage of DAVID: finding  GO Direct pathways of Biological Process (BP), Cellular Component (CC), and Molecular Function (MF). How to select a set of single list of genes on spread sheet, and paste the list on DAVID."
-    cat(c("  - Youtube description:", AbsDavid2),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 3 from the youtube channel 'Bioinformatics'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("TITLE:","using DAVID to convert gene IDs to official gene symbols."),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=NwPMVlqzNUg", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsDavid3<-"No real youtube description"
-    cat(c("  - Youtube description:", AbsDavid3), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c(rep("=", times=5),"   WebGestalt: http://www.webgestalt.org"), "\n",
-        sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(c("* Link of the article associated with WebGestalt:"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Title: WebGestalt 2019: gene set analysis toolkit with revamped UIs and APIs."),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Number of citations : 1079 (from 02/07/2019 to 22/04/2022)",
-          "mean rate = 600 citations per year"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://academic.oup.com/nar/article/47/W1/W199/5494758"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 1 from the youtube channel 'IIT Bombay July 2018'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","Lecture 49 : WebGestalt - I"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=zDNWc9YiKpo", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsWebGSEA1<-"No real youtube description."
-    cat(c("  - Youtube description:", AbsWebGSEA1),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 2 from the youtube channel 'IIT Bombay July 2018'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","Lecture 50 : WebGestalt - II"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=OCmO_H6MoLo", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsWebGSEA2<-"No real youtube description."
-    cat(c("  - Youtube description:", AbsWebGSEA2),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c(rep("=",times=5),"   Panther: http://pantherdb.org/"), "\n",
-        sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(c("* Link of the article associated with Panther:"),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    cat(c("  - Title: PANTHER version 16: a revised family classification, tree-based classification tool, enhancer regions and extensive API."),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Number of citations : 323 (from 08/01/2021 to 22/04/2022)",
-          "mean rate = 323 citations per year"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://academic.oup.com/nar/article/49/D1/D394/6027812?login=false"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 1 from the youtube channel 'Bioinformatics World'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","PANTHER database | PANTHER tutorial | Bioinformatics tutorial |"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=Xqp-sNb8PBY", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    Abspanther1<-"No real youtube description."
-    cat(c("  - Youtube description:", Abspanther1),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c(rep("=", times=5),"   g:profiler: https://biit.cs.ut.ee/gprofiler/gost"),
-        "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(c("* Link of the article associated with g:profiler:"), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    cat(c("  - Title: g:Profiler: a web server for functional enrichment analysis and conversions of gene lists"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Number of citations : 834 (from 02/07/2019 to 22/04/2022)",
-          "mean rate = 298 citations per year"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://pubmed.ncbi.nlm.nih.gov/31066453/"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 1 from the youtube channel 'Saniya Khullar'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","Overview of gProfiler Tools for Bioinformatics/Biological Analysis"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=QH8dD0tcNpg", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    Absgprofile1<-"Please note that gProfiler is a tool for functional enrichment analysis, gene identifier conversion, mapping homologous genes across related organisms, and mapping SNPs to functional effects and target genes. There are 4 key tools available on gProfiler, such as:  GOSt, Convert, Orth, and SNPense.  Please note that Saniya has dedicated videos on each of these 4 tools."
-    cat(c("  - Youtube description:", Absgprofile1), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 2 from the youtube channel 'Saniya Khullar'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","g:Profiler for Gene-Set Enrichment Analysis"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=Ymu7EruyIeE&t=0s", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    Absgprofile2<-"Please note that in this video, Saniya goes through how you can use g:Profiler (https://biit.cs.ut.ee/gprofiler/gost) to perform gene-set enrichment analysis (GSEA), along with other functions, and also download gene data sources as .gmt files.  That is, for a given list of genes (gene names and/or gene Entrez IDs or Ensembl IDs), you can use g:Profiler to uncover biological pathways, networks, functions, associations, tissues, etc. that are enriched (have a statistically significant overlap with our gene list) for our list of genes.  In short, through Metascape (1 of many tools out there), we can query hundreds of different biological gene lists (across a variety of databases and atlases like Gene Ontology, biological pathways (e.g. KEGG, Reactome, WikiPathways), regulatory motifs in DNA (e.g. TRANSFAC, miRTarBase), protein databases (like Human Protein Atlas or CORUM), human phenotype ontology (e.g. HP) to determine what significant biological results are there for our gene list.  Saniya also explains how results differ for different gene sets."
-    cat(c("  - Youtube description:", Absgprofile2),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c(rep("=", times=5),"   Enrichr: https://maayanlab.cloud/Enrichr/"), "\n",
-        sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(c("* Link of the article associated with Enrichr:"), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    cat(c("  - Title: Enrichr: a comprehensive gene set enrichment analysis web server"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Number of citations : 4598 (from 03/05/2016 to 22/04/2022)",
-          "mean rate = 766 citations per year"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4987924/"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 1 from the youtube channel 'de.STAIR'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","Enrichment analysis with Enrichr"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=qTfOXAObNwo", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsEnrich1<-" In this short video we show the use of Enrichr (Chen et al. 2013, Kuleshov et al. 2016) to carry out the enrichment analysis of a list of differtially expressed genes, which we obtained from the RNA-Seq analysis of two NGS Human breast cancer data sets."
-    cat(c("  - Youtube description:", AbsEnrich1),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c(rep("=", times=5),"   ShinyGO: http://bioinformatics.sdstate.edu/go/"),
-        "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(c("* Link of the article associated with ShinyGO:"), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    cat(c("  - Title: ShinyGO: a graphical gene-set enrichment tool for animals and plants"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Number of citations : 424 (from 15/04/2009 to 22/04/2022)",
-          "mean rate = 212 citations per year"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://academic.oup.com/bioinformatics/article/36/8/2628/5688742"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://www.biorxiv.org/content/biorxiv/suppl/2018/05/04/315150.DC1/315150-1.pdf"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("-", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c("* VIDEO 1 from the youtube channel 'Dr. Asif's Mol. Biology'"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - TITLE:","Gene ontology : GO enrichment analysis | shiny GO | Web tool"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat("  - https://www.youtube.com/watch?v=Xqp-sNb8PBY", "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    AbsShinyGO1<-"In this video, I have explained how can we use an online tool for generating gene ontology enrichment graphs? Go shiny is a web tool and can make the GO enrichment graphs, PPI and KEGG pathways in seconds."
-    cat(c("  - Youtube description:", AbsShinyGO1),"\n", sep=" ",
-        file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(c(rep("=", times=5),"   GOrilla: http://cbl-gorilla.cs.technion.ac.il"),
-        "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(c("* Link of the article associated with GOrilla:"), "\n", sep=" ",
-        file=fileRdme, append=TRUE)
-    cat(c("  - Title: GOrilla: A Tool For Discovery And Visualization of Enriched GO Terms in Ranked Gene Lists"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - Number of citations : 3044 (from 03/02/2009 to 22/04/2022)",
-          "mean rate = 154 citations per year"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-    cat(c("  - https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-10-48"),
-        "\n", sep=" ", file=fileRdme, append=TRUE)
-
-    ##------------------------------------------------------------------------#
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    cat(rep("=", times=75), "\n", sep="", file=fileRdme, append=TRUE)
-    ##------------------------------------------------------------------------#
-}# ReferenceEnrichmentGOtxt()

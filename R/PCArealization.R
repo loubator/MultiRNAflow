@@ -57,7 +57,8 @@
 #' \code{SEresNorm} but with the output of the
 #' [FactoMineR::PCA()]
 #' function (see
-#' [FactoMineR::PCA()]).
+#' [FactoMineR::PCA()])
+#' saved in the metadata \code{Results[[1]][[2]]} of \code{SEresNorm}.
 #'
 #' @export
 #'
@@ -79,17 +80,17 @@
 #'                              Normalization="rle",
 #'                              Plot.Boxplot=FALSE,
 #'                              Colored.By.Factors=FALSE)
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' resPCAex <- PCArealization(SEresNorm=resNorm,
 #'                            DATAnorm=TRUE,
-#'                            gene.deletion=c(3,5),
-#'                            sample.deletion=c("G1_t0_Ind2","G1_t1_Ind3"),
+#'                            gene.deletion=c(3, 5),
+#'                            sample.deletion=c("G1_t0_Ind2", "G1_t1_Ind3"),
 #'                            Supp.del.sample=FALSE)
-#' ##-------------------------------------------------------------------------#
+#' ##------------------------------------------------------------------------##
 #' resPCAex2 <- PCArealization(SEresNorm=resNorm,
 #'                             DATAnorm=TRUE,
-#'                             gene.deletion=c("Gene3","Gene5"),
-#'                             sample.deletion=c(3,8),
+#'                             gene.deletion=c("Gene3", "Gene5"),
+#'                             sample.deletion=c(3, 8),
 #'                             Supp.del.sample=TRUE)
 
 PCArealization <- function(SEresNorm,
@@ -97,20 +98,25 @@ PCArealization <- function(SEresNorm,
                            gene.deletion=NULL,
                            sample.deletion=NULL,
                            Supp.del.sample=FALSE) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Check
-    if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample)) {
-        stop("'Supp.del.sample' must be TRUE or FALSE.")
-    }## if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample))
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check inputs
+    resErr <- ErrPCArealization(SEresNorm=SEresNorm,
+                                DATAnorm=DATAnorm,
+                                gene.deletion=gene.deletion,
+                                sample.deletion=sample.deletion,
+                                Supp.del.sample=Supp.del.sample)
 
-    #------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     SEresPCAprepro <- PCApreprocessing(SEresNorm=SEresNorm,
                                        DATAnorm=DATAnorm)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    PCAlist <- S4Vectors::metadata(SEresPCAprepro)$Results[[1]][[2]]
+    nPCAlist <- length(PCAlist)
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## In this "if" section, we want to know if some samples must be deleted or
     ## be plotted as "supplementray", e.g. not used in the built of the axes
     ## of the PCA
@@ -119,33 +125,57 @@ PCArealization <- function(SEresNorm,
     RAWcolN <- S4Vectors::metadata(SEresPCAprepro)$RAWcolnames
 
     ## Default PCA: sample.deletion == NULL
-    data.pca <- S4Vectors::metadata(SEresPCAprepro)$PCA$data.to.pca
-    ListFactors.F <- S4Vectors::metadata(SEresPCAprepro)$PCA$List.Factors
-    NBquali <- S4Vectors::metadata(SEresPCAprepro)$PCA$nb.quali.var
+    data.pca <- PCAlist$data.to.pca
+    NBquali <- PCAlist$nb.quali.var
+    ListFactors.F <- PCAlist$List.Factors
 
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## In this "if" section, we want to know if some genes must be deleted
+    if (!is.null(gene.deletion)) {
+        if (is.numeric(gene.deletion)) {
+            GeneDel.f <- gene.deletion
+        } else {
+            GeneDel.f <- which(colnames(data.pca)%in%gene.deletion)
+
+            if (length(GeneDel.f) != length(gene.deletion)) {
+                NOhereG <- paste(which(!gene.deletion%in%colnames(data.pca)),
+                                 collapse=", ")
+                Err_gene <- paste("The genes", NOhereG,
+                                  "selected are not present in your dataset.")
+                stop(Err_gene)
+            }
+        }## if(is.numeric(gene.deletion))
+        data.pca.f <- data.pca[, -GeneDel.f]
+    } else {
+        data.pca.f <- data.pca
+    }## if(!is.null(gene.deletion))
+
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     IDquali <- seq_len(NBquali)
     Supp.del.sample.f <- NULL
 
     if (!is.null(sample.deletion)) {
         if (is.numeric(sample.deletion)) {
             if (is.null(colG)) {
-                Ind.del.f<-sample.deletion
+                Ind.del.f <- sample.deletion
             } else {
-                ColSplDel<-RAWcolN[sample.deletion]
-                Ind.del.f<-which(RAWcolN[-colG]%in%ColSplDel)
+                ColSplDel <- RAWcolN[sample.deletion]
+                Ind.del.f <- which(RAWcolN[-colG]%in%ColSplDel)
             }## if(is.null(colG))
         } else {
             if (is.null(colG)) {
-                Ind.del.f<-which(RAWcolN%in%sample.deletion)
+                Ind.del.f <- which(RAWcolN%in%sample.deletion)
             } else {
-                Ind.del.f<-which(RAWcolN[-colG]%in%sample.deletion)
+                Ind.del.f <- which(RAWcolN[-colG]%in%sample.deletion)
             }## if(is.null(colG))
         }## if(is.numeric(sample.deletion))
 
-        ##--------------------------------------------------------------------#
-        ##--------------------------------------------------------------------#
+        ##-------------------------------------------------------------------##
+        ##-------------------------------------------------------------------##
         if (isFALSE(Supp.del.sample)) {
-            data.pca <- data.pca[-Ind.del.f,]
+            data.pca.f <- data.pca.f[-Ind.del.f,]
 
             for (l in seq_len(length(ListFactors.F))) {
                 if (!is.null(ListFactors.F[[l]])) {
@@ -159,41 +189,116 @@ PCArealization <- function(SEresNorm,
         }## if(isFALSE(Supp.del.sample))
     }## if(!is.null(sample.deletion))
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## In this "if" section, we want to know if some genes must be deleted
-    if (!is.null(gene.deletion)) {
-        if (is.numeric(gene.deletion)) {
-            GeneDel.f <- gene.deletion
-        } else {
-            GeneDel.f <- which(colnames(data.pca)%in%gene.deletion)
-
-            if (length(GeneDel.f) != length(gene.deletion)) {
-                NOhereG <- paste(which(!gene.deletion%in%colnames(data.pca)),
-                                 collapse=",")
-                Err_gene <- paste("The genes", NOhereG,
-                                  "selected are not present in your dataset.")
-                stop(Err_gene)
-            }
-        }## if(is.numeric(gene.deletion))
-        data.pca.f <- data.pca[, -GeneDel.f]
-    } else {
-        data.pca.f <- data.pca
-    }## if(!is.null(gene.deletion))
-
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    res.pca <- FactoMineR::PCA(X=data.pca.f,
-                               graph=FALSE,
-                               quali.sup=IDquali,
-                               ind.sup=Supp.del.sample.f)
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    resPCA <- FactoMineR::PCA(X=data.pca.f,
+                              graph=FALSE,
+                              quali.sup=IDquali,
+                              ind.sup=Supp.del.sample.f)
 
     SEresPCA <- SEresPCAprepro
-    S4Vectors::metadata(SEresPCA)$PCA <- list(res.pca=res.pca,
-                                              nb.quali.var=NBquali,
-                                              List.Factors=ListFactors.F)
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    PCAlist <- append(PCAlist, list(PCAresults=resPCA))
+    PCAlist$List.Factors <- ListFactors.F
+
+    S4Vectors::metadata(SEresPCA)$Results[[1]][[2]] <- PCAlist
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
     ## Output
     return(SEobj=SEresPCA)
 }## PCArealization()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrPCArealization <- function(SEresNorm,
+                              DATAnorm=TRUE,
+                              gene.deletion=NULL,
+                              sample.deletion=NULL,
+                              Supp.del.sample=FALSE) {
+    ##-----------------------------------------------------------------------##
+    ##-----------------------------------------------------------------------##
+    ## Check SEresNorm (cf DATAplotExpressionGenes())
+    Err1_PCAres <- ErrSEresNorm(SEresNorm=SEresNorm,
+                                DATAnorm=DATAnorm,
+                                path.result=NULL)
+
+    ##-----------------------------------------------------------------------##
+    RAWcolN <- S4Vectors::metadata(SEresNorm)$RAWcolnames
+
+    Err2_PCAres <- ErrDeletion(gene.deletion=gene.deletion,
+                               sample.deletion=sample.deletion,
+                               Supp.del.sample=Supp.del.sample,
+                               RAWcolnames=RAWcolN)
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrPCArealization()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrDeletion <- function(gene.deletion=NULL,
+                        sample.deletion=NULL,
+                        Supp.del.sample=FALSE,
+                        RAWcolnames="sample") {
+    ##-----------------------------------------------------------------------##
+    if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample)) {
+        stop("'Supp.del.sample' must be TRUE or FALSE.")
+    }## if (!isTRUE(Supp.del.sample) & !isFALSE(Supp.del.sample))
+
+    ##-----------------------------------------------------------------------##
+    ## Check deletion
+    if (!is.null(gene.deletion)) {
+        ErrG_delChNum <- ErrDeletionChNum(gene.deletion, "gene.deletion")
+    }## if (!is.null(gene.deletion))
+
+    ## Check deletion
+    if (!is.null(sample.deletion)) {
+        ErrS_delChNum <- ErrDeletionChNum(sample.deletion, "sample.deletion")
+
+        if (is.character(sample.deletion)) {
+            noSmpl <- which(!sample.deletion%in%RAWcolnames)
+            if (length(noSmpl) > 0) {
+                no_delspl <- paste(sample.deletion[noSmpl], collapse="', '")
+                Err_delspl <- paste0("The elements '", no_delspl, "' are not ",
+                                     "present among the column names of the ",
+                                     "raw count data.")
+                stop(Err_delspl)
+            }## if (length(noSmpl) > 0)
+        }## if (!is.character(sample.deletion))
+    }## if (!is.null(sample.deletion))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrDeletion()
+
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+
+ErrDeletionChNum <- function(TOdelete, NAMEdelete) {
+    ##-----------------------------------------------------------------------##
+    if (!is.character(TOdelete)) {
+        Err_delint <- paste0("'", NAMEdelete, "' must be either NULL ",
+                             "either character or non negative integers.")
+        if (!is.numeric(TOdelete)) {
+            stop(Err_delint)
+        } else {
+            if (sum(abs(floor(TOdelete) - TOdelete)) !=0) {
+                stop(Err_delint)
+            }## if (floor(TOdelete) != TOdelete)
+            if (min(TOdelete) <= 0) {
+                stop(Err_delint)
+            }## if (min(TOdelete) <= 0)
+        }## if (!is.numeric(TOdelete))
+    }## if (!is.character(TOdelete))
+
+    ##-----------------------------------------------------------------------##
+    return(Message="No error")
+}## ErrDeletionChNum()
+

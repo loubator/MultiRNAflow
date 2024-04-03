@@ -68,6 +68,7 @@
 #'
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot aes geom_bar position_dodge xlab ylab guide_axis
+#' scale_x_discrete scale_fill_manual
 #'
 #' @seealso The [DEplotBarplot()] function
 #' * is used by the following functions of our package: [DEanalysisGroup()]
@@ -78,76 +79,65 @@
 #'
 #' @examples
 #' ## Data simulation
-#' CrossTabulation<-matrix(c(75,30,10,5, 5,35,5,20, 220,235,285,275),
-#'                         ncol=4, byrow=TRUE)
-#' colnames(CrossTabulation)<-c("A","B","C","D")
-#' row.names(CrossTabulation)<-c("Spe.Pos", "Spe.Neg", "Other")
+#' CrossTabulation <- matrix(c(75,30,10,5, 5,35,5,20, 220,235,285,275),
+#'                           ncol=4, byrow=TRUE)
+#' colnames(CrossTabulation) <- c("A", "B", "C", "D")
+#' row.names(CrossTabulation) <- c("Spe.Pos", "Spe.Neg", "Other")
 #'
-#' ##-------------------------------------------------------------------------#
-#' res.dodgeTRUE<-DEplotBarplot(ContingencyTable=CrossTabulation,dodge=FALSE)
+#' ##------------------------------------------------------------------------##
+#' res.dodgeTRUE <- DEplotBarplot(ContingencyTable=CrossTabulation,dodge=FALSE)
 #' res.dodgeTRUE
 #'
-#' res.dodgeFALSE<-DEplotBarplot(ContingencyTable=CrossTabulation,dodge=TRUE)
+#' res.dodgeFALSE <- DEplotBarplot(ContingencyTable=CrossTabulation,dodge=TRUE)
 #' res.dodgeFALSE
 
 DEplotBarplot <- function(ContingencyTable,
                           dodge=TRUE) {
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
-    ## Data preprocessing for graph
-    data.plot.i<-data.frame(Attribute=row.names(ContingencyTable),
-                            ContingencyTable)
-    data.plot.f<-reshape2::melt(data.plot.i,
-                                id.vars=c("Attribute"))
-
-    ##------------------------------------------------------------------------#
-    ## Graph preprocessing
-    ColLegend<-data.plot.f$Attribute
-    lev1<-levels(factor(ColLegend))[1]
-    levLast<-levels(factor(ColLegend))[-1]
-    data.plot.f$Attribute<-factor(data.plot.f$Attribute, levels=c(levLast,lev1))
+    ##-----------------------------------------------------------------------##
     ## To avoid "no visible binding for global variable" with devtools::check()
-    variable<-value<-Attribute<-NULL
+    variable <- value <- Attribute <- NULL
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
+    ## Data preprocessing for graph
+    barplotData_ini <- data.frame(Attribute=row.names(ContingencyTable),
+                                  ContingencyTable)
+    barplotData <- reshape2::melt(barplotData_ini, id.vars=c("Attribute"))
+
+    ColLegend <- barplotData$Attribute
+    levels_f <- c(levels(factor(ColLegend))[-1], levels(factor(ColLegend))[1])
+
+    barplotData$Attribute <- factor(barplotData$Attribute, levels=levels_f)
+
+    ##-----------------------------------------------------------------------##
     ## Graph
-    if(isTRUE(dodge)){
-        q.cont.g.t<-ggplot2::ggplot(data=data.plot.f,
-                                    ggplot2::aes(x=variable,
-                                                 y=value,
-                                                 fill=Attribute)) +
-            ggplot2::geom_bar(stat="identity",
-                              position=ggplot2::position_dodge(),
-                              color="black")
-        #
-    }else{
-        q.cont.g.t<-ggplot2::ggplot(data=data.plot.f,
-                                    ggplot2::aes(x=variable,
-                                                 y=value,
-                                                 fill=Attribute)) +
+    q.contGT <- ggplot2::ggplot(data=barplotData,
+                                ggplot2::aes(x=variable, y=value,
+                                             fill=Attribute)) +
+        ggplot2::ylab("Number of Genes") + ggplot2::xlab("") +
+        ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45))
+
+    if (isTRUE(dodge)) {
+        q.contGT <- q.contGT +
+            ggplot2::geom_bar(stat="identity", color="black",
+                              position=ggplot2::position_dodge())
+    } else {
+        q.contGT <- q.contGT +
             ggplot2::geom_bar(stat="identity", color="black")
     }## if(isTRUE(dodge))
 
-    ##------------------------------------------------------------------------#
-    q.cont.g.t<-q.cont.g.t+
-        ggplot2::ylab("Number of Genes") + ggplot2::xlab("")+
-        ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45))
-
-    ##------------------------------------------------------------------------#
-    if(length(unique(data.plot.f$Attribute))==3){
-        q.cont.g.t<- q.cont.g.t +
+    ##-----------------------------------------------------------------------##
+    if (length(unique(barplotData$Attribute)) == 3) {
+        q.contGT <- q.contGT +
             ggplot2::scale_fill_manual(values=c("#999999", "#E41A1C",
                                                 "steelblue"))
-    }## if(length(unique(data.plot.f$Attribute))==3)
+    }## if(length(unique(barplotData$Attribute))==3)
 
-    if(length(unique(data.plot.f$Attribute))==2){
-        q.cont.g.t<- q.cont.g.t +
+    if (length(unique(barplotData$Attribute)) == 2) {
+        q.contGT <- q.contGT +
             ggplot2::scale_fill_manual(values=c("#E41A1C", "steelblue"))
-    }## if(length(unique(data.plot.f$Attribute))==2)
+    }## if(length(unique(barplotData$Attribute))==2)
 
-    ##------------------------------------------------------------------------#
-    ##------------------------------------------------------------------------#
+    ##-----------------------------------------------------------------------##
     ## Output
-    return(graph.cont.g.t=q.cont.g.t)
+    return(graph.cont.g.t=q.contGT)
 }## DEplotBarplot()
