@@ -10,8 +10,8 @@ author:
   affiliation: "Université de Lorraine, CNRS, Inria, IECL, F-54000 Nancy, France"
 - name: "Laurent Vallat"
   affiliation:
-  - "Université de Strasbourg, INSERM, IRFAC UMR-S1113, Strasbourg, France"
-  - "Department of molecular genetic of cancers, Molecular hematology unit, Strasbourg University Hospital, Strasbourg, France"
+  - "Université de Strasbourg, CNRS, UMR-7242 Biotechnology and cell signaling, F-67400 Illkirch, France"
+  - "Department of molecular genetic of cancers, Strasbourg University Hospital, F-67200 Strasbourg, France"
 date: "`r format(Sys.Date(), '%d/%m/%Y')`"
 output: 
   BiocStyle::html_document:
@@ -41,21 +41,26 @@ knitr::opts_chunk$set(
 
 ## Quick description of the document
 
-This document is a quick workflow describing how to use our R package MultiRNAflow on one dataset (see [Dataset used as example]).\newline
-For a more complete description of our package and complete outputs with graphs, the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
+This document is a quick workflow describing how to use our R package
+MultiRNAflow on one dataset (see [Dataset used as example]).\newline
+For a more complete description of our package and complete outputs with graphs,
+the user must read our pdf file entitled 'MultiRNAflow_vignette-knitr.pdf".
 
 ## Dataset used as example
 
-The **Mouse dataset 2** [@Weger2021TemporalMouseLiver] is accessible on the Gene Expression Omnibus (GEO) database with the accession number GSE135898.
+The **Mouse dataset 2** [@Weger2021TemporalMouseLiver] is accessible on the
+Gene Expression Omnibus (GEO) database with the accession number GSE135898.
 
-This dataset contains the temporal transcription profile of 16 mice with Bmal1 and Cry1/2 knocked-down under an ad libitum (AL) or night restricted feeding
+This dataset contains the temporal transcription profile of 16 mice with Bmal1
+and Cry1/2 knocked-down under an ad libitum (AL) or night restricted feeding
 (RF) regimen. Data were collected at 0, 4h, 8h, 16, 20h and 24h.
 Therefore, there are six time points and eight biological conditions.
 As there are only two mice per biological condition, we decided not to take
 into account the effect of the regimen.
 The dataset contains temporal expression data of 40327 genes. \newline
 
-To illustrate the use of our package, we take 500 genes, over the global 40327 genes in the original dataset.
+To illustrate the use of our package, we take 500 genes, over the global 40327
+genes in the original dataset.
 This sub dataset is saved in the file **RawCounts_Weger2021_MOUSEsub500**.
 
 
@@ -128,7 +133,8 @@ resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_Weger2021_MOUSEsub500,
 * **Output**: The function realizes the normalization step and returns
 a SummarizeExperiment object containing
   - all information about the raw counts data
-  - a DESeqDataSet object to be used by the function `DEanalysisGlobal` for the statistical (supervised) analysis.
+  - a DESeqDataSet object to be used by the function `DEanalysisGlobal`
+  for the statistical (supervised) analysis.
 * **Input**:
   - The dataset must be RNA-seq raw counts (`RawCounts`)
   - The argument `Column.gene=1` means that the first column of the dataset
@@ -170,7 +176,8 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
   - In order to display the output graph, set `Plot.Boxplot=TRUE`.
   - If `Colored.By.Factors=TRUE`, the color of the boxplots would be different
   for different biological conditions.
-  - In order to save the different results in a folder, select a folder path in `path.result`.
+  - In order to save the different results in a folder, select a folder path
+  in `path.result`.
 * **Other**:
   - Write `?DATAnormalization` in your console for more information
   about the function.
@@ -185,14 +192,13 @@ resPCA <- PCAanalysis(SEresNorm=resNorm,
                       DATAnorm=TRUE,
                       gene.deletion=NULL,
                       sample.deletion=NULL,
-                      Supp.del.sample=FALSE,
                       Plot.PCA=FALSE,
                       Mean.Accross.Time=FALSE,
                       Color.Group=NULL,
                       Cex.label=0.6,
                       Cex.point=0.7, epsilon=0.2,
                       Phi=25,Theta=140,
-                      D3.mouvement=FALSE,
+                      motion3D=FALSE,
                       path.result=NULL)
 ```
 
@@ -201,12 +207,12 @@ different time points, the previous lines of code return
   - the same SummarizedExperiment class object `resNorm` but with
   the results of the function `PCA()` of the package `FactoMineR`.
   - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window
-  (only if `D3.mouvement=FALSE`) where samples are colored with different colors
+  (only if `motion3D=FALSE`) where samples are colored with different colors
   for different biological conditions. Furthermore, lines are drawn
   between each pair of consecutive points for each sample
   (if `Mean.Accross.Time=FALSE`, otherwise it will be only between means).
   - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a
-  rgl window (only if `D3.mouvement=FALSE`) for each biological condition,
+  rgl window (only if `motion3D=FALSE`) for each biological condition,
   where samples are colored with different colors for different time points.
   Furthermore, lines are drawn between each pair of consecutive points
   for each sample (if `Mean.Accross.Time=FALSE`, otherwise it will be only
@@ -245,13 +251,12 @@ resHCPC <- HCPCanalysis(SEresNorm=resNorm,
                         DATAnorm=TRUE,
                         gene.deletion=NULL,
                         sample.deletion=NULL,
-                        Supp.del.sample=FALSE,
                         Plot.HCPC=FALSE,
                         Phi=25,Theta=140,
                         Cex.point=0.6,
                         epsilon=0.2,
                         Cex.label=0.6,
-                        D3.mouvement=FALSE,
+                        motion3D=FALSE,
                         path.result=NULL)
 ```
 
@@ -262,16 +267,18 @@ resHCPC <- HCPCanalysis(SEresNorm=resNorm,
   - A graph indicating by color for each sample, its cluster,
   the biological condition and the time point associated to the sample.
   - One 2D PCA graph, one 3D PCA graph and the same 3D PCA graph in a rgl window
-  (only if `D3.mouvement=FALSE`). These PCA graphs are identical to the outputs
+  (only if `motion3D=FALSE`). These PCA graphs are identical to the outputs
   of `PCAanalysis()` with all samples but samples are colored with different
   colors for different clusters.
 * **Input**:
   - The results of the function `DATAnormalization()`.
-  - We recommend the use of the normalized data (`DATAnorm=TRUE`) for the HCPC analysis.
+  - We recommend the use of the normalized data (`DATAnorm=TRUE`)
+  for the HCPC analysis.
   - In order to display the different output graph, set `Plot.HCPC=TRUE`.
   - In order to save the different results in a folder, select a folder path in `path.result`.
 * **Other**:
-  - The optimal number of clusters is automatically computed by the R function `HCPC()`.
+  - The optimal number of clusters is automatically computed by the
+  R function `HCPC()`.
   - Write `?HCPCanalysis` in your console for more information
   about the function.
   - For a more complete description of the function and package,
@@ -323,7 +330,7 @@ resMFUZZ <- MFUZZanalysis(SEresNorm=resNorm,
 
 9. Plot temporal expression with with `DATAplotExpressionGenes()`
 
-```{r DATAplotExpressionGenesMusBmCrKoWt, eval=TRUE, results='hide', fig.show='hide'}
+```{r DATAprofileGenesMusBmCrKoWt, eval=TRUE, results='hide', fig.show='hide'}
 resEXPR <- DATAplotExpressionGenes(SEresNorm=resNorm,
                                    DATAnorm=TRUE,
                                    Vector.row.gene=c(17),
@@ -519,7 +526,7 @@ between samples and selected genes; and a correlation heatmap between samples.
 13. GO enrichment analysis with `GSEAQuickAnalysis()` and `GSEApreprocessing()`
 
 ```{r GSEAquickAnalysis_Mouse2, eval=TRUE}
-resRgprofiler2 <- GSEAQuickAnalysis(Internect.Connection=FALSE,
+resRgprofiler2 <- GSEAQuickAnalysis(Internet.Connection=FALSE,
                                     SEresDE=resDE,
                                     ColumnsCriteria=2,
                                     ColumnsLog2ordered=NULL,
@@ -585,7 +592,8 @@ For example, the selected genes can be those DE at least at t1 or t2
 
 # SessionInfo
 
-Here is the output of `sessionInfo()` on the system on which this document was compiled.
+Here is the output of `sessionInfo()` on the system on which this document
+was compiled.
 
 ```{r SessionInfo}
 sessionInfo()
