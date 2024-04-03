@@ -87,7 +87,7 @@ resDATAprepSE <- DATAprepSE(RawCounts=resSIMcount$Sim.dat,
                             Time.position=NULL,
                             Individual.position=2)
 
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## Transformation of resDATAprepSE into results of DEanalysisGlobal
 resultsExamples <- data.frame(Gene=paste0("Gene", seq_len(5)),
                               DE1=c(0, 1, 0, 0, 1),
@@ -98,7 +98,7 @@ SummarizedExperiment::rowData(resDATAprepSE) <- resultsExamples
 S4Vectors::metadata(resDATAprepSE)$DESeq2obj$pathNAME <- listPATHnameEx
 S4Vectors::metadata(resDATAprepSE)$DESeq2obj$SEidentification<-"SEresultsDE"
 
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## results of DEanalysisSubData
 resDEsub <- DEanalysisSubData(SEresDE=resDATAprepSE,
                               ColumnsCriteria=c(2, 3),

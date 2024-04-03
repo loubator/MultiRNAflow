@@ -89,13 +89,13 @@ if \code{Normalization ="rle"}, otherwise \code{Log2.transformation=FALSE}.
 }
 \examples{
 data(RawCounts_Antoszewski2022_MOUSEsub500)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
                             Column.gene=1,
                             Group.position=1,
                             Time.position=NULL,
                             Individual.position=2)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 DATAplotBoxplotSamples(SEres=resDATAprepSE,
                        Log2.transformation=TRUE,
                        Colored.By.Factors=TRUE,

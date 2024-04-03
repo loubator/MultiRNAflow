@@ -47,20 +47,20 @@ considered as under-expressed (down-regulated) at time ti.
 }
 \examples{
 set.seed(1994)
-Nb.Time<-4 ## Number of time measurement
-##-------------------------------------------------------------------------#
-table.DE.time.ex=matrix(sample(c(0,1), replace=TRUE,
-                               size=40*(Nb.Time-1), c(0.2, 0.8)),
-                        ncol=Nb.Time-1)
-colnames(table.DE.time.ex)=paste0("t", 1:(Nb.Time-1))
-##-------------------------------------------------------------------------#
-Log2.FC.matrix.ex=matrix(round(rnorm(n=40*(Nb.Time-1), mean=0, sd=1),
-                               digits=2),
-                         ncol=(Nb.Time-1))
-colnames(Log2.FC.matrix.ex)=paste0("t", 1:(Nb.Time-1))
-##-------------------------------------------------------------------------#
-res.test.VennBarplot=DEplotVennBarplotTime(table.DE.time=table.DE.time.ex,
-                                           Log2.FC.matrix=Log2.FC.matrix.ex)
+Nb.Time <- 4 ## Number of time measurement
+##------------------------------------------------------------------------##
+table.DE.time.ex <- matrix(sample(c(0,1), replace=TRUE,
+                                  size=40*(Nb.Time-1), c(0.2, 0.8)),
+                           ncol=Nb.Time-1)
+colnames(table.DE.time.ex) <- paste0("t", 1:(Nb.Time-1))
+##------------------------------------------------------------------------##
+Log2FC.mat.ex <- matrix(round(rnorm(n=40*(Nb.Time-1), mean=0, sd=1),
+                              digits=2),
+                        ncol=(Nb.Time-1))
+colnames(Log2FC.mat.ex) <- paste0("t", 1:(Nb.Time-1))
+##------------------------------------------------------------------------##
+res.test.VennBarplot <- DEplotVennBarplotTime(table.DE.time=table.DE.time.ex,
+                                              Log2.FC.matrix=Log2FC.mat.ex)
 print(res.test.VennBarplot$Upset.graph)
 print(res.test.VennBarplot$Upset.graph.with.nb.over)
 res.test.VennBarplot$DE.pattern.t.01.sum

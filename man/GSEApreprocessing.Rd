@@ -75,40 +75,46 @@ and software given in the section \code{Value}.
 We have the following three cases:
 \itemize{
 \item If \code{Set.Operation="union"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that the sum of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at least at t1 or t2
-(versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having at least one ’1’
+in one of the selected columns.
 \item If \code{Set.Operation="intersect"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that the product of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at times t1 and t2
-(versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having ’1’
+in all of the selected columns.
 \item If \code{Set.Operation="setdiff"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that only one element of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at times t1 only and
-at times t2 only (versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having ’1’
+in only one of the selected columns.
 }
 }
 \examples{
 data(RawCounts_Antoszewski2022_MOUSEsub500)
 ## No time points. We take only two groups for the speed of the example
 RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[, seq_len(7)]
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## Preprocessing
 resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
                             Column.gene=1,
                             Group.position=1,
                             Time.position=NULL,
                             Individual.position=2)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## DE analysis
 resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
                               pval.min=0.05,
@@ -119,10 +125,10 @@ resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
                               path.result=NULL,
                               Name.folder.DE=NULL)
 
-##-------------------------------------------------------------------------#
-resGp<-GSEApreprocessing(SEresDE=resDET1wt,
-                         ColumnsCriteria=2,
-                         Set.Operation="union",
-                         Rnk.files=TRUE,
-                         Save.files=FALSE)
+##------------------------------------------------------------------------##
+resGp <- GSEApreprocessing(SEresDE=resDET1wt,
+                           ColumnsCriteria=2,
+                           Set.Operation="union",
+                           Rnk.files=TRUE,
+                           Save.files=FALSE)
 }

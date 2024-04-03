@@ -70,17 +70,19 @@ contain all results will be "DEanalysis_\code{Name.folder.DE}".
 Otherwise, the folder name will be "DEanalysis".}
 }
 \value{
-The different results which are not plots are saved in the
-SummarizedExperiment class object \code{SEres}. The function
-\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}} returns
-first the raw counts and the rle normalized data automatically realized by
+The function returns the same SummarizedExperiment class object
+\code{SEres} with the rle normalized count data (cf \code{\link[=DATAnormalization]{DATAnormalization()}})
+automatically realized by
 \code{\link[DESeq2:DESeq]{DESeq2::DESeq()}}
-(output \code{RLEdata}). Then
+and saved in \code{assays(SEresNORM)$rle}, and with the following results
+saved in the metadata \code{Results[[2]][[2]]} of \code{SEres},
+depending on the experimental design.
 \itemize{
-\item If samples belong to different biological conditions,
+\item If samples belong to different biological conditions only
+(see \code{\link[=DEanalysisGroup]{DEanalysisGroup()}}),
 the function returns
 \itemize{
-\item a data.frame (output \code{DE.results}) which contains
+\item a data.frame (output \code{rowData(SEres)}) which contains
 \itemize{
 \item pvalues, log2 fold change and DE genes between each pairs of
 biological conditions.
@@ -134,9 +136,11 @@ the column names of \code{DE.results}.
 information and inputs of
 \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
-\item If data belong to different time points only, the function returns
+\item If data belong to different time points only
+(see \code{\link[=DEanalysisTime]{DEanalysisTime()}}),
+the function returns
 \itemize{
-\item a data.frame (output \code{Results}) which contains
+\item a data.frame (output \code{rowData(SEres)}) which contains
 \itemize{
 \item gene names
 \item pvalues, log2 fold change and DE genes between each time ti versus
@@ -170,9 +174,11 @@ information and inputs of
 \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
 }
 \item If data belong to different time points and different biological
-conditions, the function returns
+conditions
+(see \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}),
+the function returns
 \itemize{
-\item a data.frame (output \code{Results}) which contains
+\item a data.frame (output \code{rowData(SEres)}) which contains
 \itemize{
 \item gene names
 \item Results from the temporal statistical analysis
@@ -309,14 +315,14 @@ data(RawCounts_Antoszewski2022_MOUSEsub500)
 ## No time points. We take only two groups for the speed of the example
 RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200),
                                                         seq_len(7)]
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## Preprocessing
 resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_T1Wt,
                             Column.gene=1,
                             Group.position=1,
                             Time.position=NULL,
                             Individual.position=2)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## DE analysis
 resDE <- DEanalysisGlobal(SEres=resDATAprepSE,
                           pval.min=0.05,

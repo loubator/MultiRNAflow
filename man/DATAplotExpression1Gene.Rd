@@ -4,7 +4,12 @@
 \alias{DATAplotExpression1Gene}
 \title{Plot expression of one gene.}
 \usage{
-DATAplotExpression1Gene(SEres, row.gene = 1, Color.Group = NULL)
+DATAplotExpression1Gene(
+  SEres,
+  row.gene = 1,
+  Color.Group = NULL,
+  ylabel = "Expression"
+)
 }
 \arguments{
 \item{SEres}{Results of either our R function
@@ -24,6 +29,9 @@ If \code{Color.Group=NULL}, the function will automatically attribute
 a color for each biological condition.
 If samples belong to different time points only,
 \code{Color.Group} will not be used.}
+
+\item{ylabel}{Character corresponding to the label of the y-axis.
+By default, \code{ylab="Expression"}.}
 }
 \value{
 The function plots for the gene selected with
@@ -66,7 +74,7 @@ resDATAprepSE <- DATAprepSE(RawCounts=resSIMcount$Sim.dat,
                             Group.position=1,
                             Time.position=2,
                             Individual.position=3)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resEVO1gene <- DATAplotExpression1Gene(SEres=resDATAprepSE,
                                        row.gene=1,
                                        Color.Group=NULL)

@@ -8,7 +8,7 @@ DEplotVolcanoMA(
   SEresDE,
   NbGene.plotted = 2,
   SizeLabel = 3,
-  Display.plots = TRUE,
+  Display.plots = FALSE,
   Save.plots = FALSE
 )
 }
@@ -26,7 +26,7 @@ MA plots. By default, \code{NbGene.plotted}=2.}
 \item{SizeLabel}{Numeric. Give the size of the names of plotted genes.
 By default, \code{SizeLabel}=3.}
 
-\item{Display.plots}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+\item{Display.plots}{\code{TRUE} or \code{FALSE}. \code{FALSE} as default.
 If \code{TRUE}, all graphs will be plotted.
 Otherwise no graph will be plotted.}
 
@@ -48,9 +48,10 @@ Otherwise, a sub folder entitled "MAplots" will be created in
 the sub folder created.}
 }
 \value{
-The function returns Volcano plots and MA plots
-from the results of our function
-\code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}}.
+The function returns the same SummarizedExperiment class object
+\code{SEresDE} with Volcano plots and MA plots from the results of
+our function \code{\link[=DEanalysisGlobal]{DEanalysisGlobal()}},
+all saved in the metadata \code{Results[[2]][[3]]} of \code{SEresDE}.
 }
 \description{
 The function returns Volcano plots and MA plots from
@@ -93,7 +94,7 @@ resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
                             Group.position=1,
                             Time.position=NULL,
                             Individual.position=2)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## DE analysis
 resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
                               pval.min=0.05,
@@ -104,7 +105,7 @@ resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
                               path.result=NULL,
                               Name.folder.DE=NULL)
 
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## Volcano MA
 resVolcanoMA <- DEplotVolcanoMA(SEresDE=resDET1wt,
                                 NbGene.plotted=5,

@@ -11,7 +11,10 @@ DATAprepSE(
   Group.position,
   Time.position,
   Individual.position,
-  colData = NULL
+  colData = NULL,
+  VARfilter = 0,
+  SUMfilter = 0,
+  RNAlength = NULL
 )
 }
 \arguments{
@@ -58,20 +61,50 @@ If \code{Group.position}, \code{Time.position} and
 \itemize{
 \item If samples belong to different times point and different biological
 condition
+\itemize{
 \item the first column must contain the biological condition for each sample.
 The column name must be "Group".
 \item the second column must contain the time measurement for each sample.
 The column name must be "Time".
 \item The third column must contain the individual name for each sample.
 The column name must be "ID".
+}
 \item If samples belong to different times point or different biological
 condition
+\itemize{
 \item the first column must contain, either the biological condition
-for each sample, or the time measurement for each sample..
+for each sample, or the time measurement for each sample.
 The column name must be either "Group", or "Time".
 \item The second column must contain the individual name for each sample.
 The column name must be "ID".
+}
 }}
+
+\item{VARfilter}{Positive numeric value, 0 as default.
+All rows of \code{RawCounts} which the variance of counts is strictly under
+the threshold \code{VARfilter} are deleted}
+
+\item{SUMfilter}{Positive numeric value, 0 as default.
+All rows of \code{RawCounts} which the sum of counts is strictly under
+the threshold \code{SUMfilter} are deleted.}
+
+\item{RNAlength}{\code{NULL} or "hsapiens" or data.frame with two columns.
+\code{NULL} as default.
+\itemize{
+\item if \code{RNAlength} is a data.frame
+\itemize{
+\item the first column must contain gene names
+(similar to those of \code{RawCounts})
+\item the second columns must contain the median of the transcript length
+of each gene of the first column
+and all rows of \code{RawCounts} whose genes are not included in
+the first column of \code{RNAlength} will be deleted.
+}
+\item if \code{RNAlength=NULL}, no rows will be deleted.
+}
+
+If \code{RNAlength} is either "hsapiens" or a data.frame,
+\code{Column.gene} can not be \code{NULL}.}
 }
 \value{
 The function returns a SummarizedExperiment object containing
@@ -132,14 +165,14 @@ RawCountEx <- data.frame(Gene.name=paste0("Name", seq_len(10)),
                                        replace=TRUE),
                                 ncol=length(SampleNAMEex), nrow=10))
 colnames(RawCountEx) <- c("Gene.name", SampleNAMEex)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resDATAprepSE <- DATAprepSE(RawCounts=RawCountEx,
                             Column.gene=1,
                             Group.position=1,
                             Time.position=3,
                             Individual.position=2)
 ##
-## colDataEx <- data.frame(Group=BCex, Time=TimeEx, ID=PATex)
+## colDataEx <- data.frame(Group=BgCdEx, Time=TimeEx, ID=IndvEx)
 }
 \seealso{
 The \code{\link[=DATAprepSE]{DATAprepSE()}} function

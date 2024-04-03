@@ -4,7 +4,7 @@
 \name{MultiRNAflow-package}
 \alias{MultiRNAflow}
 \alias{MultiRNAflow-package}
-\title{MultiRNAflow: An R package for analysing RNA-seq raw counts with several biological conditions and different time points}
+\title{MultiRNAflow: An R package for integrated analysis of temporal RNA-seq data with multiple biological conditions}
 \description{
 Our R package MultiRNAflow provides an easy to use unified framework allowing to automatically make both unsupervised and supervised (DE) analysis for datasets with an arbitrary number of biological conditions and time points. In particular, our code makes a deep downstream analysis of DE information, e.g. identifying temporal patterns across biological conditions and DE genes which are specific to a biological condition for each time.
 }
@@ -40,7 +40,7 @@ Useful links:
 Authors:
 \itemize{
   \item Nicolas Champagnat \email{nicolas.champagnat@inria.fr} (\href{https://orcid.org/0000-0002-5128-2357}{ORCID}) [thesis advisor]
-  \item Laurent Vallat \email{laurent.vallat@inserm.fr} (\href{https://orcid.org/0000-0002-5226-7706}{ORCID}) [thesis advisor]
+  \item Laurent Vallat \email{vallat@unistra.fr} (\href{https://orcid.org/0000-0002-5226-7706}{ORCID}) [thesis advisor]
   \item Pierre Vallois \email{pierre.vallois@univ-lorraine.fr} (\href{https://orcid.org/0000-0002-2123-0142}{ORCID})
 }
 

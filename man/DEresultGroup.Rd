@@ -36,9 +36,11 @@ Default value is 1. If \code{log.FC.min=0}, all DE genes will be kept.}
 }
 \value{
 The function returns the same DESeqDataSet class object
-\code{DESeq.result} with the following results:
+\code{DESeq.result} with the following results,
+saved in the metadata \code{DEresultsGroup} of \code{DESeq.result}:
 \itemize{
-\item a data.frame (output \code{Results}) which contains
+\item a data.frame (output \code{DEsummary} of \code{DEresultsGroup})
+which contains
 \itemize{
 \item gene names
 \item pvalues, log2 fold change and DE genes between each pairs of
@@ -70,24 +72,26 @@ BC1 are lower than in the other biological conditions.
 A '0' in one of these columns means the gene is not specific to
 the biological condition associated to the given column.
 }
-\item a data.frame (output \code{DE.per.pair.G}) with \eqn{N_g} rows
-and \eqn{((N_{bc}-1)\times N_{bc})/2} columns with
-\eqn{N_g} the number of genes
+\item a data.frame (output \code{DE.per.pair.G} of \code{DEresultsGroup})
+with \eqn{N_g} rows and \eqn{((N_{bc}-1)\times N_{bc})/2} columns
+with \eqn{N_g} the number of genes
 and \eqn{N_{bc}} the number of biological conditions.
 The number of 1 in the n-th row gives the number of pairs of
 biological conditions where the gene \eqn{n} is DE.
 The output \code{DE.per.pair.G} will be the input of the function
 \code{\link[=DEplotVennBarplotGroup]{DEplotVennBarplotGroup()}}.
-\item a contingency matrix (output \code{Contingence.per.group}) which gives
-for each biological condition the number of genes categorized as
+\item a contingency matrix (output \code{Contingence.per.group}
+of \code{DEresultsGroup}) which gives for each biological condition
+the number of genes categorized as
 "Upregulated", "DownRugulated" and "Other".
 A gene is categorized as 'Other', for a given biological condition BC1,
 if the gene is not specific to the biological condition BC1.
 The category 'Other' does not exist when there are only two
 biological conditions.
+}
+
 The output \code{Contingence.per.group} will be the input of the function
 \code{\link[=DEplotBarplot]{DEplotBarplot()}}.
-}
 }
 \description{
 This function realizes the intermediary steps of the analysis
@@ -96,30 +100,30 @@ of the function
 }
 \examples{
 ## Data
-data(RawCounts_Antoszewski2022_MOUSEsub500)
+data("RawCounts_Antoszewski2022_MOUSEsub500")
 ## No time points. We take only two groups for the speed of the example
-RawCounts_T1Wt<-RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200),
-                                                      seq_len(7)]
+RawCounts_T1Wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200),
+                                                        seq_len(7)]
 
 ## Preprocessing step
-resDATAprepSEmus1<- DATAprepSE(RawCounts=RawCounts_T1Wt,
-                               Column.gene=1,
-                               Group.position=1,
-                               Time.position=NULL,
-                               Individual.position=2)
+resDATAprepSEmus1 <- DATAprepSE(RawCounts=RawCounts_T1Wt,
+                                Column.gene=1,
+                                Group.position=1,
+                                Time.position=NULL,
+                                Individual.position=2)
 
 DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEmus1)$DESeq2obj
 DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
 
-##------------------------------------------------------------------------#
-dds.DE.G<-DESeq2::DESeq(DESeq2obj)
+##------------------------------------------------------------------------##
+dds.DE.G <- DESeq2::DESeq(DESeq2obj)
 
-res.sum.G<-DEresultGroup(DESeq.result=dds.DE.G,
-                         LRT.supp.info=FALSE,
-                         log.FC.min=1,
-                         pval.min=0.05)
+res.sum.G <- DEresultGroup(DESeq.result=dds.DE.G,
+                           LRT.supp.info=FALSE,
+                           log.FC.min=1,
+                           pval.min=0.05)
 }
 \seealso{
-The outputs of the function are used by the main function
+The output of the function are used by the main function
 \code{\link[=DEanalysisGroup]{DEanalysisGroup()}}.
 }

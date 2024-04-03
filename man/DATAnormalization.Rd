@@ -20,11 +20,13 @@ DATAnormalization(
 \item{SEres}{Results of the function
 \code{\link[=DATAprepSE]{DATAprepSE()}}.}
 
-\item{Normalization}{"rle", "vst", "rlog".
-Each corresponds to a method of normalization proposed by \code{DESeq2} (see
+\item{Normalization}{"rle", "vst", "rlog" and "rpkm".
+"rle", "vst" and "rlog" correspond to a method of normalization proposed
+by \code{DESeq2} (see
 \code{\link[BiocGenerics:dge]{BiocGenerics::estimateSizeFactors()}} for "rle",
 \code{\link[DESeq2:rlog]{DESeq2::rlog()}} for "rlog" and
-\code{\link[DESeq2:vst]{DESeq2::vst()}} for "vst").}
+\code{\link[DESeq2:vst]{DESeq2::vst()}} for "vst").
+"rpkm" corresponds to a RPKM normalization after a "rle" normalization.}
 
 \item{Blind.rlog.vst}{\code{TRUE} or \code{FALSE}. \code{FALSE} by default.
 See input 'blind' in
@@ -69,7 +71,8 @@ all results will be saved in the sub folder
 Otherwise, a sub folder entitled "1_Normalization_\code{Name.folder.norm}"
 will be created in \code{path.result} and all results will be saved in
 "1_Normalization_\code{Name.folder.norm}".
-If NULL, the results will not be saved in a folder. NULL as default.}
+If \code{NULL}, the results will not be saved in a folder.
+\code{NULL} as default.}
 
 \item{Name.folder.norm}{Character or \code{NULL}. \code{NULL} by default.
 If \code{Name.folder.norm} is a character,
@@ -78,9 +81,15 @@ the folder name which will contain the results will be
 Otherwise, the folder name will be "1_Normalization".}
 }
 \value{
-The function returns a SummarizedExperiment object identical as
-\code{SEres} but with the normalized count data included (\code{SEresNorm})
-and plots a boxplot (if \code{Plot.Boxplot=TRUE}).
+The function returns a SummarizedExperiment object (\code{SEresNorm})
+identical as \code{SEres} but
+\itemize{
+\item with the normalized count data saved in \code{assays(SEresNORM)[[2]]}
+\item with the boxplot of normalized count
+saved in the metadata \code{Results[[1]][[1]]} of \code{SEresNorm}.
+}
+
+The boxplot is plotted if \code{Plot.Boxplot=TRUE}.
 }
 \description{
 From raw counts, this function realizes one of
@@ -100,13 +109,13 @@ All results are built from the results of the function
 }
 \examples{
 data(RawCounts_Antoszewski2022_MOUSEsub500)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resDATAprepSE <- DATAprepSE(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
                             Column.gene=1,
                             Group.position=1,
                             Time.position=NULL,
                             Individual.position=2)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              Normalization="rle",
                              Plot.Boxplot=TRUE,

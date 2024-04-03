@@ -69,9 +69,18 @@ If \code{Save.plots} is a character, it must be a path and
 all files will be saved in the sub-folder "Plots_Heatmaps".}
 }
 \value{
-The function returns two heatmaps:
-one heatmap of gene expressions between samples and selected genes;
-and a correlation heatmap between samples.
+The function returns the same SummarizedExperiment class object
+\code{SEresDE} with two heatmaps
+saved in the metadata \code{Results[[2]][[4]]} of \code{SEresDE}
+\itemize{
+\item a correlation heatmap between samples (correlation heatmap)
+\item a heatmap across samples and genes called Zscore heatmap,
+for a subset of genes that can be selected by the user.
+}
+
+The two heatmaps are plotted if \code{Display.plots=TRUE}.
+The second heatmap is build from the normalized
+count data after being both centered and scaled (Zscore).
 }
 \description{
 The function returns two heatmaps:
@@ -83,31 +92,37 @@ a correlation heatmap between samples from the output of
 We have the following three cases:
 \itemize{
 \item If \code{Set.Operation="union"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that the sum of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at least at t1 or t2
-(versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having at least one ’1’
+in one of the selected columns.
 \item If \code{Set.Operation="intersect"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that the product of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at times t1 and t2
-(versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having ’1’
+in all of the selected columns.
 \item If \code{Set.Operation="setdiff"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that only one element of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at times t1 only and
-at times t2 only (versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having ’1’
+in only one of the selected columns.
 }
 }
 \examples{
 ## data importation
-data(RawCounts_Antoszewski2022_MOUSEsub500)
+data("RawCounts_Antoszewski2022_MOUSEsub500")
 ## No time points. We take only two groups for the speed of the example
 dataT1wt <- RawCounts_Antoszewski2022_MOUSEsub500[seq_len(200), seq_len(7)]
 
@@ -117,7 +132,7 @@ resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
                             Group.position=1,
                             Time.position=NULL,
                             Individual.position=2)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## DE analysis
 resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
                               pval.min=0.05,
@@ -128,7 +143,7 @@ resDET1wt <- DEanalysisGlobal(SEres=resDATAprepSE,
                               path.result=NULL,
                               Name.folder.DE=NULL)
 
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resHeatmap <- DEplotHeatmaps(SEresDE=resDET1wt,
                              ColumnsCriteria=3, ## Specific genes N1haT1ko
                              Set.Operation="union",

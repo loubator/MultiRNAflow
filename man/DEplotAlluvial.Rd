@@ -90,14 +90,14 @@ column names (t1,t2,...).
 \examples{
 set.seed(1994)
 
-NbTime.vst0<-4
-BinTable<-matrix(sample(c(0,1),replace=TRUE,
-                        size=NbTime.vst0*120,c(0.60,0.40)),
-                 ncol=NbTime.vst0)
-colnames(BinTable)<-paste0("t", 1:NbTime.vst0)
+NbTime.vst0 <- 4
+BinTable <- matrix(sample(c(0,1),replace=TRUE,
+                          size=NbTime.vst0*120,c(0.60,0.40)),
+                   ncol=NbTime.vst0)
+colnames(BinTable) <- paste0("t", 1:NbTime.vst0)
 
-##-------------------------------------------------------------------------#
-res.alluvial<-DEplotAlluvial(table.DE.time=BinTable)
+##------------------------------------------------------------------------##
+res.alluvial <- DEplotAlluvial(table.DE.time=BinTable)
 print(res.alluvial$g.alluvial)
 print(res.alluvial$g.alluvial.freq)
 }

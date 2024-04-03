@@ -63,9 +63,12 @@ created folders names will contain the strings of characters
 "_\code{SubFile.name}". If \code{NULL}, no suffix will be added.}
 }
 \value{
-The function returns
+The function returns the same DESeqDataSet class object
+\code{DESeq.result} with the following results,
+saved in the metadata \code{DEresultsTimeGroup} of \code{DESeq.result}:
 \itemize{
-\item a data.frame (output \code{Results}) which contains
+\item a data.frame (output \code{DEsummary} of \code{DEresultsTimeGroup})
+which contains
 \itemize{
 \item gene names
 \item Results from the temporal statistical analysis
@@ -116,7 +119,7 @@ ti are lower than in the other biological conditions at time ti.
 A 0 in one of these columns means the gene is not specific to the
 biological condition at a fixed time associated to the given column.
 \item \eqn{N_{bc}} binary columns (0 and 1). A 1 in one of these columns
-means the gene is specific at at least one time ti, for the biological
+means the gene is specific at least at one time ti, for the biological
 condition associated to the given column. 0 otherwise.
 }
 \item Results from the combination of temporal and biological statistical
@@ -131,7 +134,7 @@ ti, if the gene is specific to the biological condition BC1 at time ti
 and DE between ti versus the reference time t0 for the biological
 condition BC1.
 \item \eqn{N_{bc}} binary columns (0 and 1). A 1 in one of these columns
-means the gene is signature at at least one time ti, for the biological
+means the gene is signature at least at one time ti, for the biological
 condition associated to the given column. 0 otherwise.
 }
 }
@@ -169,8 +172,8 @@ statistical analysis
 \itemize{
 \item a barplot which gives the number of signature genes for each biological
 condition and time (see \code{\link[=DEplotBarplotFacetGrid]{DEplotBarplotFacetGrid()}}).
-\item a barplot showing the number of genes which are DE at at least one time,
-specific at at least one time and signature at at least one time,
+\item a barplot showing the number of genes which are DE at least at one time,
+specific at least at one time and signature at least at one time,
 for each biological condition.
 \item an alluvial graph of genes which are signature at least one time
 (see \code{\link[=DEplotAlluvial]{DEplotAlluvial()}}).
@@ -204,17 +207,17 @@ resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_3t,
 DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEleuk)$DESeq2obj
 DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
 
-##------------------------------------------------------------------------#
-dds.DE<-DESeq2::DESeq(DESeq2obj)
+##------------------------------------------------------------------------##
+dds.DE <- DESeq2::DESeq(DESeq2obj)
 ##
-res.G.T<-DEanalysisTimeAndGroup(DESeq.result=dds.DE,
-                                LRT.supp.info=FALSE,
-                                pval.min=0.05,
-                                pval.vect.t=NULL,
-                                log.FC.min=0.1,
-                                Plot.DE.graph=TRUE,
-                                path.result=NULL,
-                                SubFile.name=NULL)
+res.G.T <- DEanalysisTimeAndGroup(DESeq.result=dds.DE,
+                                  LRT.supp.info=FALSE,
+                                  pval.min=0.05,
+                                  pval.vect.t=NULL,
+                                  log.FC.min=0.1,
+                                  Plot.DE.graph=TRUE,
+                                  path.result=NULL,
+                                  SubFile.name=NULL)
 }
 \seealso{
 The outputs of the function will be used by the main

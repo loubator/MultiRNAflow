@@ -64,8 +64,11 @@ Otherwise, the folder and sub folder names will respectively be
 "1_UnsupervisedAnalysis" and "1-5_ProfileExpression".}
 }
 \value{
-The function plots for each gene selected with
-the input \code{Vector.row.gene}
+The function returns the same SummarizedExperiment class object
+\code{SEresNorm} with the a graph for each gene
+(depending on the experimental design)
+selected with the input \code{Vector.row.gene}
+(saved in the metadata \code{Results[[1]][[5]]} of \code{SEresNorm})
 \itemize{
 \item In the case where samples belong to different time points only :
 the evolution of the expression of each replicate across time and
@@ -82,6 +85,9 @@ biological conditions : the evolution of the expression of each replicate
 across time and the evolution of the mean and the standard deviation
 of the expression across time for each biological condition.
 }
+
+The function plots the different graph if
+\code{Plot.Expression=TRUE}.
 }
 \description{
 The function allows to plot gene expression profiles
@@ -106,7 +112,7 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              Normalization="rle",
                              Plot.Boxplot=FALSE,
                              Colored.By.Factors=FALSE)
-##------------------------------------------------------------------------#
+##-----------------------------------------------------------------------##
 resEVOgenes <- DATAplotExpressionGenes(SEresNorm=resNorm,
                                        Vector.row.gene=c(1,3),
                                        DATAnorm=TRUE,

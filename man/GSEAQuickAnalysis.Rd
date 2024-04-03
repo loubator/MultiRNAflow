@@ -5,7 +5,7 @@
 \title{GSEA analysis with gprofiler2}
 \usage{
 GSEAQuickAnalysis(
-  Internect.Connection = FALSE,
+  Internet.Connection = FALSE,
   SEresDE,
   ColumnsCriteria = 1,
   ColumnsLog2ordered = NULL,
@@ -18,9 +18,9 @@ GSEAQuickAnalysis(
 )
 }
 \arguments{
-\item{Internect.Connection}{\code{TRUE} or \code{FALSE}.
+\item{Internet.Connection}{\code{TRUE} or \code{FALSE}.
 \code{FALSE} by default. If the user is sure to have an internet connection,
-the user must set \code{Internect.Connection=TRUE}, otherwise, the algorithm
+the user must set \code{Internet.Connection=TRUE}, otherwise, the algorithm
 will not run.}
 
 \item{SEresDE}{A SummarizedExperiment class object. Output from
@@ -81,13 +81,19 @@ will be saved in the sub-folder "gprofiler2_results_\code{Name.folder.DE}".
 Otherwise, the different files will not be saved.}
 }
 \value{
-The function returns
+The function returns the same SummarizedExperiment class object
+\code{SEresDE} with
 \itemize{
 \item a data.frame which contains the outputs of
 \code{\link[gprofiler2:gost]{gprofiler2::gost()}}
 \item a Manhattan plot showing all GO names according to their pvalue
 \item a lollipop graph showing the \code{MaxNumberGO} most important GO.
 }
+
+saved in the metadata \code{Results[[2]][[5]]} of \code{SEresDE}.
+
+The Manhattan plot and the lollipop graph are plotted if
+\code{Display.plots=TRUE}.
 }
 \description{
 The function realizes, from the outputs of
@@ -111,26 +117,32 @@ and the vignette of \code{gprofiler2} for more details.
 We have the following three cases:
 \itemize{
 \item If \code{Set.Operation="union"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that the sum of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at least at t1 or t2
-(versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having at least one ’1’
+in one of the selected columns.
 \item If \code{Set.Operation="intersect"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that the product of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at times t1 and t2
-(versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having ’1’
+in all of the selected columns.
 \item If \code{Set.Operation="setdiff"} then the rows extracted from
-the different datasets included in \code{SEresDE}
+the different datasets (raw counts, normalized data and
+\code{SummarizedExperiment::rowData(SEresDE)})
+included in the SummarizedExperiment class object \code{SEresDE}
 are those such that only one element of the selected columns of
 \code{SummarizedExperiment::rowData(SEresDE)}
-by \code{ColumnsCriteria} is >0.
-For example, the selected genes can be those DE at times t1 only and
-at times t2 only (versus the reference time t0).
+given in \code{ColumnsCriteria} is >0.
+This means that the selected genes are those having ’1’
+in only one of the selected columns.
 }
 }
 \examples{
@@ -146,7 +158,7 @@ resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
                             Time.position=NULL,
                             Individual.position=2)
 
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 ## Internet is needed in order to run the following lines of code because
 ## gprofileR2 needs an internet connection
 ## DE analysis
@@ -159,16 +171,16 @@ resDATAprepSE <- DATAprepSE(RawCounts=dataT1wt,
 #                               path.result=NULL,
 #                               Name.folder.DE=NULL)
 #########
-# resGs<-GSEAQuickAnalysis(Internect.Connection=TRUE,
-#                          SEresDE=resDET1wt,
-#                          ColumnsCriteria=3,
-#                          ColumnsLog2ordered=NULL,
-#                          Set.Operation="union",
-#                          Organism="mmusculus",
-#                          MaxNumberGO=20,
-#                          Background=FALSE,
-#                          Display.plots=TRUE,
-#                          Save.plots=FALSE)
+# resGs <- GSEAQuickAnalysis(Internet.Connection=TRUE,
+#                            SEresDE=resDET1wt,
+#                            ColumnsCriteria=3,
+#                            ColumnsLog2ordered=NULL,
+#                            Set.Operation="union",
+#                            Organism="mmusculus",
+#                            MaxNumberGO=20,
+#                            Background=FALSE,
+#                            Display.plots=TRUE,
+#                            Save.plots=FALSE)
 }
 \seealso{
 The function uses the R package \code{gprofiler2}

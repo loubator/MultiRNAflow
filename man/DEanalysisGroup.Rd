@@ -52,9 +52,12 @@ the strings of characters "_\code{SubFile.name}".
 If \code{NULL}, no suffix will be added.}
 }
 \value{
-The function returns
+The function returns the same DESeqDataSet class object
+\code{DESeq.result} with the following results,
+saved in the metadata \code{DEresultsGroup} of \code{DESeq.result}:
 \itemize{
-\item a data.frame (output \code{Results}) which contains
+\item a data.frame (output \code{DEsummary} of \code{DEresultsGroup})
+which contains
 \itemize{
 \item gene names
 \item pvalues, log2 fold change and DE genes between each pairs of
@@ -85,8 +88,9 @@ BC1 are lower than in the other biological conditions.
 A '0' in one of these columns means the gene is not specific to the
 biological condition associated to the given column.
 }
-\item A contingency matrix (output \code{Summary.DEanalysis}) which gives
-for each biological condition the number of genes categorized as
+\item A contingency matrix (output \code{Summary.DEanalysis}
+of \code{DEresultsGroup}) which gives for each biological condition
+the number of genes categorized as
 "Upregulated", "DownRugulated" and "Other".
 A gene is categorized as 'Other', for a given biological condition,
 if the gene is not specific to the given biological condition.
@@ -131,7 +135,7 @@ resDATAprepSEmus1<- DATAprepSE(RawCounts=RawCounts_T1Wt,
 DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEmus1)$DESeq2obj
 DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
 
-##------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 dds.DE.G <- DESeq2::DESeq(DESeq2obj, quiet=TRUE, betaPrior=FALSE)
 
 res.sum.group <- DEanalysisGroup(DESeq.result=dds.DE.G,

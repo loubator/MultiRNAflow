@@ -9,15 +9,14 @@ HCPCanalysis(
   DATAnorm = TRUE,
   gene.deletion = NULL,
   sample.deletion = NULL,
-  Supp.del.sample = FALSE,
-  Plot.HCPC = TRUE,
+  Plot.HCPC = FALSE,
   Color.Group = NULL,
   Phi = 25,
   Theta = 140,
   epsilon = 0.2,
   Cex.point = 0.7,
   Cex.label = 0.7,
-  D3.mouvement = FALSE,
+  motion3D = FALSE,
   path.result = NULL,
   Name.folder.hcpc = NULL
 )
@@ -54,15 +53,7 @@ of the PCA from the data set as input \code{RawCounts} of our function
 If \code{sample.deletion=NULL} all samples will be used
 in the construction of the PCA.}
 
-\item{Supp.del.sample}{\code{TRUE} or \code{FALSE}.
-If \code{FALSE}, the samples selected with \code{sample.deletion} will
-be deleted.
-If \code{TRUE}, the samples selected with \code{sample.deletion} will
-be plotted.
-These individuals are called supplementary individuals in
-\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
-
-\item{Plot.HCPC}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
+\item{Plot.HCPC}{\code{TRUE} or \code{FALSE}. \code{FALSE} as default.
 If \code{TRUE}, all graphs will be plotted.
 Otherwise no graph will be plotted.}
 
@@ -96,7 +87,7 @@ in all PCA plots which are not automatically plotted by
 associated to each point of the all PCA graphs which are not automatically
 plotted by \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 
-\item{D3.mouvement}{\code{TRUE} or \code{FALSE}.
+\item{motion3D}{\code{TRUE} or \code{FALSE}.
 If \code{TRUE}, the 3D PCA plots will also be plotted in a rgl window
 (see \code{\link[plot3Drgl:plotrgl]{plot3Drgl::plotrgl()}})
 allowing to interactively rotate and zoom.}
@@ -126,18 +117,21 @@ Otherwise, the folder and sub folder names will respectively be
 "1_UnsupervisedAnalysis" and "1-3_HCPCanalysis".}
 }
 \value{
-The function returns
+The function returns the same SummarizedExperiment class object
+\code{SEresNorm} with the outputs from the function
+\code{\link[FactoMineR:HCPC]{FactoMineR::HCPC()}},
+(saved in the metadata \code{Results[[1]][[3]]} of \code{SEresNorm})
 \itemize{
 \item a dendrogram (also called hierarchical tree) using the function
 \code{\link[factoextra:fviz_dend]{factoextra::fviz_dend()}}
 \item one 2D PCA and two 3D PCA produced by the function
-\code{\link[=PCArealization]{PCArealization()}}
+\code{\link[=PCAgraphics]{PCAgraphics()}}
 where samples are colored with different colors for different clusters.
 The two 3D PCA graphs are identical but one of them will be opened
 in a rgl window
 (see \code{\link[plot3Drgl:plotrgl]{plot3Drgl::plotrgl()}})
 allowing to interactively rotate and zoom.
-The interactive 3D graph will be plotted only if \code{D3.mouvement=TRUE}.
+The interactive 3D graph will be plotted only if \code{motion3D=TRUE}.
 \item A graph indicating for each sample, its cluster and
 the time and/or biological condition associated to the sample.
 \item the outputs of
@@ -173,17 +167,16 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              Normalization="rle",
                              Plot.Boxplot=FALSE,
                              Colored.By.Factors=FALSE)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resHCPCanalysis <- HCPCanalysis(SEresNorm=resNorm,
                                 DATAnorm=TRUE,
                                 sample.deletion=NULL,
-                                Supp.del.sample=FALSE,
                                 gene.deletion=NULL,
                                 Plot.HCPC=TRUE,
                                 Color.Group=NULL,
                                 Phi=25, Theta=140,
                                 Cex.point=1, Cex.label=0.6, epsilon=0.4,
-                                D3.mouvement=FALSE,
+                                motion3D=FALSE,
                                 path.result=NULL,
                                 Name.folder.hcpc=NULL)
 }

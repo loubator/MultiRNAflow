@@ -57,7 +57,8 @@ The function returns the same SummarizedExperiment class object
 \code{SEresNorm} but with the output of the
 \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}
 function (see
-\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}).
+\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}})
+saved in the metadata \code{Results[[1]][[2]]} of \code{SEresNorm}.
 }
 \description{
 From a gene expression dataset, the functions performs
@@ -83,17 +84,17 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              Normalization="rle",
                              Plot.Boxplot=FALSE,
                              Colored.By.Factors=FALSE)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resPCAex <- PCArealization(SEresNorm=resNorm,
                            DATAnorm=TRUE,
-                           gene.deletion=c(3,5),
-                           sample.deletion=c("G1_t0_Ind2","G1_t1_Ind3"),
+                           gene.deletion=c(3, 5),
+                           sample.deletion=c("G1_t0_Ind2", "G1_t1_Ind3"),
                            Supp.del.sample=FALSE)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resPCAex2 <- PCArealization(SEresNorm=resNorm,
                             DATAnorm=TRUE,
-                            gene.deletion=c("Gene3","Gene5"),
-                            sample.deletion=c(3,8),
+                            gene.deletion=c("Gene3", "Gene5"),
+                            sample.deletion=c(3, 8),
                             Supp.del.sample=TRUE)
 }
 \seealso{

@@ -36,9 +36,12 @@ Default value is 1.
 If \code{log.FC.min=0}, all DE genes will be kept.}
 }
 \value{
-The function returns
+The function returns the same DESeqDataSet class object
+\code{DESeq.result} with the following results,
+saved in the metadata \code{DEresultsTimeGroup} of \code{DESeq.result}:
 \itemize{
-\item a data.frame (output 'Global') which contains
+\item a data.frame (output \code{DEsummary} of \code{DEresultsTimeGroup})
+which contains
 \itemize{
 \item pvalues, log2 fold change and DE genes between each pairs
 of biological conditions for a fixed time ti
@@ -60,7 +63,7 @@ This function realizes the intermediate steps of the analysis
 of the function \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
 }
 \examples{
-data(RawCounts_Schleiss2021_CLLsub500)
+data("RawCounts_Schleiss2021_CLLsub500")
 ## We take only the first three times (both group) for the speed of
 ## the example
 Index3t<-c(2:4,11:13,20:22, 29:31,38:40,47:49)
@@ -76,15 +79,15 @@ resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_3t,
 DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEleuk)$DESeq2obj
 DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
 
-##------------------------------------------------------------------------#
-dds.DE<-DESeq2::DESeq(DESeq2obj)
+##------------------------------------------------------------------------##
+dds.DE <- DESeq2::DESeq(DESeq2obj)
 ##
-res.G.T.2<-DEresultGroupPerTime(DESeq.result=dds.DE,
-                                LRT.supp.info=FALSE,
-                                log.FC.min=1,
-                                pval.min=0.05)
+res.G.T.2 <- DEresultGroupPerTime(DESeq.result=dds.DE,
+                                  LRT.supp.info=FALSE,
+                                  log.FC.min=1,
+                                  pval.min=0.05)
 }
 \seealso{
-The outputs of the function are used by the main function
+The output of the function are used by the main function
 \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
 }

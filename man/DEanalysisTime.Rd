@@ -62,14 +62,17 @@ the strings of characters "_\code{SubFile.name}".
 If \code{NULL}, no suffix will be added.}
 }
 \value{
-The function returns
+The function returns the same DESeqDataSet class object
+\code{DESeq.result} with the following results,
+saved in the metadata \code{DEresultsTime} of \code{DESeq.result}:
 \itemize{
-\item a data.frame (output \code{Results}) which contains
+\item a data.frame (output \code{DEsummary} of \code{DEresultsTime})
+which contains
 \itemize{
 \item gene names
 \item pvalues, log2 fold change and DE genes between each time ti versus the
 reference time t0.
-\item a binary column (1 and 0) where 1 means the gene is DE at at least
+\item a binary column (1 and 0) where 1 means the gene is DE at least at
 between one time ti versus the reference time t0.
 \item a column where each element is succession of 0 and 1.
 The positions of '1' indicate the set of times ti such that the gene is
@@ -116,17 +119,17 @@ resDATAprepSEfission <- DATAprepSE(RawCounts=RawCounts_Fission_3t,
 DESeq2preprocess <- S4Vectors::metadata(resDATAprepSEfission)$DESeq2obj
 DESeq2obj <- DESeq2preprocess$DESeq2preproceesing
 
-##-------------------------------------------------------------------------#
-dds.DE.T<-DESeq2::DESeq(DESeq2obj, quiet=TRUE, betaPrior=FALSE)
+##------------------------------------------------------------------------##
+dds.DE.T <- DESeq2::DESeq(DESeq2obj, quiet=TRUE, betaPrior=FALSE)
 ##
-res.T<-DEanalysisTime(DESeq.result=dds.DE.T,
-                      pval.min=0.05,
-                      pval.vect.t=c(0.01,0.05,0.05),
-                      log.FC.min=1,
-                      LRT.supp.info=FALSE,
-                      Plot.DE.graph=TRUE,
-                      path.result=NULL,
-                      SubFile.name=NULL)
+res.T <- DEanalysisTime(DESeq.result=dds.DE.T,
+                        pval.min=0.05,
+                        pval.vect.t=c(0.01,0.05,0.05),
+                        log.FC.min=1,
+                        LRT.supp.info=FALSE,
+                        Plot.DE.graph=TRUE,
+                        path.result=NULL,
+                        SubFile.name=NULL)
 }
 \seealso{
 The outputs of the function will be used by the main function

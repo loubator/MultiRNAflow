@@ -9,7 +9,6 @@ PCAanalysis(
   DATAnorm = TRUE,
   gene.deletion = NULL,
   sample.deletion = NULL,
-  Supp.del.sample = FALSE,
   Plot.PCA = TRUE,
   Mean.Accross.Time = FALSE,
   Color.Group = NULL,
@@ -18,7 +17,7 @@ PCAanalysis(
   epsilon = 0.2,
   Cex.point = 0.7,
   Cex.label = 0.7,
-  D3.mouvement = FALSE,
+  motion3D = FALSE,
   path.result = NULL,
   Name.folder.pca = NULL
 )
@@ -54,14 +53,6 @@ of the PCA from the data set as input \code{RawCounts} of our function
 \code{\link[=DATAprepSE]{DATAprepSE()}}.
 If \code{sample.deletion=NULL} all samples will be used
 in the construction of the PCA.}
-
-\item{Supp.del.sample}{\code{TRUE} or \code{FALSE}.
-If \code{FALSE}, the samples selected with \code{sample.deletion} will
-be deleted.
-If \code{TRUE}, the samples selected with \code{sample.deletion} will
-be plotted.
-These individuals are called supplementary individuals in
-\code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 
 \item{Plot.PCA}{\code{TRUE} or \code{FALSE}. \code{TRUE} as default.
 If \code{TRUE}, PCA graphs will be plotted.
@@ -111,7 +102,7 @@ the labels associated to each point of the all PCA graphs
 which are not automatically plotted by
 \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}}.}
 
-\item{D3.mouvement}{\code{TRUE} or \code{FALSE}.
+\item{motion3D}{\code{TRUE} or \code{FALSE}.
 If TRUE, the 3D PCA plots will also be plotted in a rgl window
 (see \code{\link[plot3Drgl:plotrgl]{plot3Drgl::plotrgl()}})
 allowing to interactively rotate and zoom.}
@@ -145,7 +136,8 @@ The function returns the same SummarizedExperiment class object
 \code{SEresNorm} with the outputs from the function
 \code{\link[FactoMineR:PCA]{FactoMineR::PCA()}},
 and several 2D and 3D PCA graphs depending on the experimental design
-(if \code{Plot.PCA=TRUE})
+(if \code{Plot.PCA=TRUE}),
+saved in the metadata \code{Results[[1]][[2]]} of \code{SEresNorm},
 \itemize{
 \item When samples belong only to different biological conditions,
 the function returns a 2D and two 3D PCA graphs.
@@ -187,7 +179,7 @@ but without lines.
 }
 }
 
-The interactive 3D graphs will be plotted only if \code{D3.mouvement=TRUE}.
+The interactive 3D graphs will be plotted only if \code{motion3D=TRUE}.
 }
 \description{
 The functions performs an automatic principal component
@@ -215,16 +207,15 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              Colored.By.Factors=FALSE)
 ## Color for each group
 GROUPcolor <- data.frame(Name=c("G1", "G2"), Col=c("black", "red"))
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resPCAanalysis <- PCAanalysis(SEresNorm=resNorm,
                               DATAnorm=TRUE,
                               gene.deletion=c("Gene1", "Gene5"),
                               sample.deletion=c(2, 6),
-                              Supp.del.sample=FALSE,
                               Plot.PCA=TRUE,
                               Mean.Accross.Time=FALSE,
                               Color.Group=GROUPcolor,
-                              D3.mouvement=FALSE,
+                              motion3D=FALSE,
                               Phi=25, Theta=140,
                               Cex.label=0.7, Cex.point=0.7, epsilon=0.2,
                               path.result=NULL, Name.folder.pca=NULL)

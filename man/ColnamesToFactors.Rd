@@ -93,7 +93,7 @@ so \code{Individual.position=4},
 ## Data simulated with our function RawCountsSimulation()
 Data.sim <- RawCountsSimulation(Nb.Group=3, Nb.Time=2, Nb.per.GT=3,
                                 Nb.Gene=10)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 res.test.colnames <- ColnamesToFactors(ExprData=Data.sim$Sim.dat,
                                        Column.gene=1,
                                        Group.position=1,

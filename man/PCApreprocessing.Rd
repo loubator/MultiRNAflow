@@ -15,8 +15,17 @@ PCApreprocessing(SEresNorm, DATAnorm = TRUE)
 \code{FALSE} means the function uses the raw counts data.}
 }
 \value{
-The function returns a SummarizedExperiment class object containing
-information and a reshape of the originally dataset for the PCA analysis.
+The function returns the same SummarizedExperiment class object
+\code{SEresNorm} with the different elements below
+\itemize{
+\item information for the functions
+\code{PCArealization()} and \code{PCAgraphics()}
+\item a reshape of the originally dataset for the PCA analysis
+(realized by the function \code{PCArealization()})
+}
+
+saved in the metadata \code{Results[[1]][[2]]} of \code{SEresNorm}.
+
 The reshaped dataset which corresponds to a data.frame with
 (\eqn{N_g+k}) columns and \eqn{N_s} rows, where
 \eqn{N_g} is the number of genes, \eqn{N_s} is the number of samples and
@@ -64,7 +73,7 @@ resNorm <- DATAnormalization(SEres=resDATAprepSE,
                              Normalization="rle",
                              Plot.Boxplot=FALSE,
                              Colored.By.Factors=FALSE)
-##-------------------------------------------------------------------------#
+##------------------------------------------------------------------------##
 resPCAdata <- PCApreprocessing(SEresNorm=resNorm,
                                DATAnorm=TRUE)
 }

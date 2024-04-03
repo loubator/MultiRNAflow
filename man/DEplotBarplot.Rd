@@ -82,16 +82,16 @@ each ti (except t0).
 }
 \examples{
 ## Data simulation
-CrossTabulation<-matrix(c(75,30,10,5, 5,35,5,20, 220,235,285,275),
-                        ncol=4, byrow=TRUE)
-colnames(CrossTabulation)<-c("A","B","C","D")
-row.names(CrossTabulation)<-c("Spe.Pos", "Spe.Neg", "Other")
+CrossTabulation <- matrix(c(75,30,10,5, 5,35,5,20, 220,235,285,275),
+                          ncol=4, byrow=TRUE)
+colnames(CrossTabulation) <- c("A", "B", "C", "D")
+row.names(CrossTabulation) <- c("Spe.Pos", "Spe.Neg", "Other")
 
-##-------------------------------------------------------------------------#
-res.dodgeTRUE<-DEplotBarplot(ContingencyTable=CrossTabulation,dodge=FALSE)
+##------------------------------------------------------------------------##
+res.dodgeTRUE <- DEplotBarplot(ContingencyTable=CrossTabulation,dodge=FALSE)
 res.dodgeTRUE
 
-res.dodgeFALSE<-DEplotBarplot(ContingencyTable=CrossTabulation,dodge=TRUE)
+res.dodgeFALSE <- DEplotBarplot(ContingencyTable=CrossTabulation,dodge=TRUE)
 res.dodgeFALSE
 }
 \seealso{
