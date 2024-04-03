@@ -4,9 +4,9 @@
 
 # usethis::use_data(DATASET, overwrite = TRUE)
 
-#=============================================================================#
+##===========================================================================##
 # Useful function
-#=============================================================================#
+##===========================================================================##
 RdSel<-function(NumericVector, Nselected="max", SortedCriteriaVector=NULL){
   if(Nselected=="max"){
     SubVector<-NumericVector
@@ -28,9 +28,9 @@ RdSel<-function(NumericVector, Nselected="max", SortedCriteriaVector=NULL){
   return(SubVector)
 }# (RdSel)
 
-#=============================================================================#
+##===========================================================================##
 ## GEO DataSet accession GSE169116 (4 Biocond (NOTCH1,TCF), 1 time, 3 replicats)
-#=============================================================================#
+##===========================================================================##
 #(20220121)_(Gene expression profiling of LSK cells with hyperactivated Notch1
 # and/or Tcf1 knock-out)_(Antoszewski.M et al)_(Mus musculus)
 
@@ -50,7 +50,7 @@ colnames(CountDat_Mus_Antoszewski2022)<-c("Gene",
 # usethis::use_data(CountDat_Mus_Antoszewski2022, overwrite = TRUE)
 # c("NOTCHWTandTCFWT","NICDandTCFWT","NICDandTCFKO","NOTCHWTandTCFKO")
 
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 ## Preprocessing step
 resDATAprepSEmus1 <- DATAprepSE(RawCounts=CountDat_Mus_Antoszewski2022,
                                 Column.gene=1,
@@ -67,7 +67,7 @@ DEresMus<-DEanalysisGlobal(SEres=resDATAprepSEmus1,
                            Name.folder.DE=NULL)
 
 mus1DEres <- SummarizedExperiment::rowData(DEresMus)
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 Id.Spe.Mus<-sort(unique(c(RdSel(which(mus1DEres$Specific.genes_N1haT1ko>0),111),
                           RdSel(which(mus1DEres$Specific.genes_N1haT1wt>0),20),
                           RdSel(which(mus1DEres$Specific.genes_N1wtT1ko>0),80),
@@ -96,11 +96,11 @@ RawCounts_Antoszewski2022_MOUSEsub500<-CountDat_Mus_Antoszewski2022[IdMus500,]
 #
 # usethis::use_data(CountDat_Mus_Antoszewski2022_sub50Tcf1, overwrite = TRUE)
 # usethis::use_r("CountDat_Mus_Antoszewski2022_sub50Tcf1")
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 #
-#=============================================================================#
+##===========================================================================##
 ## GEO DataSet accession GSE56761 (2 Biocond (wt,mut), 9 times, 3 replicats)
-#=============================================================================#
+##===========================================================================##
 # (2014)_(A global non coding RNA system modulates fission yeast protein levels
 # in response to stress)_(Leong et al)_(Schizosaccharomyces pombe)
 #
@@ -127,7 +127,7 @@ colnames(RawCounts_Leong2014_FISSION)[-1]<-paste(rep(c("wt","mut"),each=18),
                                                  sep="_")
 # usethis::use_data(RawCounts_Leong2014_FISSION, overwrite = TRUE)
 RawCounts_Leong2014_FISSIONwt<-RawCounts_Leong2014_FISSION[,1:19]
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 resDATAprepSEfission <- DATAprepSE(RawCounts=RawCounts_Leong2014_FISSIONwt,
                                    Column.gene=1,
                                    Group.position=NULL,
@@ -144,7 +144,7 @@ DEresYeastWt<-DEanalysisGlobal(SEres=resDATAprepSEfission,
 
 fissionDEres <- SummarizedExperiment::rowData(DEresYeastWt)
 
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 DEtimePattern<-fissionDEres$DE.Temporal.Pattern
 WTfissionPeak<-sort(c(RdSel(grep(".00001",DEtimePattern,fixed=TRUE), "max"),
                       RdSel(grep(".0001",DEtimePattern,fixed=TRUE), "max"),
@@ -160,14 +160,14 @@ WTfission1tmin.NoPeak.f<-RdSel(WTfission1tmin[-intersect(WTfission1tmin,WTfissio
 DEfissionWt<-sort(unique(c(WTfissionPeak, WTfission1tmin.NoPeak.f)))
 noDEfissionWt<-RdSel(which(fissionDEres$DE.1time.minimum==0),
                      500-length(DEfissionWt))
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 fission500genes<-sort(unique(c(DEfissionWt, noDEfissionWt)))
 # c(1:36,38:109), c(37,110,273,327,345,355,404,432,545)
 RawCounts_Leong2014_FISSIONsub500wt<-RawCounts_Leong2014_FISSIONwt[fission500genes,]
 #
 # usethis::use_data(RawCounts_Leong2014_FISSIONsub500wt, overwrite=TRUE)
 # usethis::use_r("RawCounts_Leong2014_FISSIONsub500wt") # creer une fonction
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 # Id.Yeast.mut3t<-sort(c(grep(".01",DEresYeast$DE.results$Pattern.DE_mut,fixed=TRUE)[1:11],
 #                        grep(".1",DEresYeast$DE.results$Pattern.DE_mut,fixed=TRUE)[1:12]))
 # Id.Yeast.wt3t<-sort(c(grep(".01",DEresYeast$DE.results$Pattern.DE_wt,fixed=TRUE)[1:14],
@@ -187,11 +187,11 @@ RawCounts_Leong2014_FISSIONsub500wt<-RawCounts_Leong2014_FISSIONwt[fission500gen
 #
 # usethis::use_data(CountDat_FissionPombe_Leong2014_3Tsub75, overwrite = TRUE)
 # usethis::use_r("CountDat_FissionPombe_Leong2014_3Tsub75") # pour creer une fonction
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 #
-#=============================================================================#
+##===========================================================================##
 ## GEO DataSet accession GSE130385 (2 Biocond (P,NP), 9 times, 3 replicats)
-#=============================================================================#
+##===========================================================================##
 # (2021)_(Temporal transcriptional response from primary human chronic lymphocytic
 # leukemia (CLL)-cells after B-cell receptor stimulation.)_(Schleiss.C, Vallat.L
 # et al)_(Homo sapiens)
@@ -212,7 +212,7 @@ colnames(RawCounts_Schleiss2021_CLL)[2:55]<-paste("CLL",
                                                   sep="_")
 # usethis::use_data(RawCounts_Schleiss2021_CLL, overwrite = TRUE)
 # usethis::use_r("RawCounts_Schleiss2021_CLL") # pour creer une fonction
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 resDATAprepSEleuk <- DATAprepSE(RawCounts=RawCounts_Schleiss2021_CLL,
                                 Column.gene=1,
                                 Group.position=2,
@@ -229,7 +229,7 @@ DEresCLL<-DEanalysisGlobal(SEres=resDATAprepSEleuk,
 
 leukDEres <- SummarizedExperiment::rowData(DEresCLL)
 
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 PatDE_NP<-leukDEres$Pattern.DE_NP
 PatDE_P<-leukDEres$Pattern.DE_P
 
@@ -267,18 +267,18 @@ noDEgeneCLL<-setdiff(c(1:25369),
                      sort(unique(c(DE1tmin_NP, DE1tmin_P, Spe.P.NP.1tmin))))
 noDEgeneCLL<-RdSel(noDEgeneCLL,500-length(DEgeneCLL))
 
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 cll500genes<-sort(c(DEgeneCLL, noDEgeneCLL))
 RawCounts_Schleiss2021_CLLsub500<-RawCounts_Schleiss2021_CLL[cll500genes,]
 #
 # usethis::use_data(RawCounts_Schleiss2021_CLLsub500, overwrite=TRUE)
 # usethis::use_r("RawCounts_Schleiss2021_CLLsub500") # pour creer une fonction
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 #
-#=============================================================================#
+##===========================================================================##
 ## GEO DataSet accession GSE135898
 ## (4 Biocond (BmKo,BmWt,CrKo,CrWt), 6 times, 4 replicats)
-#=============================================================================#
+##===========================================================================##
 # (2021)_(Temporal profiles of gene expression in Cry1/2 KO, Bmal1 KO under
 # night restricted feeding and ad libitum feeding regimen.)_(Weger BD, Gobet C,
 # Martin E, Gachon F, Naef F)_(Mus musculus)
@@ -335,7 +335,7 @@ Datageo3<-data.frame(Gene=row.names(Datageo2)[Union.inter],
 Path.save.GSE135898<-"/Users/rodolphe/BUL/UL_THESE/CreationPackage/GSE135898_Data"
 #
 
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 resDATAprepSEmus2 <- DATAprepSE(RawCounts=Datageo3,#Datageo.f,# Datageo.Ncoln.3
                                 Column.gene=1,
                                 Group.position=1,
@@ -352,7 +352,7 @@ ResGSE135898 <- DEanalysisGlobal(SEres=resDATAprepSEmus2,
 
 mus2DEres <- SummarizedExperiment::rowData(ResGSE135898)
 
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 # The original dataset has 25369 genes but we kept only 500 genes
 # in order to increase the speed of each function in our algorithm.
 PatDE_BmKo <- mus2DEres$Pattern.DE_BmKo
@@ -417,7 +417,7 @@ NoDEMus <- setdiff(seq_len(nrow(mus2DEres)),
                                  Spe.CrKo.1tmin, Spe.CrWt.1tmin))))
 DEMus.NoSel <- NoDEMus[sort(sample(x=seq_len(length(NoDEMus)),
                                    size=500-length(DEMus.Sel)))]
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 MusBmCrKoWt <- sort(c(DEMus.Sel, DEMus.NoSel))
 # id.Colnames.Mus<-c(1, 1+order(rep(seq(0,90,6),each=6)
 # +rep(c(2,3,1,4,5,6),times=16)))
@@ -427,9 +427,9 @@ RawCounts_Weger2021_MOUSEsub500 <- Datageo3[MusBmCrKoWt, id.Colnames.Mus]
 # usethis::use_data(RawCounts_Weger2021_MOUSEsub500, overwrite = TRUE)
 # usethis::use_r("RawCounts_Weger2021_MOUSEsub500")
 #
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 ## DE results
 
 resSEmus1500 <- DATAprepSE(RawCounts=RawCounts_Antoszewski2022_MOUSEsub500,
@@ -492,10 +492,10 @@ resDEMUS2<-DEanalysisGlobal(SEres=resSEmus2500,
                             path.result=NULL,
                             Name.folder.DE=NULL)
 
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 ## names(metadata(resDEMus1)$DESeq2obj)
 resDEmus1SUB <- resDEMus1
 colDatamus1 <- SummarizedExperiment::colData(resDEMus1)[, c(1, 2)]
@@ -508,8 +508,8 @@ SummarizedExperiment::assays(resDEmus1SUB) <- RLEmus1 ##list(rle=RLEmus1)
 S4Vectors::metadata(resDEmus1SUB) <- metaDEmus1
 S4Vectors::metadata(resDEmus1SUB)$DESeq2obj <- DESeq2mus1
 
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 ## names(metadata(resDEFission)$DESeq2obj)
 resDEfissionSUB <- resDEFission
 colDatafission <- SummarizedExperiment::colData(resDEFission)[, c(1, 2)]
@@ -522,8 +522,8 @@ SummarizedExperiment::assays(resDEfissionSUB) <- RLEfission##list(rle=RLEfission
 S4Vectors::metadata(resDEfissionSUB) <- metaDEfission
 S4Vectors::metadata(resDEfissionSUB)$DESeq2obj <- DESeq2fission
 
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 ## names(metadata(resDELeuk)$DESeq2obj)
 resDELeukSUB <- resDELeuk
 colDataLeuk <- SummarizedExperiment::colData(resDELeuk)[, c(1,2,3)]
@@ -536,8 +536,8 @@ SummarizedExperiment::assays(resDELeukSUB) <- RLEleuk##list(rle=RLEleuk)
 S4Vectors::metadata(resDELeukSUB) <- metaDEleuk
 S4Vectors::metadata(resDELeukSUB)$DESeq2obj <- DESeq2leuk
 
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 ## names(metadata(resDELeukSUB)$DESeq2obj)
 # resDEmus2SUB <- resDEMUS2
 # colDatamus2 <- SummarizedExperiment::colData(resDEMUS2)[, c(1,2,3)]
@@ -550,8 +550,8 @@ S4Vectors::metadata(resDELeukSUB)$DESeq2obj <- DESeq2leuk
 # S4Vectors::metadata(resDEmus2SUB) <- metaDEmus2
 # S4Vectors::metadata(resDEmus2SUB)$DESeq2obj <- DESeq2mus2
 
-#-----------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
+##---------------------------------------------------------------------------##
 Results_DEanalysis_sub500<-list(DE_Antoszewski2022_MOUSEsub500=resDEmus1SUB,
                                 DE_Leong2014_FISSIONsub500wt=resDEfissionSUB,
                                 DE_Schleiss2021_CLLsub500=resDELeukSUB)
@@ -559,12 +559,36 @@ Results_DEanalysis_sub500<-list(DE_Antoszewski2022_MOUSEsub500=resDEmus1SUB,
 
 # usethis::use_data(Results_DEanalysis_sub500, overwrite=TRUE)
 # usethis::use_r("Results_DEanalysis_sub500") # pour creer une fonction
-#-----------------------------------------------------------------------------#
+##---------------------------------------------------------------------------##
 
 
+##===========================================================================##
+## Database
+##===========================================================================##
+
+DirDataExpr <- file.path("/Users/rodolphe/Documents/THESE-ATER",
+                         "20181001-20230831_THESE/THESE_AUTRE/THESE_HELP_VALLAT",
+                         "GeneInfo_HGNC.NCBI.ENSEMBL/Final_Pattern_DATA")
+NameDatabase <- paste("231102_MergeDatabase_selectionLV2", ".csv", sep="")
+
+Database <- read.csv2(file=file.path(DirDataExpr, NameDatabase),
+                      header=TRUE, sep=";")
+## str(Database)
+##---------------------------------------------------------------------------##
 
 
+Database2 <- Database[, c(2, 13, 5)]
+## str(Database2)
+## length(intersect(which(Database2$locus_group == "protein-coding gene"),
+##                  which(is.na(Database2[,2]))))
+## table(Database2$locus_group[which(!is.na(Database2[,2]))])
+## SELrow <- intersect(which(Database2$locus_group == "protein-coding gene"),
+##                     which(!is.na(Database2[,2])))
 
+SELrow <- which(!is.na(Database2[, 2]))
+Transcript_HomoSapiens_Database <- Database2[SELrow, seq_len(2)]
 
-
+## object.size(Transcript_HomoSapiens_Database)/(8*1000)
+## usethis::use_data(Transcript_HomoSapiens_Database, overwrite=TRUE)
+## usethis::use_r("Transcript_HomoSapiens_Database") ## pour creer une fonction
 
