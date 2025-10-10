@@ -25,9 +25,23 @@ testthat::test_that("Test DEplotVennBarplotGroup", {
 
     ##-----------------------------------------------------------------------##
     ## Results
+    ## We use suppresWarnings because of it comes from UpSetR which is not
+    ## up to date with ggplot2
+    ## Warning message:
+    ## The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
+    ## i Please use the `linewidth` argument instead.
+    ## i The deprecated feature was likely used in the UpSetR package.
+    ## Please report the issue to the authors.
+
+    suppressWarnings(
     rVenn <- DEplotVennBarplotGroup(Mat.DE.pair.group=Bin.Table.G)
+    )
+    suppressWarnings(
     rVenn2 <- DEplotVennBarplotGroup(Mat.DE.pair.group=Bin.Table.G2)
+    )
+    suppressWarnings(
     rVenn3 <- DEplotVennBarplotGroup(Mat.DE.pair.group=Bin.Table.G3)
+    )
 
     testthat::expect_s3_class(rVenn$Upset.global, "upset")
     testthat::expect_null(rVenn2$Upset.global)

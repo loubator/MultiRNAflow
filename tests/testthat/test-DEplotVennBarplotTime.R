@@ -13,10 +13,19 @@ testthat::test_that("Test DEplotVennBarplotTime", {
     colnames(Log2.FC.matrix.ex) <- paste0("t", seq_len(Nb.Time-1))
     Log2.FC.matrix.ex2 <- abs(Log2.FC.matrix.ex)
     ##-----------------------------------------------------------------------##
+    ## We use suppresWarnings because of it comes from UpSetR which is not
+    ## up to date with ggplot2
+    ## Warning message:
+    ## In geom_point(data = pElemDat, aes_string(x = "x", y = "freq"),  :
+    ## Ignoring empty aesthetic: `colour`.
+    suppressWarnings(
     res.VennBarplot <- DEplotVennBarplotTime(table.DE.time=table.DE.time.ex,
                                              Log2.FC.matrix=Log2.FC.matrix.ex)
+    )
+    suppressWarnings(
     res.VennBarplot2 <- DEplotVennBarplotTime(table.DE.time=table.DE.time.ex,
                                               Log2.FC.matrix=Log2.FC.matrix.ex2)
+    )
 
     testthat::expect_s3_class(res.VennBarplot$Upset.graph, "upset")
     testthat::expect_s3_class(res.VennBarplot2$Upset.graph.with.nb.over,

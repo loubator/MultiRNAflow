@@ -1,5 +1,5 @@
 testthat::test_that("Test DEplotBarplotFacetGrid", {
-    Group.ex <- c('G1', 'G2',' G3')
+    Group.ex <- c('G1', 'G2', 'G3')
     Time.ex <- c('t1', 't2', 't3', 't4')
     Spe.sign.ex <- c("Pos","Neg")
 
@@ -8,7 +8,8 @@ testthat::test_that("Test DEplotBarplotFacetGrid", {
     Nb.Spe <- sample(3:60, GtimesT, replace=FALSE)
     Nb.Spe.sign <- sample(3:60, 2*GtimesT, replace=FALSE)
 
-    colorBC <- data.frame(BC=Group.ex, Color=c("blue", "red", "black"))
+    ## colorBC <- data.frame(BC=Group.ex, Color=c("blue", "red", "black"))
+    color_sign <- data.frame(BC=Spe.sign.ex, Color=c("blue", "red"))
 
     ##-----------------------------------------------------------------------##
     Melt.Dat.1 <- data.frame(Group=rep(Group.ex, times=length(Time.ex)),
@@ -26,6 +27,7 @@ testthat::test_that("Test DEplotBarplotFacetGrid", {
                              Time=rep(Time.ex, each=length(Group.ex)*2),
                              Spe.sign=rep(Spe.sign.ex, times=2*GtimesT),
                              Nb.Spe.DE=Nb.Spe.sign)
+    Melt.Dat.2 <- Melt.Dat.2[1:24,]
 
     testthat::expect_s3_class(DEplotBarplotFacetGrid(Data=Melt.Dat.2,
                                                      Abs.col=1,
@@ -40,6 +42,6 @@ testthat::test_that("Test DEplotBarplotFacetGrid", {
                                                      Legend.col=3,
                                                      Facet.col=2,
                                                      Value.col=4,
-                                                     Color.Legend=colorBC),
+                                                     Color.Legend=color_sign),
                               "ggplot")
 })
