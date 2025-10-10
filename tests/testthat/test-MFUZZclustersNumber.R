@@ -198,7 +198,7 @@ testthat::test_that("Test MFUZZclustersNumber", {
     res3_MfuzzNcl <- MFUZZclustersNumber(SEresNorm=resDATAnormFission,
                                          DATAnorm=FALSE, Method="hcpc",
                                          Max.clust=4,
-                                         Plot.Cluster=TRUE, path.result=NULL)
+                                         Plot.Cluster=FALSE, path.result=NULL)
 
     testthat::expect_s4_class(res1_MfuzzNcl, "SummarizedExperiment")
     testthat::expect_s4_class(res2_MfuzzNcl, "SummarizedExperiment")
