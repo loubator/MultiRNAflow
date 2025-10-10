@@ -173,7 +173,7 @@ DATAplotExpression1Gene <- function(SEres,
         ## Graph profile expression
         BClegend <- "Biological condition"
 
-        Expr.plot <- ggplot2::ggplot(data=by.Dat.1G, ymin=0, ## linetype=Group
+        Expr.plot <- ggplot2::ggplot(data=by.Dat.1G, ##ymin=0, linetype=Group
                                      ggplot2::aes(x=factor(Time),
                                                   y=as.numeric(Mean),
                                                   group=Group, color=Group)) +
@@ -194,6 +194,7 @@ DATAplotExpression1Gene <- function(SEres,
                                              group=Group, color=Group,
                                              shape=Group),
                                 position=ggplot2::position_dodge(0.2)) +
+            ggplot2::coord_cartesian(ylim=c(0,NA)) +
             ggplot2::scale_color_manual(values=as.character(Color.Group$Col)) +
             ggplot2::guides(color=ggplot2::guide_legend(BClegend),
                             shape=ggplot2::guide_legend(BClegend))
@@ -251,24 +252,24 @@ DATAplotExpression1Gene <- function(SEres,
         levels(Col.grougF) <- "#E76BF3"
 
         ##-------------------------------------------------------------------##
-        Expr.plot <- ggplot2::ggplot(ymin=0) +
+        Expr.plot <- ggplot2::ggplot(data=by.Dat.1G) +## ymin=0
             ggplot2::theme(legend.position="bottom") +
             ggplot2::xlab("Time") + ggplot2::ylab(ylabel) +
             ggplot2::ggtitle(GENEtitle) +
-            ggplot2::geom_errorbar(data=by.Dat.1G,
-                                   linetype="dashed", width=.2, linewidth=0.7,
+            ggplot2::geom_errorbar(linetype="dashed", width=.2, linewidth=0.7,
                                    ggplot2::aes(x=factor(Time),
                                                 ymin=Mean-Sd,
                                                 ymax=Mean+Sd),
-                                   position=ggplot2::position_nudge(x=0.1,
-                                                                    y=0)) +
-            ggplot2::geom_line(data=by.Dat.1G, color="black", linewidth=1.1,
+                                   position=ggplot2::position_nudge(x=0.1,y=0))+
+            ggplot2::geom_line(color="black", linewidth=1.1,
                                ggplot2::aes(x=factor(Time),
                                             y=as.numeric(Mean), group=1),
                                position=ggplot2::position_nudge(x=0.1, y=0)) +
-            ggplot2::geom_point(data=by.Dat.1G, size=2.2, color="black",
+            ggplot2::geom_point(size=2.2, color="black",
                                 ggplot2::aes(x=factor(Time), y=Mean),
-                                position=ggplot2::position_nudge(x=0.1, y=0))
+                                position=ggplot2::position_nudge(x=0.1, y=0)) +
+            ggplot2::coord_cartesian(ylim=c(0,NA))
+        ## 'data=by.Dat.1G' moved from geom_errorbar(data=...) to ggplot()
 
         if (isTRUE(Lign.draw)) {
             Expr.plot <- Expr.plot+
@@ -333,31 +334,29 @@ DATAplotExpression1Gene <- function(SEres,
         size.pt <- (max(Dat.1G.melted$value) - min(Dat.1G.melted$value))/50
 
         ##-------------------------------------------------------------------##
-        Expr.plot <- ggplot2::ggplot(ymin=0) +
+        Expr.plot <- ggplot2::ggplot(data=Dat.1G.melted) + ## ymin=0
             ggplot2::xlab("Biological condition") +
             ggplot2::ylab(ylabel) +
             ggplot2::ggtitle(GENEtitle)
+        ## 'data=by.Dat.1G' moved from geom_boxplot(data=...) to ggplot()
 
         if (max(as.numeric(Nb.per.cond)) > 50) {
             Expr.plot <- Expr.plot +
-                ggplot2::geom_violin(data=Dat.1G.melted, trim=TRUE,
+                ggplot2::geom_violin(trim=TRUE,
                                      ggplot2::aes(x=Group, y=value,
                                                   fill=Group)) +
-                ggplot2::geom_boxplot(data=Dat.1G.melted,
-                                      ggplot2::aes(x=Group, y=value),
+                ggplot2::geom_boxplot(ggplot2::aes(x=Group, y=value),
                                       width=0.1) +
-                ggplot2::geom_dotplot(data=Dat.1G.melted, colour="black",
+                ggplot2::geom_dotplot(colour="black",
                                       ggplot2::aes(x=factor(Group), y=value,
                                                    fill=Group),
                                       binaxis='y', stackdir='center',
                                       binwidth=size.pt)
         } else {
             Expr.plot <- Expr.plot +
-                ggplot2::geom_boxplot(data=Dat.1G.melted,
-                                      ggplot2::aes(x=Group, y=value,
+                ggplot2::geom_boxplot(ggplot2::aes(x=Group, y=value,
                                                    fill=Group)) +
-                ggplot2::geom_dotplot(data=Dat.1G.melted,
-                                      ggplot2::aes(x=factor(Group), y=value),
+                ggplot2::geom_dotplot(ggplot2::aes(x=factor(Group), y=value),
                                       colour="black", fill="white",
                                       binaxis='y', stackdir='center',
                                       binwidth=size.pt)
@@ -374,6 +373,7 @@ DATAplotExpression1Gene <- function(SEres,
                                 ggplot2::aes(x=factor(Group), y=Mean),
                                 position = ggplot2::position_nudge(x=0, y=0)) +
             ggplot2::scale_fill_manual(values=as.character(Color.Group$Col)) +
+            ggplot2::coord_cartesian(ylim=c(0,NA)) +
             ggplot2::guides(fill=ggplot2::guide_legend("Biological condition"))
 
     }## if(is.null(Vector.time) & !is.null(Vector.group))

@@ -245,9 +245,9 @@ myYlabelNorm <- function(Normalization) {
         YlabelNorm <- "rle normalized counts"
     }## if(Normalization == "rle")
 
-    if (Normalization == "rleRPKM") {
-        YlabelNorm <- "rle and RPKM normalized counts"
-    }## if(Normalization == "rleRPKM")
+    if (Normalization == "rpkm") {
+        YlabelNorm <- "RPKM normalized counts"
+    }## if(Normalization == "rpkm")
 
     return(YlabelNorm)
 }## myYlabelNorm()

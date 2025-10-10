@@ -425,22 +425,23 @@ subRNAfilter <- function(RawCounts, Column.gene, RNAlength=NULL) {
             stop(Err_RNA5)
         }## if (Nsimilar == 0)
 
-        if (Nsimilar == nrow(RawCounts) | is.null(RNAlength)) {
+        if (Nsimilar == nrow(RawCounts)) { ## | is.null(RNAlength)
             RawCounts2 <- RawCounts
             delGenes <- "No deleted Genes"
+            RNAlength2 <- RNAlength
         } else {
             RawCounts2 <- RawCounts[gene_rwctINtrlg,]
             delGenes <- as.character(RawCounts[-gene_rwctINtrlg, Column.gene])
+
+            gene_trlgINrwct <- which(RNAlength[,1]%in%RawCounts2[,Column.gene])
+            RNAlength2 <- RNAlength[gene_trlgINrwct,]
 
             Ndel <- nrow(RawCounts) - Nsimilar
             print(paste0(Ndel, " genes deleted."))
         }## if (Nsimilar == nrow(RawCounts) | is.null(RNAlength))
 
-        gene_trlgINrwct <- which(RNAlength[,1]%in%RawCounts2[,Column.gene])
-        RNAlength2 <- RNAlength[gene_trlgINrwct,]
-
-        RawCounts2 <- RawCounts2[order(RNAlength2[,Column.gene]),]
-        RNAlength2 <- RNAlength2[order(RNAlength2[,1]),]
+        # RawCounts2 <- RawCounts2[order(RNAlength2[,Column.gene]),]
+        # RNAlength2 <- RNAlength2[order(RNAlength2[,1]),]
 
         RNAfilter <- list(LENGTHdeleted=delGenes, RNAlength=RNAlength2)
     } else {
