@@ -364,11 +364,11 @@ GSEAQuickAnalysis <- function(Internet.Connection=FALSE,
         ##-------------------------------------------------------------------##
         if (!is.null(path.result)) {
             grDevices::pdf(file=ManhPlot, width=11, height=8)
-            print(gManhattan)
+            print(gproList$gManhattan)
             grDevices::dev.off()
 
             grDevices::pdf(file=LollipopPlot, width=11, height=8)
-            print(glolipop)
+            print(gproList$glolipop)
             grDevices::dev.off()
 
             utils::write.table(GOmat, file=GSEAtable, sep=";", row.names=FALSE)
@@ -376,14 +376,14 @@ GSEAQuickAnalysis <- function(Internet.Connection=FALSE,
         }## if (!is.null(path.result))
 
         if (isTRUE(Display.plots)) {
-            print(gManhattan)
-            print(glolipop)
+            print(gproList$gManhattan)
+            print(gproList$glolipop)
         }## if (isTRUE(Display.plots))
 
         ##-------------------------------------------------------------------##
         ##-------------------------------------------------------------------##
         ## SE object ## gproList
-        listGSEA <- list(GSEAresults=gproList$GOmat,
+        listGSEA <- list(GSEAresults=gproList$GSEAresults,
                          selectedGenes=GeneSelected,
                          lollipopChart=gproList$glolipop,
                          manhattanPlot=gproList$gManhattan)
@@ -472,11 +472,11 @@ RESgprofiler2 <- function(RESgost, MaxNumberGO) {
                                            y=-log10(p_value), yend=0,
                                            colour=significant),
                               linewidth=1) +
-        ggplot2::geom_bar(stat="identity", color="black", size=0.5,
+        ggplot2::geom_bar(stat="identity", color="black", linewidth=0.5,
                           ggplot2::aes(fill=source,
                                        y=-0.10*(IntegerMaxLogPval*0.55))) +
         ggplot2::geom_hline(yintercept=-log10(0.05), linetype="dashed",
-                            size=0.6) +
+                            linewidth=0.6) +
         ggplot2::scale_color_manual(values=c("#E69F00",
                                              "#56B4E9")[LevelSignificant]) +
         ggplot2::scale_fill_manual(values=GOcolors, name="Source") +
@@ -539,13 +539,14 @@ RESgprofiler2 <- function(RESgost, MaxNumberGO) {
                                                ymax=IntegerMaxLogPval)) +
         ggplot2::geom_point(ggplot2::aes(color=source, shape=significant),
                             size=1.7) + ##alpha=0.8,
-        ggplot2::geom_line(ggplot2::aes(color=as.character(source)), size=0.4)+
+        ggplot2::geom_line(ggplot2::aes(color=as.character(source)),
+                           linewidth=0.4)+
         ggplot2::geom_hline(yintercept=-log10(0.05), linetype="dashed",
-                            size=0.6) +
+                            linewidth=0.6) +
         ggplot2::geom_area(ggplot2::aes(fill=as.character(source),
                                         group=as.character(source)),
                            alpha=0.2, position='identity') +
-        ggplot2::geom_bar(stat="identity", size=1.5,
+        ggplot2::geom_bar(stat="identity", linewidth=1.5,
                           ggplot2::aes(fill=source,color=source,
                                        y=-0.06*(IntegerMaxLogPval*0.55))) +
         ggplot2::scale_fill_manual(values=GOcolors, name="Source")+

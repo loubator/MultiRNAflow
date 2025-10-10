@@ -50,6 +50,7 @@
 #' element_rect element_text scale_x_discrete guide_axis guide_legend guides
 #' scale_fill_manual
 #' @importFrom stats as.formula
+#' @importFrom rlang .data
 #'
 #' @export
 #'
@@ -76,6 +77,7 @@
 #'                          Time=rep(Time.ex, each=length(Group.ex)*2),
 #'                          Spe.sign=rep(Spe.sign.ex, times=2*GtimesT),
 #'                          Nb.Spe.DE=Nb.Spe.sign)
+#' Melt.Dat.2 <- stats::aggregate(Nb.Spe.DE~., data=Melt.Dat.2, sum)
 #'
 #' DEplotBarplotFacetGrid(Data=Melt.Dat.2,
 #'                        Abs.col=1,
@@ -93,25 +95,37 @@ DEplotBarplotFacetGrid <- function(Data,
                                    LabsPlot=c("", "")) {
     ##-----------------------------------------------------------------------##
     ## Data preprocessing for graph if 'Abs.col!=Legend.col'
-    if (Abs.col != Legend.col) {
-        if (!is.null(Color.Legend)) {
-            Data[,Legend.col] <- factor(Data[,Legend.col],
-                                        levels=Color.Legend[,1])
-        } else {
-            Data[,Legend.col] <- factor(Data[,Legend.col])
-        }## if(!is.null(Color.Legend))
-    }## if(Abs.col!=Legend.col)
+    # if (Abs.col != Legend.col) {
+    #     if (!is.null(Color.Legend)) {
+    #         Data[,Legend.col] <- factor(Data[,Legend.col],
+    #                                     levels=Color.Legend[,1])
+    #     } else {
+    #         Data[,Legend.col] <- factor(Data[,Legend.col])
+    #     }## if(!is.null(Color.Legend))
+    # }## if(Abs.col!=Legend.col)
 
     ## xeval <- eval(rlang::syms(colnames(Data)[Abs.col])[[1]], Data)
     ## yeval <- eval(rlang::syms(colnames(Data)[Value.col])[[1]], Data)
-    xeval <- as.character(Data[,Abs.col])
-    yeval <- as.numeric(Data[,Value.col])
+    # xeval <- as.character(Data[,Abs.col])
+    # yeval <- as.numeric(Data[,Value.col])
     colq <- "dark grey"
     formulaCH <- paste(". ~", colnames(Data)[Facet.col])
 
     ##-----------------------------------------------------------------------##
-    q.dodged <- ggplot2::ggplot(Data, fill=Data[,Legend.col],
-                                ggplot2::aes(xeval, yeval)) +
+    # q.dodged <- ggplot2::ggplot(Data, fill=Data[,Legend.col],
+    #                             ggplot2::aes(xeval, yeval)) +
+    #     ggplot2::facet_grid(stats::as.formula(formulaCH)) +
+    #     ggplot2::xlab(LabsPlot[1]) + ggplot2::ylab(LabsPlot[2]) +
+    #     ggplot2::theme(panel.background=ggplot2::element_rect(colour=colq)) +
+    #     ggplot2::theme(strip.text.x=ggplot2::element_text(size=22, face="bold"),
+    #                    strip.background=ggplot2::element_rect(colour=colq))
+
+    cn <- colnames(Data)
+
+    q.dodged <- ggplot2::ggplot(Data,
+                                ggplot2::aes(x=.data[[cn[Abs.col]]],
+                                             y=.data[[cn[Value.col]]])) +
+        ## fill=.data[[cn[Legend.col]]]
         ggplot2::facet_grid(stats::as.formula(formulaCH)) +
         ggplot2::xlab(LabsPlot[1]) + ggplot2::ylab(LabsPlot[2]) +
         ggplot2::theme(panel.background=ggplot2::element_rect(colour=colq)) +
@@ -119,16 +133,23 @@ DEplotBarplotFacetGrid <- function(Data,
                        strip.background=ggplot2::element_rect(colour=colq))
 
     if (Abs.col != Legend.col) {
-        fbn <- colnames(Data)[Legend.col]
-        fillBarlot <- as.factor(Data[,Legend.col])
-        ## fillBarlot<-eval(rlang::syms(colnames(Data)[Legend.col])[[1]], Data)
         q.dodged <- q.dodged +
-            ggplot2::geom_bar(ggplot2::aes(fill=fillBarlot),
+            ggplot2::geom_bar(ggplot2::aes(fill=.data[[cn[Legend.col]]]),
                               stat="identity", color="black") +
             ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45)) +
-            ggplot2::guides(fill=ggplot2::guide_legend(title=fbn))
+            ggplot2::guides(fill=ggplot2::guide_legend(title=cn[Legend.col]))
+
+        # fbn <- colnames(Data)[Legend.col]
+        # fillBarlot <- as.factor(Data[,Legend.col])
+        ## fillBarlot<-eval(rlang::syms(colnames(Data)[Legend.col])[[1]], Data)
+        # q.dodged <- q.dodged +
+        #     ggplot2::geom_bar(ggplot2::aes(fill=fillBarlot),
+        #                       stat="identity", color="black") +
+        #     ggplot2::scale_x_discrete(guide=ggplot2::guide_axis(angle=45)) +
+        #     ggplot2::guides(fill=ggplot2::guide_legend(title=fbn))
 
         if (!is.null(Color.Legend)) {
+            Color.Legend <- Color.Legend[order(Color.Legend[,1]),]
             colorLGD <- as.character(Color.Legend[,2])
             q.dodged <- q.dodged + ggplot2::scale_fill_manual(values=colorLGD)
         }## if(!is.null(Color.Legend))

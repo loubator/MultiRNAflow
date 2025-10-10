@@ -310,16 +310,22 @@ MFUZZclustersNumber <- function(SEresNorm,
                                  0)[seq_len(Max.clust)]
 
             inert.gain <- rev(res.hcpc$call$t$tree$height)
+            ## inert.gain <- inert.gain/max(inert.gain)
             intra <- rev(cumsum(rev(inert.gain)))
             quot <- intra[2:length(intra)]/intra[seq_len(length(intra)-1)]
 
-            if (abs(which.min(quot) + 1 - res.hcpc$call$t$nb.clust) >2 ) {
-                Index.nb.clust <- res.hcpc$call$t$nb.clust
+            Nclust_hcpc <- min(res.hcpc$call$t$nb.clust, Max.clust)
+
+            if (abs(which.min(quot) + 1 - Nclust_hcpc) > 2 ) {
+                Index.nb.clust <- Nclust_hcpc
             } else {
-                Index.nb.clust <- max(which.min(quot) + 1,
-                                      res.hcpc$call$t$nb.clust)
-                ## Index.nb.clust<-res.hcpc$call$t$nb.clust
-            }## if(abs(which.min(quot)+1-res.hcpc$call$t$nb.clust)>2)
+                if (which.min(quot)[1] == Nclust_hcpc) {
+                    Index.nb.clust <- Nclust_hcpc
+                } else {
+                    Index.nb.clust <- max(which.min(quot) + 1, Nclust_hcpc)
+                }## if (which.min(quot)[1] == Nclust_hcpc)
+                ## Index.nb.clust <- Nclust_hcpc
+            }## if (abs(which.min(quot)+1-Nclust_hcpc)>2)
 
         }## if(Method=="hcpc")
 

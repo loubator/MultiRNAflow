@@ -48,12 +48,12 @@
 #' table.DE.time.ex <- matrix(sample(c(0,1), replace=TRUE,
 #'                                   size=40*(Nb.Time-1), c(0.2, 0.8)),
 #'                            ncol=Nb.Time-1)
-#' colnames(table.DE.time.ex) <- paste0("t", 1:(Nb.Time-1))
+#' colnames(table.DE.time.ex) <- paste0("t", seq_len(Nb.Time-1))
 #' ##------------------------------------------------------------------------##
 #' Log2FC.mat.ex <- matrix(round(rnorm(n=40*(Nb.Time-1), mean=0, sd=1),
 #'                               digits=2),
 #'                         ncol=(Nb.Time-1))
-#' colnames(Log2FC.mat.ex) <- paste0("t", 1:(Nb.Time-1))
+#' colnames(Log2FC.mat.ex) <- paste0("t", seq_len(Nb.Time-1))
 #' ##------------------------------------------------------------------------##
 #' res.test.VennBarplot <- DEplotVennBarplotTime(table.DE.time=table.DE.time.ex,
 #'                                               Log2.FC.matrix=Log2FC.mat.ex)
@@ -137,7 +137,8 @@ DEplotVennBarplotTime <- function(table.DE.time,
             paramsTX <- list("Nb.over", as.character(vectorUniqueValue))
 
             mylist.upsetg[[n.over]] <- list(query=UpSetR::elements,
-                                            color=colors[n.over], active=TRUE,
+                                            color=colors[n.over],
+                                            active=TRUE,
                                             params=paramsTX,
                                             query.name=queryTx)
             vectorUniqueValue <- vectorUniqueValue[-1]

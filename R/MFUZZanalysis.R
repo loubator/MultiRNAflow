@@ -371,6 +371,7 @@ MFUZZanalysis <- function(SEresNorm,
         #                      NBcluster=Nb.c.g, time.labels=Tps.info,
         #                      MFUZZmfrow=c(nrow.plot.f, ncol.plot.f))
 
+        # Re cemment commente
         resPlot <- ggplotify::as.ggplot(
             function() MFUZZplot(eset=eset.s, cl=cl, min.mem=Membership,
                                  NBcluster=Nb.c.g, time.labels=Tps.info,
@@ -469,7 +470,7 @@ MFUZZplot <- function(eset, cl, min.mem, time.labels, NBcluster, MFUZZmfrow) {
                        centre=TRUE, x11=FALSE)
 
     ##-----------------------------------------------------------------------##
-    ## The following lines ensure good ouput graphics
+    # The following lines ensure good ouput graphics
     if (NBcluster > prod(MFUZZmfrow)) {
         mod.gr <- NBcluster%%prod(MFUZZmfrow)
         for (p in seq_len(mod.gr)) {
