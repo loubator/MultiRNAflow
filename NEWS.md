@@ -71,3 +71,33 @@ Suggestions and remarks from a bioconductor team member
   - modification because of outputs and inputs modification
   - update of the vignette in order to answer comment of reviewers
   of Bioinformatics
+
+
+# Changes in versions: 1.7.1
+
+* R functions of the packages
+  - `myYlabelNorm()` (included in the R function `DATAplotExpressionGenes()`):
+  there were an error when the RPKM normalization were used.
+  - `GSEAQuickAnalysis()`:
+    - replace `size` aesthetic by `linewidth` because :
+    Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+    - correction errors: `print(gManhattan)` to `print(gproList$gManhattan)`
+  - `MFUZZclustersNumber()`: slight modification for correcting one warning
+  "Removed 1 row containing missing values or values outside the scale range
+  (`geom_point()`)."
+  - `DEplotBarplot()`: in the section "Examples", we replace
+  `c("Spe.Pos", "Spe.Neg", "Other")` by
+  `c("UpRegulated", "DownRegulated", "Other")`.
+  - `DEplotBarplotFacetGrid()`: in the section "Examples", we add
+  `Melt.Dat.2 <- stats::aggregate(Nb.Spe.DE~., data=Melt.Dat.2, sum)`
+  so `Melt.Dat.2` is more representative of the data used by our function.
+  We also modify the function to prevent recent warnings from `ggplot2`
+  (`.data[["<col_names>"]]`).
+* Vignette (`MultiRNAflow_vignette-knitr.Rnw`)
+  - We add our publication from Bioinformatics
+  - we correct new errors produced by latex output
+    - problem with the input `max.level` of the function `str()`
+    - we correct the following new error
+    'Illegal parameter number in definition of \NewValue'
+    - we use '\printbibliography' and '\addbibresource' in the preamble
+    for the 'cleaner' biblatex interface.
