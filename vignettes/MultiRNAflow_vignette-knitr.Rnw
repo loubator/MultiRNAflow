@@ -11,6 +11,7 @@ BiocStyle::latex(use.unsrturl=FALSE)
 
 %\usepackage{booktabs} % book-quality tables
 \usepackage{hyperref}
+\usepackage{biblatex}
 
 \setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{3}
@@ -22,6 +23,8 @@ BiocStyle::latex(use.unsrturl=FALSE)
 \newcommand\rmarkdown{\Rpackage{rmarkdown}}
 \newcommand\Sweave{\software{Sweave}}
 \newcommand\latex[1]{{\ttfamily #1}}
+
+\addbibresource{MultiRNAflowBiblio.bib}
 
 
 \makeatletter
@@ -37,13 +40,14 @@ BiocStyle::latex(use.unsrturl=FALSE)
 RNA-seq data with multiple biological conditions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \author[1]{Loubaton Rodolphe}
-\author[1]{Champagnat Nicolas}
-\author[1]{Vallois Pierre}
-\author[2,3]{Vallat Laurent}
-\affil[1]{Universit\'e de Lorraine, CNRS, Inria, IECL, F-54000 Nancy, France}
-\affil[2]{Universit\'e de Strasbourg, CNRS,
+\author[2]{Champagnat Nicolas}
+\author[2]{Vallois Pierre}
+\author[3,4]{Vallat Laurent}
+\affil[1]{Universit\'e Clermont Auvergne, INRAE, VetAgro Sup, UMR-1213 Herbivores, F-63122 Saint-Gen\`es-Champanelle, France}
+\affil[2]{Universit\'e de Lorraine, CNRS, Inria, IECL, F-54000 Nancy, France}
+\affil[3]{Universit\'e de Strasbourg, CNRS,
 UMR-7242 Biotechnology and cell signaling, F-67400 Illkirch, France}
-\affil[3]{Department of molecular genetic of cancers,
+\affil[4]{Department of molecular genetic of cancers,
 Strasbourg University Hospital, F-67200 Strasbourg, France}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -52,6 +56,7 @@ Strasbourg University Hospital, F-67200 Strasbourg, France}
 
 %%%% %{vignettes%/MultiRNAflowImage%/
 %%%% %{MultiRNAflowImage%/
+%%%% %{/Users/rodolpheloubaton/Documents/BUL/UL_THESE/CreationPackage/1_MultiRNAflow/MultiRNAflow_vignettes/250922_MultiRNAflow_vignettes/vignettes/MultiRNAflowImage/
 
 <<include=FALSE>>=
 library(knitr)
@@ -79,10 +84,11 @@ for multiple biological conditions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand{\abstractname}{To cite this package}
 \begin{abstract}
-Rodolphe Loubaton, Nicolas Champagnat, Pierre Vallois and Laurent Vallat,
-MultiRNAflow: integrated analysis of temporal RNA-seq data
-with multiple biological conditions.
-In revision (2024).
+\fullcite{loubaton_multirnaflow_2024}
+% Rodolphe Loubaton, Nicolas Champagnat, Pierre Vallois and Laurent Vallat,
+% MultiRNAflow: integrated analysis of temporal RNA-seq data
+% with multiple biological conditions.
+% In revision (2024).
 \end{abstract}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -219,8 +225,9 @@ to a given time, or genes with particular DE patterns.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The MultiRNAflow suite gathers in a unified framework methodological tools
-found in various existing packages allowing to perform:
+The MultiRNAflow~\cite{loubaton_multirnaflow_2024} suite gathers
+in a unified framework methodological tools found in various existing packages
+allowing to perform:
 \begin{enumerate}
 \item Exploratory (unsupervised) analysis of the data.
 \item Statistical (supervised) analysis of dynamic transcriptional expression
@@ -1248,7 +1255,7 @@ resleuk500 <- S4Vectors::metadata(SEresNORMleuk500)$Results
 resNORMleuk500 <- resleuk500[[1]][[1]]
 ###
 names(S4Vectors::metadata(SEresNORMleuk500))
-str(resleuk500, max.level=3)
+str(resleuk500, max.level=2)
 @
 
 
@@ -1383,7 +1390,7 @@ resleuk500 <- S4Vectors::metadata(SEresPCALeuk500)$Results
 resPCALeuk500 <- resleuk500[[1]][[2]]
 ###
 names(S4Vectors::metadata(SEresPCALeuk500))
-str(resleuk500, max.level=3, give.attr=FALSE)
+str(resleuk500, max.level=2, give.attr=FALSE)
 names(resPCALeuk500)
 @
 
@@ -1538,7 +1545,7 @@ resleuk500 <- S4Vectors::metadata(SEresHCPCLeuk500)$Results
 resHCPCLeuk500 <- resleuk500[[1]][[3]]
 ###
 names(S4Vectors::metadata(SEresHCPCLeuk500))
-str(resleuk500, max.level=3, give.attr=FALSE)
+str(resleuk500, max.level=2, give.attr=FALSE)
 names(resHCPCLeuk500)
 @
 
@@ -1680,7 +1687,7 @@ resleuk500 <- S4Vectors::metadata(SEresMfuzzLeuk500)$Results
 resMfuzzLeuk500 <- resleuk500[[1]][[4]]
 ###
 names(S4Vectors::metadata(SEresMfuzzLeuk500))
-str(resleuk500, max.level=3, give.attr=FALSE)
+str(resleuk500, max.level=2, give.attr=FALSE)
 names(resMfuzzLeuk500)
 @
 
@@ -1799,7 +1806,7 @@ resleuk500 <- S4Vectors::metadata(SEresEVOleuk500)$Results
 resEVOleuk500 <- resleuk500[[1]][[5]]
 ###
 names(S4Vectors::metadata(SEresEVOleuk500))
-str(resleuk500, max.level=3, give.attr=FALSE)
+str(resleuk500, max.level=2, give.attr=FALSE)
 names(resEVOleuk500)
 @
 
@@ -2474,7 +2481,7 @@ resleuk500 <- S4Vectors::metadata(SEresVolcanoMAleuk)$Results
 resVolMAleuk500 <- resleuk500[[2]][[3]]
 ###
 names(S4Vectors::metadata(SEresVolcanoMAleuk))
-str(resleuk500, max.level=3, give.attr=FALSE)
+str(resleuk500, max.level=2, give.attr=FALSE)
 names(resVolMAleuk500)
 @
 
@@ -2491,7 +2498,7 @@ for each biological condition,
 as can be seen with the following line of code
 
 <<Leuk_namesVolcanoMA, eval=TRUE>>=
-str(resVolMAleuk500$Volcano, max.level=2, give.attr=FALSE)
+str(resVolMAleuk500$Volcano, max.level=1, give.attr=FALSE)
 @
 
 and \texttt{resVolMAleuk500\$highest2DEgenes} contains the
@@ -2637,7 +2644,7 @@ resleuk500 <- S4Vectors::metadata(SEresHeatmapLeuk)$Results
 resHeatmapLeuk <- resleuk500[[2]][[4]]
 ###
 names(S4Vectors::metadata(SEresHeatmapLeuk))
-str(resleuk500, max.level=3, give.attr=FALSE)
+str(resleuk500, max.level=2, give.attr=FALSE)
 names(resHeatmapLeuk)
 @
 
@@ -5575,14 +5582,18 @@ this document was compiled.
 utils::toLatex(sessionInfo())
 @
 
-\newpage
+%% \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\section*{Bibliography}
+\printbibliography
 
-\bibliographystyle{apalike}%plain
-\bibliography{MultiRNAflowBiblio} %% \bibliography{vignettes/MultiRNAflowBiblio}
+%% \bibliographystyle{apalike}%plain
+%% \bibliography{MultiRNAflowBiblio} %% \bibliography{vignettes/MultiRNAflowBiblio}
+%%\bibliography{vignettes/MultiRNAflowBiblio}
+%%\bibliography{/Users/rodolpheloubaton/Documents/BUL/UL_THESE/CreationPackage/1_MultiRNAflow/MultiRNAflow_vignettes/250922_MultiRNAflow_vignettes/vignettes/MultiRNAflowBiblio}
+%%%% %{/Users/rodolpheloubaton/Documents/BUL/UL_THESE/CreationPackage/1_MultiRNAflow/MultiRNAflow_vignettes/250922_MultiRNAflow_vignettes/vignettes/MultiRNAflowImage/
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

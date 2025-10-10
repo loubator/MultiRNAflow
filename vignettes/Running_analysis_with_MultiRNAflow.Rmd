@@ -3,7 +3,7 @@ title: "Running `MultiRNAflow` on a RNA-seq raw counts with different time point
 shorttitle: "MultiRNAflow"
 author:
 - name: "Rodolphe Loubaton"
-  affiliation: "Université de Lorraine, CNRS, Inria, IECL, F-54000 Nancy, France"
+  affiliation: "Université Clermont Auvergne, INRAE, VetAgro Sup, UMR-1213 Herbivores, F-63122 Saint-Genès-Champanelle, France"
 - name: "Nicolas Champagnat"
   affiliation: "Université de Lorraine, CNRS, Inria, IECL, F-54000 Nancy, France"
 - name: "Pierre Vallois"
@@ -598,5 +598,3 @@ was compiled.
 ```{r SessionInfo}
 sessionInfo()
 ```
-
-
