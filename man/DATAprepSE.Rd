@@ -116,7 +116,7 @@ This function creates automatically  a SummarizedExperiment (SE) object
 from raw counts data to store
 \itemize{
 \item information for exploratory (unsupervised) analysis using the R function
-\code{\link[SummarizedExperiment:RangedSummarizedExperiment-class]{SummarizedExperiment::SummarizedExperiment()}}
+\code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment::SummarizedExperiment()}}
 \item a DESeq2 object from raw counts data in order to store all information
 for statistical (supervised) analysis using the R function
 \code{\link[DESeq2:DESeqDataSet]{DESeq2::DESeqDataSetFromMatrix()}}.
@@ -183,7 +183,7 @@ The \code{\link[=DATAprepSE]{DATAprepSE()}} function
 \item calls the R function
 \code{\link[DESeq2:DESeqDataSet]{DESeq2::DESeqDataSetFromMatrix()}}
 in order to create the DESeq2 object and
-\code{\link[SummarizedExperiment:RangedSummarizedExperiment-class]{SummarizedExperiment::SummarizedExperiment()}}
+\code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment::SummarizedExperiment()}}
 in order to create the SummarizedExperiment object
 }
 }
