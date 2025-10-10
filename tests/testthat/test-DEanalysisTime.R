@@ -45,6 +45,12 @@ testthat::test_that("Test DEanalysisTime", {
                            fixed=TRUE)
 
     ##-----------------------------------------------------------------------##
+    ## We use suppresWarnings because of it comes from UpSetR which is not
+    ## up to date with ggplot2 (UpSetR plot used in DEplotVennBarplotTime)
+    ## Warning message:
+    ## In geom_point(data = pElemDat, aes_string(x = "x", y = "freq"),  :
+    ## Ignoring empty aesthetic: `colour`.
+    suppressWarnings(
     testthat::expect_s4_class(DEanalysisTime(DESeq.result=ddsDEt,
                                              pval.min=0.05,
                                              pval.vect.t=c(0.01, 0.05, 0.05),
@@ -54,7 +60,9 @@ testthat::test_that("Test DEanalysisTime", {
                                              path.result=NULL,
                                              SubFile.name="test"),
                               "DESeqDataSet")
+    )
 
+    suppressWarnings(
     testthat::expect_s4_class(DEanalysisTime(DESeq.result=ddsDEt,
                                              pval.min=0.05,
                                              pval.vect.t=c(0.01),
@@ -64,7 +72,9 @@ testthat::test_that("Test DEanalysisTime", {
                                              path.result=NULL,
                                              SubFile.name=NULL),
                               "DESeqDataSet")
+    )
 
+    suppressWarnings(
     testthat::expect_s4_class(DEanalysisTime(DESeq.result=ddsDE2t,
                                              pval.min=0.05,
                                              pval.vect.t=NULL,
@@ -74,5 +84,6 @@ testthat::test_that("Test DEanalysisTime", {
                                              path.result=NULL,
                                              SubFile.name=NULL),
                               "DESeqDataSet")
+    )
 
 })

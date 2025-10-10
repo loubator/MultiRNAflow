@@ -161,12 +161,12 @@ testthat::test_that("Test DATAplotExpressionGenes", {
     res1_Ynorm <- myYlabelNorm("vst")
     res2_Ynorm <- myYlabelNorm("rlog")
     res3_Ynorm <- myYlabelNorm("rle")
-    res4_Ynorm <- myYlabelNorm("rleRPKM")
+    res4_Ynorm <- myYlabelNorm("rpkm")
 
     testthat::expect_equal(res1_Ynorm, "vst normalized counts")
     testthat::expect_equal(res2_Ynorm, "rlog normalized counts")
     testthat::expect_equal(res3_Ynorm, "rle normalized counts")
-    testthat::expect_equal(res4_Ynorm, "rle and RPKM normalized counts")
+    testthat::expect_equal(res4_Ynorm, "RPKM normalized counts")
 
     ##-----------------------------------------------------------------------##
     ##-----------------------------------------------------------------------##
