@@ -106,6 +106,6 @@ The \code{\link[=DEplotAlluvial]{DEplotAlluvial()}} function
 \itemize{
 \item is used by the following functions of our package : \code{\link[=DEanalysisTime]{DEanalysisTime()}}
 and \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
-\item calls the R package \link{ggplot2} in order to plot the two graphs.
+\item calls the R package \link[ggplot2:ggplot2-package]{ggplot2::ggplot2} in order to plot the two graphs.
 }
 }

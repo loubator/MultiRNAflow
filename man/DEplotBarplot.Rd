@@ -20,7 +20,7 @@ one for each fixed level of the other variable.
 (see \code{\link[ggplot2:geom_bar]{ggplot2::geom_bar()}}).}
 }
 \value{
-A barplot using \link{ggplot2} (see details).
+A barplot using \link[ggplot2:ggplot2-package]{ggplot2::ggplot2} (see details).
 }
 \description{
 From a contingency table between two variables,
@@ -85,7 +85,7 @@ each ti (except t0).
 CrossTabulation <- matrix(c(75,30,10,5, 5,35,5,20, 220,235,285,275),
                           ncol=4, byrow=TRUE)
 colnames(CrossTabulation) <- c("A", "B", "C", "D")
-row.names(CrossTabulation) <- c("Spe.Pos", "Spe.Neg", "Other")
+row.names(CrossTabulation) <- c("UpRegulated", "DownRegulated", "Other")
 
 ##------------------------------------------------------------------------##
 res.dodgeTRUE <- DEplotBarplot(ContingencyTable=CrossTabulation,dodge=FALSE)
@@ -99,6 +99,6 @@ The \code{\link[=DEplotBarplot]{DEplotBarplot()}} function
 \itemize{
 \item is used by the following functions of our package: \code{\link[=DEanalysisGroup]{DEanalysisGroup()}}
 and \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
-\item calls the R package \link{ggplot2} in order to plot the barplot.
+\item calls the R package \link[ggplot2:ggplot2-package]{ggplot2::ggplot2} in order to plot the barplot.
 }
 }

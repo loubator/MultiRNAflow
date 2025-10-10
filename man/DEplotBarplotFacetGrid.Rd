@@ -85,6 +85,7 @@ Melt.Dat.2 <- data.frame(Group=rep(Group.ex, times=length(Time.ex)*2),
                          Time=rep(Time.ex, each=length(Group.ex)*2),
                          Spe.sign=rep(Spe.sign.ex, times=2*GtimesT),
                          Nb.Spe.DE=Nb.Spe.sign)
+Melt.Dat.2 <- stats::aggregate(Nb.Spe.DE~., data=Melt.Dat.2, sum)
 
 DEplotBarplotFacetGrid(Data=Melt.Dat.2,
                        Abs.col=1,
