@@ -6,12 +6,21 @@
 \documentclass{article}
 
 <<styleSweave, eval=TRUE, echo=FALSE, results="asis">>=
-BiocStyle::latex(use.unsrturl=FALSE)
+BiocStyle::latex(use.unsrturl=TRUE)
 @
 
 %\usepackage{booktabs} % book-quality tables
 \usepackage{hyperref}
-\usepackage{biblatex}
+%%%\usepackage[backend=bibtex]{biblatex}%%[backend=bibtex]
+%%%%% Remarque :  inorder to user \usepackage{biblatex}:
+%%%%% BiocStyle::latex(use.unsrturl=FALSE)
+%%%%% \usepackage{biblatex}
+%%%%% \addbibresource{MultiRNAflowBiblio.bib}
+%%%%% \printbibliography
+
+%%%% to automatically format bibliographies using natbib’s unsrturl style :
+%%%% BiocStyle::latex(use.unsrturl=TRUE)
+%%%% \bibliography{MultiRNAflowBiblio}
 
 \setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{3}
@@ -24,7 +33,7 @@ BiocStyle::latex(use.unsrturl=FALSE)
 \newcommand\Sweave{\software{Sweave}}
 \newcommand\latex[1]{{\ttfamily #1}}
 
-\addbibresource{MultiRNAflowBiblio.bib}
+%%%%\addbibresource{MultiRNAflowBiblio.bib}
 
 
 \makeatletter
@@ -84,7 +93,12 @@ for multiple biological conditions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand{\abstractname}{To cite this package}
 \begin{abstract}
-\fullcite{loubaton_multirnaflow_2024}
+%%%\fullcite{loubaton_multirnaflow_2024}
+Rodolphe Loubaton et al.
+"MultiRNAflow: integrated analysis of temporal RNA-seq data
+with multiple biological conditions".
+In: \textit{Bioinformatics} 40.5 (May 2024), btae315. DOI:
+\url{https://doi.org/10.1093/bioinformatics/btae315}
 % Rodolphe Loubaton, Nicolas Champagnat, Pierre Vallois and Laurent Vallat,
 % MultiRNAflow: integrated analysis of temporal RNA-seq data
 % with multiple biological conditions.
@@ -5587,7 +5601,8 @@ utils::toLatex(sessionInfo())
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\section*{Bibliography}
-\printbibliography
+%%%%\printbibliography
+\bibliography{MultiRNAflowBiblio}
 
 %% \bibliographystyle{apalike}%plain
 %% \bibliography{MultiRNAflowBiblio} %% \bibliography{vignettes/MultiRNAflowBiblio}
