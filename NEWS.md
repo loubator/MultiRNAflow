@@ -101,3 +101,9 @@ Suggestions and remarks from a bioconductor team member
     'Illegal parameter number in definition of \NewValue'
     - we use '\printbibliography' and '\addbibresource' in the preamble
     for the 'cleaner' biblatex interface.
+
+
+# Changes in versions: 1.7.2
+
+* Vignette (`MultiRNAflow_vignette-knitr.Rnw`)
+  - We use now `use.unsrturl=TRUE`

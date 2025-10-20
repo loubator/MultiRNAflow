@@ -1,7 +1,7 @@
 Package: MultiRNAflow
 Title: An R package for integrated analysis of temporal RNA-seq data with
     multiple biological conditions
-Version: 1.7.1
+Version: 1.7.2
 Authors@R: c(
     person("Rodolphe", "Loubaton", , "loubaton.rodolphe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-1442-7270")),
