@@ -78,7 +78,7 @@ across time.
 a violin plot
 (see \code{\link[ggplot2:geom_violin]{ggplot2::geom_violin()}}),
 and error bars (standard deviation)
-(see \code{\link[ggplot2:geom_linerange]{ggplot2::geom_errorbar()}})
+(see \code{\link[ggplot2:geom_errorbar]{ggplot2::geom_errorbar()}})
 for each biological condition.
 \item In the case where samples belong to different time points and different
 biological conditions : the evolution of the expression of each replicate

@@ -23,7 +23,7 @@ DATAnormalization(
 \item{Normalization}{"rle", "vst", "rlog" and "rpkm".
 "rle", "vst" and "rlog" correspond to a method of normalization proposed
 by \code{DESeq2} (see
-\code{\link[BiocGenerics:dge]{BiocGenerics::estimateSizeFactors()}} for "rle",
+\code{\link[BiocGenerics:estimateSizeFactors]{BiocGenerics::estimateSizeFactors()}} for "rle",
 \code{\link[DESeq2:rlog]{DESeq2::rlog()}} for "rlog" and
 \code{\link[DESeq2:vst]{DESeq2::vst()}} for "vst").
 "rpkm" corresponds to a RPKM normalization after a "rle" normalization.}
@@ -96,7 +96,7 @@ From raw counts, this function realizes one of
 the three methods of normalization of the package \code{DESeq2}:
 \itemize{
 \item Relative Log Expression (rle) transformation
-(see \code{\link[BiocGenerics:dge]{BiocGenerics::estimateSizeFactors()}})
+(see \code{\link[BiocGenerics:estimateSizeFactors]{BiocGenerics::estimateSizeFactors()}})
 \item Regularized Log (rlog) transformation
 (see \code{\link[DESeq2:rlog]{DESeq2::rlog()}})
 \item Variance Stabilizing Transformation (vst) transformation
@@ -126,7 +126,7 @@ The \code{\link[=DATAnormalization]{DATAnormalization()}}
 function calls our R function
 \code{\link[=DATAprepSE]{DATAprepSE()}},
 and the R functions
-\code{\link[BiocGenerics:dge]{BiocGenerics::estimateSizeFactors()}},
+\code{\link[BiocGenerics:estimateSizeFactors]{BiocGenerics::estimateSizeFactors()}},
 \code{\link[DESeq2:rlog]{DESeq2::rlog()}} and
 \code{\link[DESeq2:vst]{DESeq2::vst()}}
 in order to realized the normalization.
