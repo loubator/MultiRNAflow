@@ -95,7 +95,7 @@
 #'
 #' @importFrom stats kmeans
 #' @importFrom ggplot2 ggplot aes geom_line geom_point ylim scale_color_manual
-#' ylab guides guide_legend theme
+#'   ylab guides guide_legend theme
 #' @importFrom FactoMineR HCPC
 #' @importFrom SummarizedExperiment colData assays
 #' @importFrom S4Vectors metadata

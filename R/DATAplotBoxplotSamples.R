@@ -74,8 +74,8 @@
 #' @importFrom SummarizedExperiment assays colData
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot aes geom_boxplot theme labs guides
-#' scale_x_discrete guide_axis element_text guide_legend scale_fill_manual
-#' geom_jitter position_jitter
+#'   scale_x_discrete guide_axis element_text guide_legend scale_fill_manual
+#'   geom_jitter position_jitter
 #'
 #' @export
 #'

@@ -130,8 +130,8 @@
 #' @importFrom grDevices dev.cur pdf dev.control dev.off dev.set recordPlot
 #' @importFrom graphics legend plot.new
 #' @importFrom ggplot2 ggplot aes ylab ggtitle theme scale_y_continuous guides
-#' scale_color_manual scale_fill_manual coord_flip geom_bar guide_legend
-#' element_text guide_axis theme_minimal
+#'   scale_color_manual scale_fill_manual coord_flip geom_bar guide_legend
+#'   element_text guide_axis theme_minimal
 #'
 #' @export
 #'

@@ -47,8 +47,8 @@
 #' [ggplot2::geom_bar()].
 #'
 #' @importFrom ggplot2 ggplot aes facet_grid geom_bar xlab ylab theme
-#' element_rect element_text scale_x_discrete guide_axis guide_legend guides
-#' scale_fill_manual
+#'   element_rect element_text scale_x_discrete guide_axis guide_legend guides
+#'   scale_fill_manual
 #' @importFrom stats as.formula
 #' @importFrom rlang .data
 #'

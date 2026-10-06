@@ -68,7 +68,7 @@
 #'
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot aes geom_bar position_dodge xlab ylab guide_axis
-#' scale_x_discrete scale_fill_manual
+#'   scale_x_discrete scale_fill_manual
 #'
 #' @seealso The [DEplotBarplot()] function
 #' * is used by the following functions of our package: [DEanalysisGroup()]

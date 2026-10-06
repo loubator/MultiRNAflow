@@ -86,7 +86,7 @@
 #' with the kmeans method.
 #'
 #' @importFrom Mfuzz filter.NA fill.NA filter.std standardise mestimate
-#' mfuzz mfuzz.plot2
+#'   mfuzz mfuzz.plot2
 #' @importFrom SummarizedExperiment colData assays rownames
 #' @importFrom S4Vectors metadata
 #' @importFrom Biobase assayData ExpressionSet

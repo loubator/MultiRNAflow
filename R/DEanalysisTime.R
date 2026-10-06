@@ -47,7 +47,7 @@
 #' @importFrom SummarizedExperiment colData
 #' @importFrom S4Vectors metadata
 #' @importFrom ggplot2 ggplot aes xlab ylab geom_bar scale_fill_manual
-#' theme_minimal
+#'   theme_minimal
 #' @importFrom grDevices pdf dev.off
 #'
 #' @return The function returns the same DESeqDataSet class object

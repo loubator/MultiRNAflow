@@ -117,9 +117,9 @@
 #' @importFrom gprofiler2 gost gostplot publish_gosttable
 #' @importFrom grDevices png dev.off
 #' @importFrom ggplot2 ggplot aes geom_point geom_line geom_hline geom_bar
-#' scale_fill_manual scale_color_manual scale_shape_manual geom_segment
-#' scale_x_continuous scale_y_continuous xlab ylab ggtitle theme_classic theme
-#' element_blank element_text unit rel coord_flip labs theme_bw geom_area
+#'   scale_fill_manual scale_color_manual scale_shape_manual geom_segment
+#'   scale_x_continuous scale_y_continuous xlab ylab ggtitle theme_classic theme
+#'   element_blank element_text unit rel coord_flip labs theme_bw geom_area
 #' @importFrom ggrepel geom_label_repel
 #'
 #' @seealso The function uses the R package \code{gprofiler2}

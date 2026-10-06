@@ -69,8 +69,8 @@
 #'
 #' @importFrom ggalluvial stat_stratum stat_alluvium
 #' @importFrom ggplot2 ggplot aes theme scale_x_continuous ggtitle labs guides
-#' geom_line geom_point guide_legend geom_area scale_size_manual xlab ylab
-#' scale_fill_manual
+#'   geom_line geom_point guide_legend geom_area scale_size_manual xlab ylab
+#'   scale_fill_manual
 #' @importFrom stats aggregate
 #' @importFrom reshape2 melt
 #'

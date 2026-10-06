@@ -85,7 +85,7 @@
 #' in order to realized the normalization.
 #'
 #' @importFrom DESeq2 vst varianceStabilizingTransformation rlog
-#' estimateSizeFactors counts
+#'   estimateSizeFactors counts
 #' @importFrom SummarizedExperiment assay assays colData colnames rownames
 #' @importFrom grDevices pdf dev.off
 #' @importFrom utils write.table

@@ -31,8 +31,8 @@
 #' @importFrom reshape2 melt
 #' @importFrom stats var sd
 #' @importFrom ggplot2 ggplot xlab ylab aes geom_errorbar position_dodge
-#' geom_line geom_point position_nudge geom_jitter position_jitter
-#' geom_violin geom_boxplot geom_dotplot
+#'   geom_line geom_point position_nudge geom_jitter position_jitter
+#'   geom_violin geom_boxplot geom_dotplot
 #'
 #' @return The function plots for the gene selected with
 #' the input \code{row.gene}

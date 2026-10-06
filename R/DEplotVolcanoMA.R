@@ -56,8 +56,8 @@
 #'
 #' @importFrom SummarizedExperiment rowData rownames assays
 #' @importFrom S4Vectors metadata
-#' @importFrom ggplot2 ggplot geom_point aes scale_shape_manual
-#' scale_color_manual scale_color_manual geom_hline ggtitle xlab theme_minimal
+#' @importFrom ggplot2 ggplot geom_point aes geom_hline ggtitle xlab
+#'   scale_color_manual scale_shape_manual scale_color_manual theme_minimal
 #' @importFrom ggrepel geom_label_repel
 #'
 #' @return The function returns the same SummarizedExperiment class object

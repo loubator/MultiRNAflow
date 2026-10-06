@@ -33,7 +33,7 @@
 #'
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot aes geom_bar scale_fill_brewer xlab ylab
-#' theme_minimal labs
+#'   theme_minimal labs
 #'
 #' @export
 #'
