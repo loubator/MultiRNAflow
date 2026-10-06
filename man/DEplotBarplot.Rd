@@ -20,7 +20,7 @@ one for each fixed level of the other variable.
 (see \code{\link[ggplot2:geom_bar]{ggplot2::geom_bar()}}).}
 }
 \value{
-A barplot using \link[ggplot2:ggplot2-package]{ggplot2::ggplot2} (see details).
+A barplot using \link[ggplot2:ggplot2]{ggplot2} (see details).
 }
 \description{
 From a contingency table between two variables,
@@ -99,6 +99,6 @@ The \code{\link[=DEplotBarplot]{DEplotBarplot()}} function
 \itemize{
 \item is used by the following functions of our package: \code{\link[=DEanalysisGroup]{DEanalysisGroup()}}
 and \code{\link[=DEanalysisTimeAndGroup]{DEanalysisTimeAndGroup()}}.
-\item calls the R package \link[ggplot2:ggplot2-package]{ggplot2::ggplot2} in order to plot the barplot.
+\item calls the R package \link[ggplot2:ggplot2]{ggplot2} in order to plot the barplot.
 }
 }
