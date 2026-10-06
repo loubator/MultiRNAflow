@@ -29,13 +29,26 @@ testthat::test_that("Test DEanalysisGroup", {
                            fixed=TRUE)
 
     ##-----------------------------------------------------------------------##
-    testthat::expect_s4_class(DEanalysisGroup(DESeq.result=dds.DE.G,
-                                              pval.min=0.01,
-                                              log.FC.min=1,
-                                              LRT.supp.info=FALSE,
-                                              Plot.DE.graph=TRUE,
-                                              path.result=NULL,
-                                              SubFile.name="test"),
-                              "DESeqDataSet")
+    withCallingHandlers(
+        testthat::expect_s4_class(DEanalysisGroup(DESeq.result=dds.DE.G,
+                                                  pval.min=0.01,
+                                                  log.FC.min=1,
+                                                  LRT.supp.info=FALSE,
+                                                  Plot.DE.graph=TRUE,
+                                                  path.result=NULL,
+                                                  SubFile.name="test"),
+                                  "DESeqDataSet"),
+        warning = function(w) {
+            cd_message <- conditionMessage(w)
+            if (
+                grepl("aes_string\\(\\).*deprecated", cd_message) ||
+                grepl("size.*aesthetic.*deprecated", cd_message) ||
+                grepl("element_line\\(\\).*size.*deprecated", cd_message)
+            ) {
+                invokeRestart("muffleWarning")
+            }
+        }
+    )
+
 
 })

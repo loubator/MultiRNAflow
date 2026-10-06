@@ -167,7 +167,7 @@ testthat::test_that("Test PCArealization", {
     res4_PCAres <- PCArealization(SEresNorm=SEresNormMus2_c,
                                   DATAnorm=TRUE,
                                   gene.deletion=NULL,
-                                  sample.deletion=c(3, 8),
+                                  sample.deletion=c(1,3),
                                   Supp.del.sample=TRUE)
 
     testthat::expect_s4_class(res1_PCAres, "SummarizedExperiment")
