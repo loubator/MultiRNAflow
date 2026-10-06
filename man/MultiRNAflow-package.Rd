@@ -39,6 +39,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Rodolphe Loubaton \email{loubaton.rodolphe@gmail.com} (\href{https://orcid.org/0000-0002-1442-7270}{ORCID})
   \item Nicolas Champagnat \email{nicolas.champagnat@inria.fr} (\href{https://orcid.org/0000-0002-5128-2357}{ORCID}) [thesis advisor]
   \item Laurent Vallat \email{vallat@unistra.fr} (\href{https://orcid.org/0000-0002-5226-7706}{ORCID}) [thesis advisor]
   \item Pierre Vallois \email{pierre.vallois@univ-lorraine.fr} (\href{https://orcid.org/0000-0002-2123-0142}{ORCID})
